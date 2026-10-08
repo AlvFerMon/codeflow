@@ -1,58 +1,75 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# CodeFlow
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Plataforma colaborativa para equipos de desarrollo (TFG · 2.º DAM), inspirada en GitHub/GitLab:
+proyectos, miembros con roles, repositorios con **control de versiones propio y cifrado**, ramas,
+commits, issues, pull requests con revisiones y fusión, actividad y notificaciones.
+Incluye una app Android (Kotlin + Jetpack Compose) que consume la API REST.
 
-## About Laravel
+## Estructura del repositorio
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
-
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
-
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+backend/   Laravel 13 (API REST + web Blade/Tailwind)
+android/   App Android (Kotlin, Compose, Retrofit)
+docker/    Imágenes y configuración (PHP-FPM, nginx)
+docs/      Documentación del TFG (ARQUITECTURA.md)
+docker-compose.yml
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+## Puesta en marcha con Docker
 
-## Contributing
+Requisitos: Docker Desktop.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```powershell
+copy .env.example .env      # y cambia las contraseñas
+docker compose up -d --build
+docker compose logs -f app  # espera a ver "[codeflow] Listo"
+```
 
-## Code of Conduct
+| Servicio | URL |
+|---|---|
+| Web | http://localhost:8080 |
+| API | http://localhost:8080/api |
+| Correos de prueba (Mailpit) | http://localhost:8025 |
+| MySQL (DBeaver, etc.) | `localhost:3307`, usuario/contraseña de `.env` (`DB_USERNAME` / `DB_PASSWORD`) |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+En DBeaver, si aparece "Public Key Retrieval is not allowed", pon `allowPublicKeyRetrieval=true`
+en las propiedades del driver.
 
-## Security Vulnerabilities
+El primer arranque genera en `backend/.env` la `APP_KEY` y la **`CODEFLOW_MASTER_KEY`** (clave maestra
+del cifrado de repositorios). **Haz copia de `backend/.env`**: si se pierde la clave maestra, el código
+de los repositorios no se puede descifrar.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Tras cambiar vistas o estilos: `docker compose run --rm assets` (recompila CSS/JS).
 
-## License
+### Usuarios de prueba
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Se crean automáticamente (`CODEFLOW_SEED_DEMO=true`) con las contraseñas de `.env`:
+
+| Usuario | Rol |
+|---|---|
+| `admin@codeflow.test` (`SEED_ADMIN_PASSWORD`) | Administrador de la plataforma |
+| `propietaria@codeflow.test` (`SEED_DEMO_PASSWORD`) | Propietaria del "Proyecto DAM" |
+| `colaborador@codeflow.test` (`SEED_DEMO_PASSWORD`) | Colaborador |
+| `observadora@codeflow.test` (`SEED_DEMO_PASSWORD`) | Observadora (solo lectura + comentarios) |
+
+## Roles
+
+- **Administrador**: acceso total.
+- **Propietario**: gestiona el proyecto, sus miembros y roles, repositorios y visibilidad.
+- **Colaborador**: sube código, ramas, issues y pull requests, revisa y fusiona PR aprobados.
+- **Observador**: solo lo añade el propietario; lee todo (también repos privados) y solo puede escribir
+  comentarios en issues y pull requests (no en el código). Sus comentarios llegan como **alerta** al
+  apartado de notificaciones del resto de miembros.
+
+Los repositorios **públicos** se pueden consultar sin iniciar sesión.
+
+## Tests
+
+```powershell
+docker compose exec app php artisan test
+```
+
+## Documentación
+
+- [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md): arquitectura, modelo de datos, motor VCS, cifrado, seguridad y plan.
+- [android/README.md](android/README.md): app Android.

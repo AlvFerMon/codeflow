@@ -1,6 +1,6 @@
 # CodeFlow — Propuesta de arquitectura (Fase 0)
 
-> Documento de revisión previo a la implementación. Estado: **pendiente de aprobación**.
+> Estado: **aprobada e implementada (MVP web + API)**. La app Android está en fase de esqueleto.
 > Versión 2 — 8 de octubre de 2026. Cambio principal respecto a la v1: **CodeFlow tiene su propio sistema de control de versiones** (no usa Git) y **los repositorios se cifran**.
 
 ---
@@ -135,7 +135,7 @@ flowchart TB
 
 ## 2. Estructura de carpetas
 
-### 2.1 Monorepo (pendiente de confirmar)
+### 2.1 Monorepo (confirmado)
 
 ```
 codeflow/
@@ -483,7 +483,7 @@ Policies con usuario **nullable** (`?User $user`) para admitir invitados. Un rep
 | Crear ramas, subir archivos (commits) | ✗ | ✗ | ✓ | ✓ | ✓ |
 | Eliminar rama (nunca la de por defecto ni una con PR abierto) | ✗ | ✗ | ✓ | ✓ | ✓ |
 | Crear y editar issues y PRs, cambiar estado, asignar | ✗ | ✗ | ✓ | ✓ | ✓ |
-| Comentar | ✗ | ✓ *(pendiente de confirmar)* | ✓ | ✓ | ✓ |
+| Comentar en issues y PRs (no en el código) | ✗ | ✓ (genera **alerta**) | ✓ | ✓ | ✓ |
 | Aprobar o pedir cambios (no en el PR propio) | ✗ | ✗ | ✓ | ✓ | ✓ |
 | Fusionar PR | ✗ | ✗ | ✓ si está **aprobado** | ✓ | ✓ |
 | Cerrar o reabrir PR | ✗ | ✗ | solo el autor | ✓ | ✓ |
@@ -883,7 +883,25 @@ Con MySQL, por API y web:
 
 ---
 
-## Decisiones pendientes
+## Decisiones confirmadas posteriormente
 
-1. **Monorepo** con `backend/` y `android/` en el mismo repositorio: ¿de acuerdo?
-2. **Observadores:** ¿pueden comentar o son de solo lectura?
+1. **Monorepo** con `backend/`, `android/`, `docker/` y `docs/` en el mismo repositorio.
+2. **Observador:** solo lo puede añadir el propietario del proyecto (o el admin). Lee todo, incluidos los repos privados del
+   proyecto, y únicamente puede escribir **comentarios generales** en issues y pull requests (no comentarios sobre líneas
+   de código ni ninguna otra modificación). Cada comentario suyo se notifica como **alerta** al resto de miembros.
+3. **Notificaciones en la aplicación** (tabla `notifications` de Laravel, canal `database`): cambios del proyecto
+   (miembros, repositorios, ramas, commits, issues, PRs, revisiones, fusiones) y alertas. FCM queda para la fase 19.
+4. **Entorno**: Docker Compose (MySQL 8.4, PHP-FPM 8.3, nginx, Mailpit, compilación de assets). Ver `README.md`.
+
+## Estado de implementación
+
+| Fase | Estado |
+|---|---|
+| 2-3 Proyecto Laravel, MySQL, Docker de desarrollo | ✅ |
+| 4-5 Usuarios, autenticación (API con tokens, web con sesión), roles y policies | ✅ |
+| 6-8 Proyectos, repositorios cifrados, ramas, archivos, commits, diff Myers | ✅ |
+| 9-11 Issues, pull requests (revisión, merge 3 vías, conflictos), comentarios, actividad, notificaciones | ✅ |
+| 12-bis Web Blade completa | ✅ |
+| 13 Android | 🟡 esqueleto (login, proyectos, notificaciones) |
+| 14 Testing | 🟡 139 tests de backend; faltan tests de la app Android en dispositivo |
+| 15-20 Docker producción, CI/CD, análisis estático, IA, FCM, documentación final | ⏳ |
