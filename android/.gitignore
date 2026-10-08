@@ -1,0 +1,32 @@
+# Gradle / compilación
+.gradle/
+.kotlin/
+build/
+/app/build/
+/captures/
+.externalNativeBuild/
+.cxx/
+
+# Configuración local (ruta del SDK, URL de la API para el dispositivo físico...)
+/local.properties
+
+# Firma: los keystores y sus contraseñas NUNCA se suben al repositorio
+*.jks
+*.keystore
+keystore.properties
+
+# Artefactos generados
+/app/release/
+/app/debug/
+*.apk
+*.aab
+
+# Android Studio / IntelliJ (se conservan solo los ficheros útiles para el equipo)
+*.iml
+.idea/*
+!.idea/codeStyles/
+!.idea/runConfigurations/
+
+# Sistema
+.DS_Store
+Thumbs.db

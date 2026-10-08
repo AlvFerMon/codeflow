@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    SOLO DEBUG. Permite HTTP (sin TLS) hacia el backend local en Docker:
+      - 10.0.2.2  → el PC anfitrión visto desde el emulador de Android Studio
+      - localhost → por si se usa `adb reverse tcp:8080 tcp:8080`
+    Para un móvil físico en la misma red, añade aquí la IP LAN del PC
+    (p. ej. <domain includeSubdomains="false">192.168.1.50</domain>).
+    La build release no incluye este fichero: solo HTTPS.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="false">10.0.2.2</domain>
+        <domain includeSubdomains="false">localhost</domain>
+    </domain-config>
+</network-security-config>

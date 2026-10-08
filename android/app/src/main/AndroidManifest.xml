@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+        usesCleartextTraffic="false": en release solo se permite HTTPS.
+        La build debug añade (src/debug/AndroidManifest.xml) un networkSecurityConfig
+        que permite HTTP únicamente hacia 10.0.2.2 y localhost (backend en Docker).
+        allowBackup="false": el token de sesión no se copia en las copias de seguridad.
+    -->
+    <application
+        android:name=".CodeFlowApplication"
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.CodeFlow"
+        android:usesCleartextTraffic="false">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- TODO(fase 19): servicio de Firebase Cloud Messaging para notificaciones push. -->
+    </application>
+
+</manifest>
