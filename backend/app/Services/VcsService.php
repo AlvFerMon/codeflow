@@ -83,6 +83,35 @@ class VcsService
         return $seen;
     }
 
+    /**
+     * Historial de una rama: ids de los commits alcanzables desde $headId, del más
+     * reciente al más antiguo. Con $path, solo los commits que cambiaron ese archivo
+     * respecto a su primer padre (como `git log -- ruta`, simplificado).
+     *
+     * @return array<int,int>
+     */
+    public function historyIds(int $repositoryId, ?int $headId, ?string $path = null): array
+    {
+        $graph = $this->graph($repositoryId);
+        $ids = array_keys($this->ancestors($graph, $headId));
+        rsort($ids);
+
+        if ($path === null || $path === '' || ! $ids) {
+            return $ids;
+        }
+
+        $blobs = [];
+        foreach (array_chunk($ids, 1000) as $chunk) {
+            $blobs += CommitFile::whereIn('commit_id', $chunk)->where('path', $path)->pluck('blob_id', 'commit_id')->all();
+        }
+
+        return array_values(array_filter($ids, function (int $id) use ($graph, $blobs) {
+            $parent = $graph[$id]->parent_id ?? null;
+
+            return ($blobs[$id] ?? null) !== ($parent ? $blobs[$parent] ?? null : null);
+        }));
+    }
+
     public function mergeBase(Collection $graph, int $a, int $b): ?int
     {
         $ancestorsOfA = $this->ancestors($graph, $a);

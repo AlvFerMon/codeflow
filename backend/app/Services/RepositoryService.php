@@ -89,6 +89,29 @@ class RepositoryService
         return $repository;
     }
 
+    /** Cambia la rama por defecto (debe existir en el repositorio). */
+    public function changeDefaultBranch(Repository $repository, User $user, string $branchName): Repository
+    {
+        if ($branchName === $repository->default_branch) {
+            return $repository;
+        }
+
+        abort_unless(
+            Branch::where('repository_id', $repository->id)->where('name', $branchName)->exists(),
+            422,
+            'La rama indicada no existe en el repositorio.'
+        );
+
+        $before = $repository->default_branch;
+        $repository->update(['default_branch' => $branchName]);
+
+        Activity::log($repository->project, $user, 'repository.updated', $repository, [
+            'changes' => ['default_branch' => ['from' => $before, 'to' => $branchName]],
+        ]);
+
+        return $repository;
+    }
+
     public function delete(Repository $repository, User $user): void
     {
         Activity::log($repository->project, $user, 'repository.deleted', null, ['name' => $repository->name]);

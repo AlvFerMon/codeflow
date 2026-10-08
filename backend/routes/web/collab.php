@@ -1,27 +1,30 @@
 <?php
 
-use App\Http\Controllers\Web\PlaceholderController as P;
+use App\Http\Controllers\Web\Collab\IssueController;
+use App\Http\Controllers\Web\Collab\PullRequestController;
 use Illuminate\Support\Facades\Route;
 
 // Issues y Pull Requests ({number} = número dentro del repositorio: #1, #2...)
 
-Route::get('repositories/{repository}/issues', P::class)->defaults('title', 'Issues')->defaults('tab', 'issues')->name('issues.index');
-Route::get('repositories/{repository}/pulls', P::class)->defaults('title', 'Pull requests')->defaults('tab', 'pulls')->name('pulls.index');
+// Lectura: los repos públicos se ven sin sesión (la Policy decide; privados → 404)
+Route::get('repositories/{repository}/issues', [IssueController::class, 'index'])->name('issues.index');
+Route::get('repositories/{repository}/pulls', [PullRequestController::class, 'index'])->name('pulls.index');
 
 Route::middleware('auth')->group(function () {
-    Route::get('repositories/{repository}/issues/create', P::class)->defaults('title', 'Nueva issue')->defaults('tab', 'issues')->name('issues.create');
-    Route::post('repositories/{repository}/issues', P::class)->name('issues.store');
-    Route::put('repositories/{repository}/issues/{number}', P::class)->name('issues.update');
-    Route::post('repositories/{repository}/issues/{number}/comments', P::class)->name('issues.comment');
+    Route::get('repositories/{repository}/issues/create', [IssueController::class, 'create'])->name('issues.create');
+    Route::post('repositories/{repository}/issues', [IssueController::class, 'store'])->name('issues.store');
+    Route::put('repositories/{repository}/issues/{number}', [IssueController::class, 'update'])->whereNumber('number')->name('issues.update');
+    Route::delete('repositories/{repository}/issues/{number}', [IssueController::class, 'destroy'])->whereNumber('number')->name('issues.destroy');
+    Route::post('repositories/{repository}/issues/{number}/comments', [IssueController::class, 'comment'])->whereNumber('number')->name('issues.comment');
 
-    Route::get('repositories/{repository}/pulls/create', P::class)->defaults('title', 'Nuevo pull request')->defaults('tab', 'pulls')->name('pulls.create');
-    Route::post('repositories/{repository}/pulls', P::class)->name('pulls.store');
-    Route::post('repositories/{repository}/pulls/{number}/comments', P::class)->name('pulls.comment');
-    Route::post('repositories/{repository}/pulls/{number}/reviews', P::class)->name('pulls.review');
-    Route::post('repositories/{repository}/pulls/{number}/merge', P::class)->name('pulls.merge');
-    Route::post('repositories/{repository}/pulls/{number}/close', P::class)->name('pulls.close');
-    Route::post('repositories/{repository}/pulls/{number}/reopen', P::class)->name('pulls.reopen');
+    Route::get('repositories/{repository}/pulls/create', [PullRequestController::class, 'create'])->name('pulls.create');
+    Route::post('repositories/{repository}/pulls', [PullRequestController::class, 'store'])->name('pulls.store');
+    Route::post('repositories/{repository}/pulls/{number}/comments', [PullRequestController::class, 'comment'])->whereNumber('number')->name('pulls.comment');
+    Route::post('repositories/{repository}/pulls/{number}/reviews', [PullRequestController::class, 'review'])->whereNumber('number')->name('pulls.review');
+    Route::post('repositories/{repository}/pulls/{number}/merge', [PullRequestController::class, 'merge'])->whereNumber('number')->name('pulls.merge');
+    Route::post('repositories/{repository}/pulls/{number}/close', [PullRequestController::class, 'close'])->whereNumber('number')->name('pulls.close');
+    Route::post('repositories/{repository}/pulls/{number}/reopen', [PullRequestController::class, 'reopen'])->whereNumber('number')->name('pulls.reopen');
 });
 
-Route::get('repositories/{repository}/issues/{number}', P::class)->defaults('title', 'Issue')->defaults('tab', 'issues')->whereNumber('number')->name('issues.show');
-Route::get('repositories/{repository}/pulls/{number}', P::class)->defaults('title', 'Pull request')->defaults('tab', 'pulls')->whereNumber('number')->name('pulls.show');
+Route::get('repositories/{repository}/issues/{number}', [IssueController::class, 'show'])->whereNumber('number')->name('issues.show');
+Route::get('repositories/{repository}/pulls/{number}', [PullRequestController::class, 'show'])->whereNumber('number')->name('pulls.show');

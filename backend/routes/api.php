@@ -68,7 +68,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('me/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
     // Proyectos y miembros
-    Route::apiResource('projects', ProjectController::class);
+    Route::apiResource('projects', ProjectController::class)->names('api.projects');
     Route::get('projects/{project}/dashboard', [ProjectController::class, 'dashboard']);
     Route::get('projects/{project}/activity', [ActivityController::class, 'index']);
     Route::get('projects/{project}/members', [MemberController::class, 'index']);

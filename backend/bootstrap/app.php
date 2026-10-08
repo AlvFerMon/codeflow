@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'optional.sanctum' => OptionalSanctum::class,
         ]);
+
+        // El contenido de los archivos editados en la web se guarda tal cual
+        // (sin recortar espacios iniciales ni el salto de línea final).
+        $middleware->trimStrings(except: ['file_content']);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

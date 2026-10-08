@@ -9,18 +9,18 @@
 </head>
 <body class="min-h-full bg-slate-50 text-slate-800 antialiased">
     <header class="bg-slate-900 text-slate-100">
-        <div class="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
+        <div class="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:gap-x-6">
             <a href="{{ route('home') }}" class="flex items-center gap-2 font-semibold tracking-tight">
                 <span class="grid h-8 w-8 place-items-center rounded-md bg-indigo-500 font-mono text-sm text-white">&lt;/&gt;</span>
-                CodeFlow
+                <span class="hidden sm:inline">CodeFlow</span>
             </a>
             <nav class="flex items-center gap-1 text-sm">
                 @auth
-                    <a href="{{ route('projects.index') }}" @class(['rounded px-3 py-1.5 hover:bg-slate-800', 'bg-slate-800' => request()->routeIs('projects.*')])>Proyectos</a>
+                    <a href="{{ route('projects.index') }}" @class(['rounded px-2 py-1.5 hover:bg-slate-800 sm:px-3', 'bg-slate-800' => request()->routeIs('projects.*')])>Proyectos</a>
                 @endauth
-                <a href="{{ route('explore') }}" @class(['rounded px-3 py-1.5 hover:bg-slate-800', 'bg-slate-800' => request()->routeIs('explore')])>Explorar</a>
+                <a href="{{ route('explore') }}" @class(['rounded px-2 py-1.5 hover:bg-slate-800 sm:px-3', 'bg-slate-800' => request()->routeIs('explore')])>Explorar</a>
             </nav>
-            <div class="ml-auto flex items-center gap-3 text-sm">
+            <div class="ml-auto flex items-center gap-2 text-sm sm:gap-3">
                 @auth
                     @php($unread = auth()->user()->unreadNotifications()->count())
                     <a href="{{ route('notifications.index') }}" class="relative rounded p-1.5 hover:bg-slate-800" title="Notificaciones">
@@ -46,8 +46,8 @@
                         </div>
                     </details>
                 @else
-                    <a href="{{ route('login') }}" class="rounded px-3 py-1.5 hover:bg-slate-800">Iniciar sesión</a>
-                    <a href="{{ route('register') }}" class="rounded bg-indigo-500 px-3 py-1.5 font-medium text-white hover:bg-indigo-400">Registrarse</a>
+                    <a href="{{ route('login') }}" class="rounded px-2 py-1.5 hover:bg-slate-800 sm:px-3">Entrar</a>
+                    <a href="{{ route('register') }}" class="rounded bg-indigo-500 px-2 py-1.5 font-medium text-white hover:bg-indigo-400 sm:px-3">Registrarse</a>
                 @endauth
             </div>
         </div>

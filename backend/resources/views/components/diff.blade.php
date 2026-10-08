@@ -15,9 +15,9 @@
     </p>
     @foreach ($files as $file)
         <details open class="overflow-hidden rounded-lg border border-slate-200 bg-white">
-            <summary class="flex cursor-pointer items-center gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2 text-sm">
+            <summary class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 border-b border-slate-200 bg-slate-50 px-4 py-2 text-sm">
                 <x-badge :color="$statusColor[$file['status']] ?? 'slate'">{{ $statusLabel[$file['status']] ?? $file['status'] }}</x-badge>
-                <span class="font-mono text-slate-800">{{ $file['path'] }}</span>
+                <span class="min-w-0 break-all font-mono text-slate-800">{{ $file['path'] }}</span>
                 <span class="ml-auto font-mono text-xs">
                     <span class="text-emerald-700">+{{ $file['additions'] }}</span>
                     <span class="text-rose-700">−{{ $file['deletions'] }}</span>
