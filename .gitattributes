@@ -1,11 +1,7 @@
-* text=auto eol=lf
-
-*.blade.php diff=html
-*.css diff=css
-*.html diff=html
-*.md diff=markdown
-*.php diff=php
-
-/.github export-ignore
-CHANGELOG.md export-ignore
-.styleci.yml export-ignore
+* text=auto
+# Scripts que se ejecutan dentro de Linux: siempre LF aunque se clone en Windows
+*.sh text eol=lf
+docker/** text eol=lf
+android/gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
