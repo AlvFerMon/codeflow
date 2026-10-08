@@ -1,0 +1,5 @@
+backend/vendor
+backend/node_modules
+android
+docs
+.git

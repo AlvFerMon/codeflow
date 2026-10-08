@@ -1,0 +1,48 @@
+#!/bin/sh
+# Arranque del contenedor "app": prepara Laravel y lanza PHP-FPM.
+set -e
+cd /var/www/html
+
+# 1. Fichero .env de Laravel (solo la primera vez)
+if [ ! -f .env ]; then
+    echo "[codeflow] Creando backend/.env a partir de .env.example"
+    cp .env.example .env
+fi
+
+# 2. Dependencias PHP
+if [ ! -f vendor/autoload.php ]; then
+    echo "[codeflow] Instalando dependencias con Composer (la primera vez tarda unos minutos)..."
+    composer install --no-interaction --prefer-dist --no-progress
+fi
+
+# 3. Claves (se generan una sola vez y quedan guardadas en backend/.env)
+if ! grep -q '^APP_KEY=base64:' .env; then
+    php artisan key:generate --force
+fi
+if ! grep -q '^CODEFLOW_MASTER_KEY=base64:' .env; then
+    echo "[codeflow] Generando la clave maestra de cifrado (CODEFLOW_MASTER_KEY). ¡Haz copia de backend/.env!"
+    MASTER_KEY="base64:$(php -r 'echo base64_encode(random_bytes(32));')"
+    if grep -q '^CODEFLOW_MASTER_KEY=' .env; then
+        sed -i "s|^CODEFLOW_MASTER_KEY=.*|CODEFLOW_MASTER_KEY=${MASTER_KEY}|" .env
+    else
+        printf '\nCODEFLOW_MASTER_KEY=%s\n' "$MASTER_KEY" >> .env
+    fi
+fi
+
+# 4. Carpetas de trabajo de Laravel
+mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+# 5. Base de datos: migraciones + datos de prueba (el seeder no duplica si ya existen)
+php artisan config:clear >/dev/null
+echo "[codeflow] Ejecutando migraciones..."
+php artisan migrate --force
+if [ "${CODEFLOW_SEED_DEMO:-true}" = "true" ]; then
+    php artisan db:seed --force
+fi
+
+# 6. Permisos: PHP-FPM se ejecuta como www-data (después de migrar, que corre como root)
+chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
+chmod -R ug+rwX storage bootstrap/cache 2>/dev/null || true
+
+echo "[codeflow] Listo. Web en ${APP_URL:-http://localhost:8080}"
+exec "$@"
