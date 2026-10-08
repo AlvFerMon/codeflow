@@ -27,9 +27,10 @@ class AppServiceProvider extends ServiceProvider
                 && ! ($token->tokenable instanceof User && ! $token->tokenable->isActive())
         );
 
-        // API sin vistas: el enlace del correo apunta al frontend (web o deep link de Android)
+        // El enlace del correo apunta a la web de CodeFlow (APP_URL) salvo que se configure
+        // otro frontend con FRONTEND_URL (p. ej. un deep link de Android)
         ResetPassword::createUrlUsing(function ($user, string $token) {
-            $base = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:5173')), '/');
+            $base = rtrim(config('app.frontend_url') ?: config('app.url'), '/');
 
             return $base.'/reset-password?token='.$token.'&email='.urlencode($user->getEmailForPasswordReset());
         });

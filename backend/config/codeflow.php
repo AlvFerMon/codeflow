@@ -24,9 +24,16 @@ return [
     |--------------------------------------------------------------------------
     */
 
+    // Ajustables con variables de entorno. En Docker deben ser coherentes con
+    // docker/php/php.ini (upload_max_filesize, post_max_size, max_file_uploads),
+    // nginx (client_max_body_size) y MySQL (max_allowed_packet).
     'limits' => [
-        'max_file_bytes' => (int) env('CODEFLOW_MAX_FILE_BYTES', 5 * 1024 * 1024),
-        'max_files_per_commit' => 200,
+        // Tamaño máximo de un archivo (MB)
+        'max_file_bytes' => (int) env('CODEFLOW_MAX_FILE_MB', 50) * 1024 * 1024,
+        // Archivos por commit / por subida
+        'max_files_per_commit' => (int) env('CODEFLOW_MAX_FILES', 1000),
+        // Tamaño total de una subida (MB)
+        'max_upload_bytes' => (int) env('CODEFLOW_MAX_UPLOAD_MB', 500) * 1024 * 1024,
         'max_diff_lines' => 5000,
     ],
 

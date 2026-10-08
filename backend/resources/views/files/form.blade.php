@@ -1,6 +1,6 @@
 @php
     $titles = [
-        'upload' => 'Subir archivos',
+        'upload' => 'Subir archivos o carpetas',
         'new' => 'Nuevo archivo',
         'folder' => 'Nueva carpeta',
         'edit' => 'Editar archivo',
@@ -45,16 +45,48 @@
                 @if ($mode === 'upload')
                     <x-input name="directory" label="Carpeta de destino" :value="$directory" placeholder="(raíz del repositorio)" class="font-mono"
                         help="Deja el campo vacío para subirlos a la raíz. Si la carpeta no existe se creará." />
-                    <label class="block">
-                        <span class="mb-1 block text-sm font-medium text-slate-700">Archivos</span>
-                        <input type="file" name="files[]" multiple required
-                            class="block w-full cursor-pointer rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white hover:bg-slate-100">
-                        <span class="mt-1 block text-xs text-slate-500">
-                            Hasta {{ $limits['files'] }} archivos por subida y {{ $limits['upload_label'] }} por archivo.
-                            Si ya existe un archivo con el mismo nombre se reemplaza por la versión nueva.
-                        </span>
+                    <div data-upload
+                        data-max-files="{{ $limits['files'] }}"
+                        data-max-file-bytes="{{ $limits['upload_bytes'] }}"
+                        data-max-total-bytes="{{ $limits['total_bytes'] }}">
+                        <span class="mb-1 block text-sm font-medium text-slate-700">Archivos y carpetas</span>
+                        <div data-upload-drop class="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center transition">
+                            <x-code-icon name="folder" class="mx-auto h-8 w-8 text-slate-400" />
+                            <p class="mt-2 text-sm text-slate-600">Arrastra aquí archivos o carpetas completas</p>
+                            <p class="text-xs text-slate-500">o</p>
+                            <div class="mt-2 flex flex-wrap justify-center gap-2">
+                                <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-500">
+                                    <x-code-icon name="file" class="h-4 w-4" /> Seleccionar archivos
+                                    <input type="file" name="files[]" multiple data-upload-files class="sr-only">
+                                </label>
+                                <label class="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+                                    <x-code-icon name="folder" class="h-4 w-4" /> Seleccionar carpeta
+                                    <input type="file" webkitdirectory directory multiple data-upload-folder class="sr-only">
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 flex items-center justify-between gap-3">
+                            <p data-upload-summary class="text-sm text-slate-600">Ningún archivo seleccionado.</p>
+                            <button type="button" data-upload-clear class="text-xs text-slate-500 hover:text-rose-600 hover:underline">Vaciar lista</button>
+                        </div>
+                        <ul data-upload-problems hidden class="mt-2 list-inside list-disc rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700"></ul>
+                        <ul data-upload-list hidden class="mt-2 max-h-72 divide-y divide-slate-100 overflow-y-auto rounded-md border border-slate-200 bg-white"></ul>
+
+                        <div data-upload-progress hidden class="mt-3">
+                            <div class="h-2 overflow-hidden rounded-full bg-slate-200">
+                                <div data-upload-bar class="h-full w-0 rounded-full bg-indigo-600 transition-all"></div>
+                            </div>
+                            <p data-upload-progress-text class="mt-1 text-xs text-slate-500">Preparando…</p>
+                        </div>
+
+                        <p class="mt-2 text-xs text-slate-500">
+                            Hasta {{ $limits['files'] }} archivos y {{ $limits['total_label'] }} por subida, {{ $limits['upload_label'] }} por archivo.
+                            Al subir una carpeta se conserva su estructura. Se omiten <code class="font-mono">.git</code>,
+                            <code class="font-mono">node_modules</code> y archivos del sistema. Si un archivo ya existe se reemplaza por la versión nueva.
+                        </p>
                         @error('files')<span class="mt-1 block text-xs text-rose-600">{{ $message }}</span>@enderror
-                    </label>
+                    </div>
                 @elseif ($mode === 'folder')
                     <div class="grid gap-2 sm:grid-cols-[auto_1fr] sm:items-end">
                         <span class="pb-2 font-mono text-sm text-slate-500">{{ $repository->name }}/{{ $directory !== '' ? $directory.'/' : '' }}</span>

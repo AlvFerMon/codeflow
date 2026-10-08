@@ -14,7 +14,8 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       TZ: Europe/Madrid
-    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    # max_allowed_packet: un archivo de 50 MB ocupa ~120 MB cifrado (compresión + base64)
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--max-allowed-packet=512M"]
     ports:
       - "${DB_FORWARD_PORT:-3307}:3306"
     volumes:
@@ -57,12 +58,27 @@ services:
       MAIL_FROM_ADDRESS: no-reply@codeflow.test
       MAIL_FROM_NAME: CodeFlow
       CODEFLOW_SEED_DEMO: ${CODEFLOW_SEED_DEMO:-true}
+      # Límites de subida (si se suben, ajustar también docker/php/php.ini y nginx)
+      CODEFLOW_MAX_FILE_MB: ${CODEFLOW_MAX_FILE_MB:-50}
+      CODEFLOW_MAX_UPLOAD_MB: ${CODEFLOW_MAX_UPLOAD_MB:-500}
+      CODEFLOW_MAX_FILES: ${CODEFLOW_MAX_FILES:-1000}
+      # Rendimiento: cachés de Laravel (config, rutas, eventos, vistas) fuera de la carpeta de Windows
+      CODEFLOW_OPTIMIZE: ${CODEFLOW_OPTIMIZE:-true}
+      VIEW_COMPILED_PATH: /var/www/cache/views
+      APP_CONFIG_CACHE: /var/www/cache/config.php
+      APP_ROUTES_CACHE: /var/www/cache/routes-v7.php
+      APP_EVENTS_CACHE: /var/www/cache/events.php
+      APP_PACKAGES_CACHE: /var/www/cache/packages.php
+      APP_SERVICES_CACHE: /var/www/cache/services.php
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD}
       TZ: Europe/Madrid
     volumes:
       - ./backend:/var/www/html
+      # vendor y cachés en volúmenes de Docker (sistema de archivos Linux, mucho más rápido que la carpeta de Windows)
+      - vendor:/var/www/html/vendor
+      - laravel-cache:/var/www/cache
 
   web:
     image: nginx:1.27-alpine
@@ -83,6 +99,7 @@ services:
     volumes:
       - ./backend:/app
       - node-modules:/app/node_modules
+      - vendor:/app/vendor:ro
 
   mailpit:
     image: axllent/mailpit:v1.21
@@ -93,3 +110,5 @@ services:
 volumes:
   mysql-data:
   node-modules:
+  vendor:
+  laravel-cache:

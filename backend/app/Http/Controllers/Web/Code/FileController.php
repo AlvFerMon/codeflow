@@ -9,6 +9,7 @@ use App\Models\Repository;
 use App\Services\RepositoryService;
 use App\Services\VcsService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -77,7 +78,7 @@ class FileController extends Controller
     }
 
     /** Guarda un commit de subida, archivo nuevo, carpeta nueva o edición. */
-    public function store(Request $request, Repository $repository): RedirectResponse
+    public function store(Request $request, Repository $repository): RedirectResponse|JsonResponse
     {
         Gate::authorize('push', $repository);
 
@@ -101,10 +102,21 @@ class FileController extends Controller
 
         $commit = $this->attempt(fn () => $this->repositories->commitChanges($branch, $request->user(), $message, $changes));
         if ($this->failed($commit)) {
-            return $commit;
+            // La subida con barra de progreso (XHR) espera JSON en lugar de una redirección
+            return $request->expectsJson()
+                ? response()->json(['message' => session()->pull('error') ?? 'No se pudo completar la acción.'], 422)
+                : $commit;
         }
 
-        return redirect($redirect)->with('status', 'Cambios guardados en la rama '.$branch->name.' (commit '.substr($commit->sha, 0, 7).').');
+        $status = 'Cambios guardados en la rama '.$branch->name.' (commit '.substr($commit->sha, 0, 7).').';
+
+        if ($request->expectsJson()) {
+            session()->flash('status', $status);
+
+            return response()->json(['redirect' => $redirect, 'message' => $status]);
+        }
+
+        return redirect($redirect)->with('status', $status);
     }
 
     /** Elimina un archivo o una carpeta entera (todos los archivos bajo ese prefijo) con un commit. */
@@ -148,7 +160,13 @@ class FileController extends Controller
             ->with('status', ($isFolder ? "Carpeta {$path} eliminada" : "Archivo {$path} eliminado").' (commit '.substr($commit->sha, 0, 7).').');
     }
 
-    /** @return array{0:array,1:string,2:string} */
+    /**
+     * Subida de archivos y carpetas completas. Cada archivo files[i] puede llevar en paths[i]
+     * su ruta relativa (p. ej. "src/app/Main.php" al subir una carpeta); si no, se usa su nombre.
+     * El contenido se lee después, archivo a archivo, dentro del commit ('source').
+     *
+     * @return array{0:array,1:string,2:string}
+     */
     private function uploadChanges(Request $request, Repository $repository, Branch $branch): array
     {
         $limits = $this->limits();
@@ -157,25 +175,43 @@ class FileController extends Controller
             'directory' => 'nullable|string|max:255',
             'files' => 'required|array|min:1|max:'.$limits['files'],
             'files.*' => 'file|max:'.max(1, intdiv($limits['bytes'], 1024)),
+            'paths' => 'nullable|array',
+            'paths.*' => 'nullable|string|max:255',
         ], [
-            'files.required' => 'Selecciona al menos un archivo.',
+            'files.required' => 'Selecciona al menos un archivo o una carpeta.',
             'files.max' => 'Puedes subir como máximo :max archivos a la vez.',
             'files.*.file' => 'No se pudo subir el archivo :position (¿supera el tamaño máximo?).',
             'files.*.uploaded' => 'No se pudo subir el archivo :position (¿supera el tamaño máximo?).',
             'files.*.max' => 'Cada archivo puede ocupar como máximo '.$limits['label'].'.',
         ]);
 
-        $directory = $this->cleanPath($request->input('directory'));
-        $changes = [];
-        foreach ($request->file('files') as $file) {
-            $name = basename(str_replace('\\', '/', $file->getClientOriginalName()));
-            $changes[] = [
-                'path' => ($directory === '' ? '' : $directory.'/').$name,
-                'content' => (string) file_get_contents($file->getRealPath()),
-            ];
+        $files = array_values($request->file('files'));
+        $total = array_sum(array_map(fn ($file) => (int) $file->getSize(), $files));
+        if ($total > $limits['total_bytes']) {
+            throw ValidationException::withMessages([
+                'files' => 'La subida ocupa '.round($total / 1048576, 1).' MB y el máximo por subida es '.$limits['total_label'].'.',
+            ]);
         }
 
-        $message = count($changes) === 1 ? 'Subir '.$changes[0]['path'] : 'Subir '.count($changes).' archivos';
+        $directory = $this->cleanPath($request->input('directory'));
+        $relative = array_values((array) $request->input('paths', []));
+        $changes = [];
+        foreach ($files as $i => $file) {
+            $name = trim(str_replace('\\', '/', (string) ($relative[$i] ?? '')), '/');
+            if ($name === '') {
+                $name = basename(str_replace('\\', '/', $file->getClientOriginalName()));
+            }
+            $path = ($directory === '' ? '' : $directory.'/').$name;
+
+            // Si se repite una ruta en la misma subida, gana la última
+            $changes[$path] = ['path' => $path, 'source' => $file->getRealPath()];
+        }
+        $changes = array_values($changes);
+
+        $folders = array_unique(array_filter(array_map(fn ($c) => str_contains($c['path'], '/') ? dirname($c['path']) : '', $changes)));
+        $message = count($changes) === 1
+            ? 'Subir '.$changes[0]['path']
+            : 'Subir '.count($changes).' archivos'.(count($folders) > 1 ? ' en '.count($folders).' carpetas' : '');
         $redirect = route('repositories.show', array_filter([$repository, 'branch' => $branch->name, 'path' => $directory]));
 
         return [$changes, $message, $redirect];
@@ -306,7 +342,7 @@ class FileController extends Controller
      * Límites efectivos para subir archivos: los de config('codeflow.limits')
      * y los de PHP (upload_max_filesize, max_file_uploads), el menor de cada uno.
      *
-     * @return array{bytes:int,upload_bytes:int,files:int,label:string,upload_label:string}
+     * @return array{bytes:int,upload_bytes:int,files:int,total_bytes:int,label:string,upload_label:string,total_label:string}
      */
     private function limits(): array
     {
@@ -320,12 +356,18 @@ class FileController extends Controller
             $files = min($files, $phpFiles);
         }
 
+        $total = (int) config('codeflow.limits.max_upload_bytes') ?: PHP_INT_MAX;
+        $phpPost = $this->iniBytes((string) ini_get('post_max_size'));
+        $totalBytes = $phpPost > 0 ? min($total, $phpPost) : $total;
+
         return [
             'bytes' => $bytes,
             'upload_bytes' => $uploadBytes,
             'files' => $files,
+            'total_bytes' => $totalBytes,
             'label' => round($bytes / 1048576, 2).' MB',
             'upload_label' => round($uploadBytes / 1048576, 2).' MB',
+            'total_label' => round($totalBytes / 1048576, 2).' MB',
         ];
     }
 

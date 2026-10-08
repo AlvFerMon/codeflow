@@ -557,7 +557,7 @@ flowchart LR
 
 1. **Rutas:** se normalizan (`/`), sin `..`, sin `.`, sin rutas absolutas ni caracteres de control. Máximo 255 caracteres. *(Ya existe; se amplía.)*
 2. **Nombres de rama:** `^[A-Za-z0-9._/-]{1,100}$`, sin `//`, sin empezar ni acabar en `/` o `.`, y sin `..`.
-3. **Límites (`config/codeflow.php`):** tamaño máximo por archivo (p. ej. 5 MB), archivos por commit, **cuota por repositorio** (`size_bytes`) y diff máximo por archivo (en ficheros enormes se muestra "diff demasiado grande").
+3. **Límites (`config/codeflow.php`):** tamaño máximo por archivo (50 MB), por subida (500 MB) y archivos por subida (1000), configurables por entorno, **cuota por repositorio** (`size_bytes`) y diff máximo por archivo (en ficheros enormes se muestra "diff demasiado grande").
 4. **Binarios:** se detectan (`is_binary`), se guardan y descargan, pero no se calcula diff de líneas.
 5. **Concurrencia:** `lockForUpdate` sobre la rama dentro de la transacción. Además, el cliente puede enviar `expected_head` y, si la rama se movió, recibe **409** (bloqueo optimista, como el `update-ref` de Git).
 6. **Atomicidad:** commits y merges son **una transacción**. Si algo falla, no queda nada a medias.

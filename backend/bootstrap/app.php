@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\OptionalSanctum;
+use App\Http\Middleware\ServerTiming;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -21,6 +22,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // El contenido de los archivos editados en la web se guarda tal cual
         // (sin recortar espacios iniciales ni el salto de línea final).
         $middleware->trimStrings(except: ['file_content']);
+
+        // Métricas de rendimiento (solo con APP_DEBUG=true)
+        $middleware->prepend(ServerTiming::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -41,9 +41,9 @@ class CommitController extends Controller
 
         $data = $request->validate([
             'message' => 'required|string|max:500',
-            'changes' => 'required|array|min:1|max:200',
+            'changes' => 'required|array|min:1|max:'.(int) config('codeflow.limits.max_files_per_commit'),
             'changes.*.path' => 'required|string|max:255',
-            'changes.*.content' => 'nullable|string|max:1048576',
+            'changes.*.content' => 'nullable|string|max:'.(int) config('codeflow.limits.max_file_bytes'),
             'changes.*.delete' => 'boolean',
         ]);
 

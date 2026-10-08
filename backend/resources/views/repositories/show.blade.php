@@ -20,7 +20,7 @@
                     @can('push', $repository)
                         <div class="flex flex-wrap gap-2">
                             <x-button variant="secondary" class="py-1.5" :href="route('files.create', array_filter([$repository, 'mode' => 'upload', 'branch' => $branchName, 'path' => $path]))">
-                                <x-code-icon name="upload" /> Subir archivos
+                                <x-code-icon name="upload" /> Subir archivos o carpetas
                             </x-button>
                             <x-button variant="secondary" class="py-1.5" :href="route('files.create', array_filter([$repository, 'mode' => 'new', 'branch' => $branchName, 'path' => $path]))">
                                 <x-code-icon name="plus" /> Nuevo archivo
@@ -56,7 +56,7 @@
                             La rama <span class="font-mono">{{ $branchName }}</span> todavía no tiene commits.
                             @can('push', $repository)
                                 <div class="mt-4 flex flex-wrap justify-center gap-2">
-                                    <x-button :href="route('files.create', array_filter([$repository, 'mode' => 'upload', 'branch' => $branchName]))"><x-code-icon name="upload" /> Subir archivos</x-button>
+                                    <x-button :href="route('files.create', array_filter([$repository, 'mode' => 'upload', 'branch' => $branchName]))"><x-code-icon name="upload" /> Subir archivos o carpetas</x-button>
                                     <x-button variant="secondary" :href="route('files.create', array_filter([$repository, 'mode' => 'new', 'branch' => $branchName]))"><x-code-icon name="plus" /> Crear un archivo</x-button>
                                 </div>
                             @else

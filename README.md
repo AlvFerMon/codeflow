@@ -41,6 +41,27 @@ de los repositorios no se puede descifrar.
 
 Tras cambiar vistas o estilos: `docker compose run --rm assets` (recompila CSS/JS).
 
+### Subida de archivos y carpetas
+
+Desde *Código → Subir archivos o carpetas* se pueden seleccionar archivos, una carpeta completa o arrastrar
+archivos y carpetas; se conserva la estructura y se omiten `.git`, `node_modules` y archivos del sistema.
+Límites por defecto (variables de `.env`): `CODEFLOW_MAX_FILE_MB=50` por archivo, `CODEFLOW_MAX_UPLOAD_MB=500`
+por subida y `CODEFLOW_MAX_FILES=1000` archivos por subida. Para subirlos más, ajusta también
+`docker/php/php.ini` (`upload_max_filesize`, `post_max_size`, `max_file_uploads`), `client_max_body_size` en
+`docker/nginx/default.conf` y `--max-allowed-packet` de MySQL en `docker-compose.yml`, y reconstruye con
+`docker compose up -d --build`. Un archivo ocupa unas 2,4 veces su tamaño en la base de datos al cifrarse.
+
+### Rendimiento en Docker (Windows)
+
+- `vendor/` y las cachés de Laravel viven en volúmenes de Docker (sistema de archivos Linux); solo el código
+  fuente se monta desde Windows. OPcache revisa cambios cada 2 s y nginx comprime y cachea los assets.
+- Al arrancar se ejecuta `php artisan optimize` (config, rutas, eventos y vistas en caché). Si cambias rutas,
+  configuración o `.env`: `docker compose restart app`. Para desactivarlo: `CODEFLOW_OPTIMIZE=false` en `.env`.
+- Con `APP_DEBUG=true` cada respuesta incluye la cabecera **`Server-Timing`** (tiempo total, tiempo de base de
+  datos y nº de consultas): DevTools del navegador → pestaña *Network* → petición → *Timing*.
+- Si aun así va lento, la mejora mayor es clonar el proyecto dentro de WSL (`\\wsl$\Ubuntu\home\...`) en
+  lugar de `C:\Users\...`: Docker Desktop lee los archivos de Windows mucho más despacio.
+
 ### Usuarios de prueba
 
 Se crean automáticamente (`CODEFLOW_SEED_DEMO=true`) con las contraseñas de `.env`:
@@ -68,6 +89,8 @@ Los repositorios **públicos** se pueden consultar sin iniciar sesión.
 ```powershell
 docker compose exec app php artisan test
 ```
+
+Los tests usan siempre SQLite en memoria (forzado en `phpunit.xml`), nunca la base de datos MySQL del contenedor.
 
 ## Documentación
 
