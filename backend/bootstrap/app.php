@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\OptionalSanctum;
 use App\Http\Middleware\RedirectUnverifiedUsers;
+use App\Http\Middleware\RequireLoginOnPhones;
 use App\Http\Middleware\ServerTiming;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -30,7 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trimStrings(except: ['file_content']);
 
         // Sin email verificado, la web solo muestra la pantalla de verificación
-        $middleware->web(append: [RedirectUnverifiedUsers::class]);
+        $middleware->web(append: [RedirectUnverifiedUsers::class, RequireLoginOnPhones::class]);
 
         // Métricas de rendimiento (solo con APP_DEBUG=true)
         $middleware->prepend(ServerTiming::class);

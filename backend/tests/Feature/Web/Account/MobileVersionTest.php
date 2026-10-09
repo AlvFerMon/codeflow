@@ -38,6 +38,40 @@ class MobileVersionTest extends TestCase
         $this->get(route('mobile.activity'))->assertRedirect(route('login'));
     }
 
+    public function test_on_a_phone_guests_must_log_in_or_create_an_account(): void
+    {
+        $this->setUpTeam();
+        $public = $this->makeRepository($this->project, $this->owner, 'web-publica', 'public');
+
+        $phone = fn () => $this->withHeader('User-Agent', self::IPHONE);
+
+        // Sin sesión, cualquier página (portada, explorar, repositorios públicos, /m) lleva al login
+        foreach (['/', route('explore'), route('repositories.show', $public), route('mobile.activity')] as $url) {
+            $phone()->get($url)->assertRedirect(route('login'));
+        }
+
+        // Las pantallas de acceso sí se ven
+        $phone()->get(route('login'))->assertOk()->assertSee(route('register'), false)
+            ->assertDontSee('Ver repositorios públicos')->assertDontSee(route('explore'), false);
+        $this->withHeader('User-Agent', self::DESKTOP)->get(route('login'))->assertSee('Ver repositorios públicos');
+        $phone()->get(route('register'))->assertOk();
+        $phone()->get(route('password.request'))->assertOk();
+
+        // En el ordenador los visitantes siguen viendo la portada y los repositorios públicos
+        $this->withHeader('User-Agent', self::DESKTOP)->get('/')->assertOk();
+        $this->withHeader('User-Agent', self::DESKTOP)->get(route('repositories.show', $public))->assertOk();
+
+        // Tras iniciar sesión en el móvil se entra en la versión móvil
+        $phone()->post(route('login.store'), ['email' => $this->owner->email, 'password' => 'password'])
+            ->assertRedirect();
+        $phone()->get('/')->assertRedirect(route('mobile.activity'));
+        $phone()->get(route('explore'))->assertRedirect(route('mobile.activity'));
+
+        // Ni siquiera en la versión completa aparece "Explorar" en el teléfono
+        $phone()->withCookie(MobileController::FULL_VERSION_COOKIE, '1')->get(route('projects.index'))->assertOk()
+            ->assertDontSee(route('explore'), false);
+    }
+
     public function test_activity_shows_who_what_where_and_when_without_links_to_code(): void
     {
         $this->setUpTeam();

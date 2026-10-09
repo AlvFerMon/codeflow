@@ -13,11 +13,13 @@
     $user = auth()->user();
     // Sin email verificado se navega como visitante (solo lo público) hasta confirmar el correo
     $verified = $user?->hasVerifiedEmail() ?? false;
+    // En un teléfono no existe "Explorar repositorios públicos"
+    $isPhone = \App\Http\Controllers\Web\Mobile\MobileController::isPhone(request());
     $unread = $verified ? $user->unreadNotificationsCount() : 0;
     $navItems = array_filter([
         ['label' => 'Inicio', 'route' => 'home', 'active' => request()->routeIs('home')],
         $verified ? ['label' => 'Proyectos', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*', 'repositories.*', 'files.*', 'branches.*', 'commits.*', 'issues.*', 'pulls.*', 'members.*')] : null,
-        ['label' => 'Explorar', 'route' => 'explore', 'active' => request()->routeIs('explore')],
+        $isPhone ? null : ['label' => 'Explorar', 'route' => 'explore', 'active' => request()->routeIs('explore')],
         $verified ? ['label' => 'Actividad', 'route' => 'activity.index', 'active' => request()->routeIs('activity.index')] : null,
         $verified ? ['label' => 'Notificaciones', 'route' => 'notifications.index', 'active' => request()->routeIs('notifications.*'), 'count' => $unread] : null,
     ]);
@@ -45,10 +47,12 @@
                                     @if (($item['count'] ?? 0) > 0)<span class="ml-auto rounded-full bg-purple-500/10 px-1.5 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ $item['count'] > 99 ? '99+' : $item['count'] }}</span>@endif
                                 </a>
                             @endforeach
+                            @unless ($isPhone)
                             <form action="{{ route('explore') }}" method="GET" class="border-t border-zinc-100 p-2 dark:border-zinc-800">
                                 <input type="search" name="q" placeholder="Buscar repositorios públicos…" aria-label="Buscar repositorios públicos"
                                     class="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-zinc-700 dark:bg-zinc-800">
                             </form>
+                            @endunless
                         </nav>
                     </details>
 
@@ -73,6 +77,7 @@
 
                 <div class="flex items-center gap-2 sm:gap-3">
                     {{-- Buscador (Ctrl/⌘ + K) sobre repositorios públicos --}}
+                    @unless ($isPhone)
                     <form action="{{ route('explore') }}" method="GET" role="search" class="relative hidden w-52 sm:block md:w-64">
                         <span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
@@ -83,6 +88,7 @@
                             <kbd class="rounded border border-zinc-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-zinc-400 shadow-xs dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">Ctrl K</kbd>
                         </span>
                     </form>
+                    @endunless
 
                     @auth
                         @if ($verified)
@@ -157,7 +163,9 @@
                 <span>CodeFlow · TFG 2.º DAM</span>
             </div>
             <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-                <a href="{{ route('explore') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Explorar</a>
+                @unless ($isPhone)
+                    <a href="{{ route('explore') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Explorar</a>
+                @endunless
                 <a href="https://github.com/AlvFerMon/codeflow" target="_blank" rel="noopener" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Repositorio en GitHub</a>
                 @guest
                     @include('layouts._theme-switch')

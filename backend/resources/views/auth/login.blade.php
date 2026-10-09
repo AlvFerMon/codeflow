@@ -15,7 +15,10 @@
     <p class="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">
         ¿No tienes cuenta? <a href="{{ route('register') }}" class="font-medium text-purple-600 dark:text-purple-400 hover:underline">Regístrate</a>
     </p>
+    {{-- En el móvil hay que iniciar sesión: no se ofrece explorar repositorios públicos --}}
+    @unless (\App\Http\Controllers\Web\Mobile\MobileController::isPhone(request()))
     <p class="mt-2 text-center text-sm">
         <a href="{{ route('explore') }}" class="text-zinc-500 dark:text-zinc-400 hover:underline">Ver repositorios públicos sin iniciar sesión</a>
     </p>
+    @endunless
 </x-guest-layout>
