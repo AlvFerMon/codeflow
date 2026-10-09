@@ -68,6 +68,43 @@ final class ActivityPresenter
         ];
     }
 
+    /**
+     * Versión para la API (app Android): datos estructurados y la frase en texto plano.
+     * Quién (actor), qué (action/summary), dónde (proyecto, repositorio, rama) y cuándo.
+     */
+    public function presentForApi(ActivityLog $log, ?string $projectName = null): array
+    {
+        $p = $log->properties ?? [];
+        $subject = $log->subject;
+
+        $repository = match (true) {
+            $subject instanceof Repository => $subject,
+            $subject instanceof Branch, $subject instanceof Commit, $subject instanceof Issue, $subject instanceof PullRequest => $subject->repository,
+            default => null,
+        };
+
+        $branch = $p['branch']
+            ?? ($subject instanceof Branch ? $subject->name : null)
+            ?? (str_starts_with($log->action, 'branch.') ? ($p['name'] ?? null) : null)
+            ?? (str_starts_with($log->action, 'pull_request.') ? ($p['from'] ?? null) : null);
+
+        return [
+            'id' => $log->id,
+            'action' => $log->action,
+            'category' => strtok($log->action, '.') ?: 'other',
+            'summary' => html_entity_decode(strip_tags($this->describe($log)), ENT_QUOTES | ENT_HTML5, 'UTF-8'),
+            'actor' => $log->user ? ['id' => $log->user->id, 'name' => $log->user->name] : null,
+            'project' => ['id' => $log->project_id, 'name' => $projectName],
+            'repository' => $repository ? ['id' => $repository->id, 'name' => $repository->name] : null,
+            'branch' => $branch,
+            'target_branch' => str_starts_with($log->action, 'pull_request.') ? ($p['to'] ?? null) : null,
+            'commit_sha' => $subject instanceof Commit ? substr($subject->sha, 0, 7) : (isset($p['sha']) ? substr((string) $p['sha'], 0, 7) : null),
+            'number' => $p['number'] ?? (($subject instanceof Issue || $subject instanceof PullRequest) ? $subject->number : null),
+            'properties' => $p,
+            'created_at' => $log->created_at?->toJSON(),
+        ];
+    }
+
     /** Frase (HTML seguro) sin el nombre del autor. */
     private function describe(ActivityLog $log): string
     {

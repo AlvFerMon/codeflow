@@ -2,11 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Avisos en la barra del sistema (Android 13+ lo pide al usuario) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
         usesCleartextTraffic="false": en release solo se permite HTTPS.
         La build debug añade (src/debug/AndroidManifest.xml) un networkSecurityConfig
-        que permite HTTP únicamente hacia 10.0.2.2 y localhost (backend en Docker).
+        que permite HTTP hacia el backend en Docker (emulador o PC de la misma Wi-Fi).
         allowBackup="false": el token de sesión no se copia en las copias de seguridad.
     -->
     <application
@@ -22,6 +24,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,7 +32,10 @@
             </intent-filter>
         </activity>
 
-        <!-- TODO(fase 19): servicio de Firebase Cloud Messaging para notificaciones push. -->
+        <!--
+            Los avisos se obtienen sondeando la API (WorkManager cada 15 min y cada 30 s con la
+            app abierta). Mejora futura: Firebase Cloud Messaging para avisos instantáneos.
+        -->
     </application>
 
 </manifest>

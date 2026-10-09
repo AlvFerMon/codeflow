@@ -3,8 +3,6 @@ package com.codeflow.app.feature.projects
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.codeflow.app.core.network.ApiResult
-import com.codeflow.app.data.repository.AuthRepository
-import com.codeflow.app.data.repository.NotificationRepository
 import com.codeflow.app.data.repository.ProjectRepository
 import com.codeflow.app.domain.model.Project
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,14 +21,10 @@ data class ProjectListUiState(
     val isLoadingMore: Boolean = false,
     /** Error al cargar más páginas (se muestra en el pie de la lista). */
     val loadMoreError: String? = null,
-    val unreadNotifications: Int = 0,
-    val isLoggingOut: Boolean = false,
 )
 
 class ProjectListViewModel(
     private val projectRepository: ProjectRepository,
-    private val notificationRepository: NotificationRepository,
-    private val authRepository: AuthRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProjectListUiState())
@@ -77,25 +71,6 @@ class ProjectListViewModel(
                     it.copy(isLoadingMore = false, loadMoreError = result.message)
                 }
             }
-        }
-    }
-
-    /** Contador del icono de notificaciones. Si falla, simplemente no se muestra la insignia. */
-    fun refreshUnreadCount() {
-        viewModelScope.launch {
-            val result = notificationRepository.getUnreadCount()
-            if (result is ApiResult.Success) {
-                _uiState.update { it.copy(unreadNotifications = result.data) }
-            }
-        }
-    }
-
-    /** Al cerrar la sesión, la navegación (que observa la sesión) vuelve al Login. */
-    fun logout() {
-        if (_uiState.value.isLoggingOut) return
-        _uiState.update { it.copy(isLoggingOut = true) }
-        viewModelScope.launch {
-            authRepository.logout()
         }
     }
 }

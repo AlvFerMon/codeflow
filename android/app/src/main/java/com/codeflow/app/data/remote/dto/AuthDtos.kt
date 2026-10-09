@@ -36,3 +36,15 @@ data class UserSummaryDto(
     val id: Long,
     val name: String,
 )
+
+/** POST /api/auth/email/verify */
+@Serializable
+data class VerifyEmailRequest(
+    val code: String,
+)
+
+/** Respuesta simple de la API: `{ "message": "..." }` */
+@Serializable
+data class MessageDto(
+    val message: String? = null,
+)

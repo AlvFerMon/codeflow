@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,7 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
@@ -48,7 +49,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.codeflow.app.core.ui.components.EmptyView
 import com.codeflow.app.core.ui.components.ErrorView
 import com.codeflow.app.core.ui.components.LoadingView
-import com.codeflow.app.core.ui.formatApiDateTime
+import com.codeflow.app.core.ui.formatRelativeDateTime
 import com.codeflow.app.core.ui.theme.CodeFlowTheme
 import com.codeflow.app.domain.model.AppNotification
 import com.codeflow.app.domain.model.NotificationKind
@@ -56,13 +57,14 @@ import com.codeflow.app.domain.model.NotificationKind
 @Composable
 fun NotificationListScreen(
     viewModel: NotificationListViewModel,
-    onBack: () -> Unit,
+    topBarActions: @Composable () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     NotificationListContent(
         uiState = uiState,
-        onBack = onBack,
         onRetry = viewModel::load,
+        onMarkAllRead = viewModel::markAllAsRead,
+        topBarActions = topBarActions,
         onLoadMore = viewModel::loadMore,
         onNotificationClick = viewModel::onNotificationClick,
         onMessageShown = viewModel::onMessageShown,
@@ -73,8 +75,9 @@ fun NotificationListScreen(
 @Composable
 private fun NotificationListContent(
     uiState: NotificationListUiState,
-    onBack: () -> Unit,
     onRetry: () -> Unit,
+    onMarkAllRead: () -> Unit,
+    topBarActions: @Composable () -> Unit,
     onLoadMore: () -> Unit,
     onNotificationClick: (AppNotification) -> Unit,
     onMessageShown: () -> Unit,
@@ -93,18 +96,19 @@ private fun NotificationListContent(
         topBar = {
             TopAppBar(
                 title = { Text("Notificaciones") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
                 actions = {
+                    IconButton(onClick = onMarkAllRead, enabled = uiState.notifications.any { !it.isRead }) {
+                        Icon(Icons.Filled.Done, contentDescription = "Marcar todas como leídas")
+                    }
                     IconButton(onClick = onRetry, enabled = !uiState.isLoading) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Recargar")
                     }
+                    topBarActions()
                 },
             )
         },
+        // La barra inferior de la pantalla principal ya reserva el espacio del sistema
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { padding ->
         val contentModifier = Modifier
@@ -216,7 +220,7 @@ private fun NotificationCard(
                 val meta = listOfNotNull(
                     notification.actorName,
                     notification.projectName,
-                    notification.createdAt?.let { formatApiDateTime(it) },
+                    notification.createdAt?.let { formatRelativeDateTime(it) },
                 ).joinToString(" · ")
                 if (meta.isNotEmpty()) {
                     Spacer(Modifier.height(6.dp))
@@ -257,8 +261,9 @@ private fun NotificationListPreview() {
                     ),
                 ),
             ),
-            onBack = {},
             onRetry = {},
+            onMarkAllRead = {},
+            topBarActions = {},
             onLoadMore = {},
             onNotificationClick = {},
             onMessageShown = {},

@@ -32,6 +32,25 @@ class NotificationListViewModel(
 
     init {
         load()
+        // Si el sondeo detecta notificaciones nuevas (sube el contador), se recarga la lista.
+        viewModelScope.launch {
+            var previous = notificationRepository.unreadCount.value
+            notificationRepository.unreadCount.collect { count ->
+                if (count > previous && !_uiState.value.isLoading) load()
+                previous = count
+            }
+        }
+    }
+
+    fun markAllAsRead() {
+        val before = _uiState.value.notifications
+        _uiState.update { state -> state.copy(notifications = state.notifications.map { it.copy(isRead = true) }) }
+        viewModelScope.launch {
+            val result = notificationRepository.markAllAsRead()
+            if (result is ApiResult.Error) {
+                _uiState.update { it.copy(notifications = before, message = result.message) }
+            }
+        }
     }
 
     fun load() {

@@ -10,3 +10,5 @@ Thumbs.db
 /android/local.properties
 /android/build
 /android/app/build
+# Carpeta de salidas de Claude (Cowork): no forma parte del proyecto
+/Claude outputs/

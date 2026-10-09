@@ -7,15 +7,22 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.codeflow.app.BuildConfig
 import com.codeflow.app.core.network.ApiClient
+import com.codeflow.app.core.notifications.NotificationPoller
+import com.codeflow.app.core.notifications.SystemNotifier
 import com.codeflow.app.core.session.SessionStore
 import com.codeflow.app.data.remote.CodeFlowApi
+import com.codeflow.app.data.repository.ActivityRepository
 import com.codeflow.app.data.repository.AuthRepository
+import com.codeflow.app.data.repository.DefaultActivityRepository
 import com.codeflow.app.data.repository.DefaultAuthRepository
 import com.codeflow.app.data.repository.DefaultNotificationRepository
 import com.codeflow.app.data.repository.DefaultProjectRepository
 import com.codeflow.app.data.repository.NotificationRepository
 import com.codeflow.app.data.repository.ProjectRepository
+import com.codeflow.app.feature.activity.ActivityViewModel
 import com.codeflow.app.feature.auth.LoginViewModel
+import com.codeflow.app.feature.auth.VerifyEmailViewModel
+import com.codeflow.app.feature.main.MainViewModel
 import com.codeflow.app.feature.notifications.NotificationListViewModel
 import com.codeflow.app.feature.projects.ProjectListViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -31,12 +38,13 @@ import kotlinx.coroutines.SupervisorJob
 class AppContainer(context: Context) {
 
     /** Ámbito de la aplicación para trabajos que deben sobrevivir a una pantalla. */
-    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    val sessionStore = SessionStore(context.applicationContext, appScope)
+    /** El servidor por defecto sale de local.properties (codeflow.debugApiUrl); se cambia en el login. */
+    val sessionStore = SessionStore(context.applicationContext, appScope, defaultServerUrl = BuildConfig.BASE_URL)
 
     private val api: CodeFlowApi = ApiClient.create(
-        baseUrl = BuildConfig.BASE_URL,
+        baseUrlProvider = sessionStore::currentServerUrl,
         tokenProvider = sessionStore::currentToken,
         onUnauthorized = sessionStore::onUnauthorized,
         enableBodyLogging = BuildConfig.DEBUG,
@@ -46,17 +54,37 @@ class AppContainer(context: Context) {
     private val deviceName: String = "Android ${Build.MODEL}"
 
     // ---- Repositorios ----
+
     val authRepository: AuthRepository = DefaultAuthRepository(api, sessionStore)
+    val activityRepository: ActivityRepository = DefaultActivityRepository(api)
     val projectRepository: ProjectRepository = DefaultProjectRepository(api)
     val notificationRepository: NotificationRepository = DefaultNotificationRepository(api)
 
+    // ---- Notificaciones del sistema ----
+
+    val systemNotifier = SystemNotifier(context)
+    val notificationPoller = NotificationPoller(sessionStore, notificationRepository, systemNotifier)
+
     // ---- Factorías de ViewModel ----
+
     val loginViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
-        initializer { LoginViewModel(authRepository, deviceName) }
+        initializer { LoginViewModel(authRepository, sessionStore, deviceName) }
+    }
+
+    val verifyEmailViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
+        initializer { VerifyEmailViewModel(authRepository) }
+    }
+
+    val mainViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
+        initializer { MainViewModel(sessionStore, authRepository, notificationRepository, notificationPoller) }
+    }
+
+    val activityViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
+        initializer { ActivityViewModel(activityRepository, projectRepository) }
     }
 
     val projectListViewModelFactory: ViewModelProvider.Factory = viewModelFactory {
-        initializer { ProjectListViewModel(projectRepository, notificationRepository, authRepository) }
+        initializer { ProjectListViewModel(projectRepository) }
     }
 
     val notificationListViewModelFactory: ViewModelProvider.Factory = viewModelFactory {

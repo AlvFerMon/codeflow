@@ -33,11 +33,12 @@ android {
 
     buildTypes {
         debug {
-            // Emulador de Android Studio → 10.0.2.2 es el "localhost" del PC (Docker en :8080)
+            // Servidor por defecto (se puede cambiar en el login). Emulador de Android Studio →
+            // 10.0.2.2 es el "localhost" del PC (Docker en :8080)
             buildConfigField("String", "BASE_URL", "\"$debugApiUrl\"")
         }
         release {
-            // TODO(fase 15-16): sustituir por la URL HTTPS real del servidor de producción.
+            // Valor por defecto: el servidor se puede cambiar desde la pantalla de login.
             buildConfigField("String", "BASE_URL", "\"https://codeflow.example.com/api/\"")
             isMinifyEnabled = false
             proguardFiles(
@@ -106,8 +107,8 @@ dependencies {
     // Sesión
     implementation(libs.androidx.datastore.preferences)
 
-    // TODO(fase 19): Firebase Cloud Messaging (plugin google-services + firebase-messaging)
-    //  para recibir las notificaciones push. No se añade todavía.
+    // Avisos en segundo plano (sondeo periódico de la API)
+    implementation(libs.androidx.work.runtime.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

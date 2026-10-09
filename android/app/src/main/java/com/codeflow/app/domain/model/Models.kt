@@ -6,6 +6,7 @@ data class User(
     val id: Long,
     val name: String,
     val email: String,
+    val emailVerified: Boolean = true,
 )
 
 data class Project(
@@ -41,6 +42,40 @@ data class AppNotification(
     val createdAt: String?,
     val actorName: String?,
     val projectName: String?,
+)
+
+/** Tipo de evento, para el icono y el color de cada elemento del feed. */
+enum class ActivityCategory {
+    COMMIT, BRANCH, PULL_REQUEST, ISSUE, REPOSITORY, PROJECT, MEMBER, OTHER;
+
+    companion object {
+        fun fromApi(value: String?): ActivityCategory = when (value) {
+            "commit" -> COMMIT
+            "branch" -> BRANCH
+            "pull_request", "review" -> PULL_REQUEST
+            "issue" -> ISSUE
+            "repository" -> REPOSITORY
+            "project" -> PROJECT
+            "member" -> MEMBER
+            else -> OTHER
+        }
+    }
+}
+
+/** Un evento del feed de actividad: quién, qué, dónde (proyecto, repositorio, rama) y cuándo. */
+data class ActivityItem(
+    val id: Long,
+    val action: String,
+    val category: ActivityCategory,
+    val actorName: String?,
+    val summary: String,
+    val projectId: Long?,
+    val projectName: String?,
+    val repositoryName: String?,
+    val branch: String?,
+    val targetBranch: String?,
+    val commitSha: String?,
+    val createdAt: String?,
 )
 
 /** Página de resultados de un listado paginado. */

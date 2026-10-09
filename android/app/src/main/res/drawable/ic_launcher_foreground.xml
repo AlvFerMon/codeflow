@@ -1,25 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Icono provisional: "</>" en blanco sobre el color de marca. -->
+<!--
+    Logo de CodeFlow (monograma "CF", igual que en la web: docs/branding).
+    La C en blanco y la F (una rama con dos commits) en morado, sobre fondo oscuro (@color/brand).
+    El dibujo de 64×64 se centra en la zona segura del icono adaptativo (108dp).
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path
-        android:pathData="M44,40 L32,54 L44,68"
-        android:strokeWidth="6"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M64,40 L76,54 L64,68"
-        android:strokeWidth="6"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round" />
-    <path
-        android:pathData="M58,36 L50,72"
-        android:strokeWidth="6"
-        android:strokeColor="#FFFFFF"
-        android:strokeLineCap="round" />
+    <group
+        android:translateX="21"
+        android:translateY="22">
+        <path
+            android:pathData="M30,14 A18,18 0 1,0 30,50"
+            android:strokeWidth="6"
+            android:strokeColor="#FFFFFF"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M38,50 L38,14 L52,14 M38,32 L48,32"
+            android:strokeWidth="6"
+            android:strokeColor="#9810FA"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round" />
+        <path
+            android:fillColor="#9810FA"
+            android:pathData="M52,14 m-4.5,0 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0" />
+        <path
+            android:fillColor="#4F39F6"
+            android:pathData="M48,32 m-4.5,0 a4.5,4.5 0 1,0 9,0 a4.5,4.5 0 1,0 -9,0" />
+    </group>
 </vector>

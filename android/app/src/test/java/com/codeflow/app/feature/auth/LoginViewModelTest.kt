@@ -2,11 +2,13 @@ package com.codeflow.app.feature.auth
 
 import com.codeflow.app.core.network.ApiResult
 import com.codeflow.app.core.network.MSG_NETWORK
+import com.codeflow.app.core.session.ServerConfig
 import com.codeflow.app.data.repository.AuthRepository
 import com.codeflow.app.domain.model.User
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -33,17 +35,31 @@ class LoginViewModelTest {
             return pending?.await() ?: result
         }
 
+        override suspend fun verifyEmail(code: String): ApiResult<Unit> = ApiResult.Success(Unit)
+
+        override suspend fun resendVerificationCode(): ApiResult<String> = ApiResult.Success("Enviado")
+
         override suspend fun logout() = Unit
     }
 
+    private class FakeServerConfig : ServerConfig {
+        override val serverUrl = MutableStateFlow("http://10.0.2.2:8080/api/")
+
+        override suspend fun saveServerUrl(apiBaseUrl: String) {
+            serverUrl.value = apiBaseUrl
+        }
+    }
+
     private lateinit var repository: FakeAuthRepository
+    private lateinit var server: FakeServerConfig
     private lateinit var viewModel: LoginViewModel
 
     @Before
     fun setUp() {
         Dispatchers.setMain(UnconfinedTestDispatcher())
         repository = FakeAuthRepository()
-        viewModel = LoginViewModel(repository, deviceName = "Android Test")
+        server = FakeServerConfig()
+        viewModel = LoginViewModel(repository, server, deviceName = "Android Test")
     }
 
     @After
@@ -141,7 +157,34 @@ class LoginViewModelTest {
 
         viewModel.submit()
 
-        assertEquals(MSG_NETWORK, viewModel.uiState.value.generalError)
+        val error = viewModel.uiState.value.generalError
+        assertNotNull(error)
+        assertTrue(error!!.startsWith("No se pudo conectar con 10.0.2.2:8080"))
         assertNull(viewModel.uiState.value.emailError)
+    }
+
+    @Test
+    fun `el servidor se muestra abreviado y se guarda normalizado al entrar`() = runTest {
+        assertEquals("10.0.2.2:8080", viewModel.uiState.value.server)
+
+        viewModel.onServerChange(" 192.168.1.50:8080 ")
+        viewModel.onEmailChange("ana@codeflow.test")
+        viewModel.onPasswordChange("secreto123")
+        viewModel.submit()
+
+        assertEquals("http://192.168.1.50:8080/api/", server.serverUrl.value)
+        assertEquals(1, repository.calls.size)
+    }
+
+    @Test
+    fun `servidor vacio muestra error y no llama a la API`() {
+        viewModel.onServerChange("   ")
+        viewModel.onEmailChange("ana@codeflow.test")
+        viewModel.onPasswordChange("secreto123")
+
+        viewModel.submit()
+
+        assertNotNull(viewModel.uiState.value.serverError)
+        assertTrue(repository.calls.isEmpty())
     }
 }

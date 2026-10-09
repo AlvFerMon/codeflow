@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,13 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,9 +28,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -52,19 +45,15 @@ import com.codeflow.app.domain.model.Project
 @Composable
 fun ProjectListScreen(
     viewModel: ProjectListViewModel,
-    onOpenNotifications: () -> Unit,
+    topBarActions: @Composable () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    // Se ejecuta cada vez que la pantalla vuelve a mostrarse (p. ej. al volver de Notificaciones).
-    LaunchedEffect(Unit) { viewModel.refreshUnreadCount() }
 
     ProjectListContent(
         uiState = uiState,
         onRetry = viewModel::load,
         onLoadMore = viewModel::loadMore,
-        onOpenNotifications = onOpenNotifications,
-        onLogout = viewModel::logout,
+        topBarActions = topBarActions,
     )
 }
 
@@ -74,10 +63,8 @@ private fun ProjectListContent(
     uiState: ProjectListUiState,
     onRetry: () -> Unit,
     onLoadMore: () -> Unit,
-    onOpenNotifications: () -> Unit,
-    onLogout: () -> Unit,
+    topBarActions: @Composable () -> Unit,
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -87,28 +74,12 @@ private fun ProjectListContent(
                     IconButton(onClick = onRetry, enabled = !uiState.isLoading) {
                         Icon(Icons.Filled.Refresh, contentDescription = "Recargar")
                     }
-                    IconButton(onClick = onOpenNotifications) {
-                        BadgedBox(
-                            badge = {
-                                if (uiState.unreadNotifications > 0) {
-                                    Badge {
-                                        Text(
-                                            if (uiState.unreadNotifications > 99) "99+"
-                                            else uiState.unreadNotifications.toString(),
-                                        )
-                                    }
-                                }
-                            },
-                        ) {
-                            Icon(Icons.Filled.Notifications, contentDescription = "Notificaciones")
-                        }
-                    }
-                    IconButton(onClick = { showLogoutDialog = true }, enabled = !uiState.isLoggingOut) {
-                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Cerrar sesión")
-                    }
+                    topBarActions()
                 },
             )
         },
+        // La barra inferior de la pantalla principal ya reserva el espacio del sistema
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { padding ->
         val contentModifier = Modifier
             .fillMaxSize()
@@ -144,23 +115,6 @@ private fun ProjectListContent(
                 }
             }
         }
-    }
-
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = { Text("Cerrar sesión") },
-            text = { Text("¿Seguro que quieres cerrar la sesión en este dispositivo?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showLogoutDialog = false
-                    onLogout()
-                }) { Text("Cerrar sesión") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancelar") }
-            },
-        )
     }
 }
 
@@ -235,12 +189,10 @@ private fun ProjectListPreview() {
                     Project(1, "CodeFlow", "Plataforma colaborativa de desarrollo", "Ana", null),
                     Project(2, "TFG", null, "Luis", "2026-10-08T10:00:00.000000Z"),
                 ),
-                unreadNotifications = 3,
             ),
             onRetry = {},
             onLoadMore = {},
-            onOpenNotifications = {},
-            onLogout = {},
+            topBarActions = {},
         )
     }
 }

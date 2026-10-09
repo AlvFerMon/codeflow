@@ -21,7 +21,7 @@ object ApiClient {
     }
 
     fun create(
-        baseUrl: String,
+        baseUrlProvider: () -> String,
         tokenProvider: () -> String?,
         onUnauthorized: () -> Unit,
         enableBodyLogging: Boolean,
@@ -37,6 +37,7 @@ object ApiClient {
         }
 
         val client = OkHttpClient.Builder()
+            .addInterceptor(BaseUrlInterceptor(baseUrlProvider))
             .addInterceptor(AuthInterceptor(tokenProvider))
             .addInterceptor(UnauthorizedInterceptor(onUnauthorized))
             .addInterceptor(logging)
@@ -46,7 +47,7 @@ object ApiClient {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(baseUrl)
+            .baseUrl(BaseUrlInterceptor.PLACEHOLDER_BASE_URL)
             .client(client)
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
