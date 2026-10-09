@@ -3,7 +3,7 @@
     "short_name": "CodeFlow",
     "description": "Plataforma colaborativa de control de versiones",
     "lang": "es",
-    "start_url": "/",
+    "start_url": "/m",
     "scope": "/",
     "display": "standalone",
     "background_color": "#09090b",

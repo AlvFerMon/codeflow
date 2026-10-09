@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Account;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Account\Presenters\ActivityPresenter;
+use App\Http\Controllers\Web\Mobile\MobileController;
 use App\Models\ActivityLog;
 use App\Models\Commit;
 use App\Models\Issue;
@@ -45,6 +46,11 @@ class HomeController extends Controller
 
         if (! $user->hasVerifiedEmail()) {
             return redirect()->route('verification.notice');
+        }
+
+        // En un teléfono se abre la versión móvil (solo consulta), salvo que se haya elegido la completa
+        if (MobileController::isPhone($request) && ! $request->cookie(MobileController::FULL_VERSION_COOKIE) && ! $request->has('completa')) {
+            return redirect()->route('mobile.activity');
         }
 
         // "Mis proyectos": solo aquellos de los que soy miembro (también para el admin)

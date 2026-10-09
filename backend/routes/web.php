@@ -21,3 +21,4 @@ require __DIR__.'/web/auth.php';
 require __DIR__.'/web/account.php';
 require __DIR__.'/web/code.php';
 require __DIR__.'/web/collab.php';
+require __DIR__.'/web/mobile.php';

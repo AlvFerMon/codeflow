@@ -14,21 +14,10 @@
         @endif
     </div>
 
-    <nav class="mb-4 flex gap-1 border-b border-zinc-200 dark:border-zinc-800 text-sm">
-        @foreach (['all' => ['Todas', route('notifications.index')], 'unread' => ['No leídas', route('notifications.index', ['filter' => 'unread'])]] as $key => [$label, $url])
-            @php($active = ($key === 'unread') === $unreadOnly)
-            <a href="{{ $url }}" @class([
-                '-mb-px flex items-center gap-1.5 border-b-2 px-3 py-2',
-                'border-purple-500 font-medium text-zinc-900 dark:text-zinc-100' => $active,
-                'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' => ! $active,
-            ])>
-                {{ $label }}
-                @if ($key === 'unread' && $unreadCount > 0)
-                    <span class="rounded-full bg-purple-100 dark:bg-purple-500/20 px-1.5 text-xs font-semibold text-purple-700 dark:text-purple-300">{{ $unreadCount }}</span>
-                @endif
-            </a>
-        @endforeach
-    </nav>
+    <x-tabs class="mb-4" label="Filtro de notificaciones" :active="$unreadOnly ? 'unread' : 'all'" :items="[
+        'all' => ['label' => 'Todas', 'url' => route('notifications.index')],
+        'unread' => ['label' => 'No leídas', 'url' => route('notifications.index', ['filter' => 'unread']), 'count' => $unreadCount, 'highlight' => true],
+    ]" />
 
     <x-card>
         @if ($notifications->isEmpty())

@@ -24,17 +24,10 @@
     </div>
 
     {{-- Pestañas --}}
-    <nav class="mb-6 flex gap-1 overflow-x-auto border-b border-zinc-200 dark:border-zinc-800 text-sm">
-        @foreach (['conversation' => ['Conversación', $conversation['total'] + $pr->reviews->count()], 'files' => ['Archivos cambiados', count($files)]] as $key => [$label, $count])
-            <a href="{{ route('pulls.show', [$repository, $pr->number, 'tab' => $key]) }}" @class([
-                '-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2',
-                'border-purple-500 font-medium text-zinc-900 dark:text-zinc-100' => $tab === $key,
-                'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' => $tab !== $key,
-            ])>
-                {{ $label }} <span class="rounded-full bg-zinc-200 dark:bg-zinc-700 px-1.5 text-xs text-zinc-700 dark:text-zinc-300">{{ $count }}</span>
-            </a>
-        @endforeach
-    </nav>
+    <x-tabs class="mb-6" label="Secciones del pull request" :active="$tab" :items="[
+        'conversation' => ['label' => 'Conversación', 'url' => route('pulls.show', [$repository, $pr->number, 'tab' => 'conversation']), 'count' => $conversation['total'] + $pr->reviews->count()],
+        'files' => ['label' => 'Archivos cambiados', 'url' => route('pulls.show', [$repository, $pr->number, 'tab' => 'files']), 'count' => count($files)],
+    ]" />
 
     @if ($tab === 'files')
         @if (count($files) === 0)

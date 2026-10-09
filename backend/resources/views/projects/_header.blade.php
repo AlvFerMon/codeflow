@@ -30,17 +30,5 @@
     <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
         Propietario: {{ $project->owner?->name ?? '—' }} · Creado {{ $project->created_at?->diffForHumans() }}
     </p>
-    <nav class="mt-4 flex gap-1 overflow-x-auto border-b border-zinc-200 text-sm dark:border-zinc-800" aria-label="Secciones del proyecto">
-        @foreach ($tabs as $key => [$label, $url, $count])
-            <a href="{{ $url }}" @if ($active === $key) aria-current="page" @endif
-                @class(['-mb-px flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-2 transition-colors',
-                    'border-purple-500 font-medium text-zinc-900 dark:text-white' => $active === $key,
-                    'border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100' => $active !== $key])>
-                {{ $label }}
-                @if ($count)
-                    <span class="rounded-full bg-zinc-100 px-1.5 text-[11px] font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">{{ $count }}</span>
-                @endif
-            </a>
-        @endforeach
-    </nav>
+    <x-tabs class="mt-4" label="Secciones del proyecto" :active="$active" :items="collect($tabs)->map(fn ($tab) => ['label' => $tab[0], 'url' => $tab[1], 'count' => $tab[2] ?: null])->all()" />
 </div>

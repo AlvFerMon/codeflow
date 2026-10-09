@@ -27,32 +27,20 @@
             </div>
         @endif
     @endguest
-    <nav class="mt-4 flex gap-1 overflow-x-auto border-b border-zinc-200 dark:border-zinc-800 text-sm">
-        @php
-            $active = $active ?? 'code';
-            $tabs = [
-                'code' => ['Código', route('repositories.show', $repository)],
-                'issues' => ['Issues', route('issues.index', $repository)],
-                'pulls' => ['Pull requests', route('pulls.index', $repository)],
-                'commits' => ['Commits', route('commits.index', $repository)],
-                'branches' => ['Ramas', route('branches.index', $repository)],
-            ];
-        @endphp
-        @foreach ($tabs as $key => [$label, $url])
-            <a href="{{ $url }}" @class([
-                '-mb-px border-b-2 px-3 py-2 whitespace-nowrap',
-                'border-purple-500 font-medium text-zinc-900 dark:text-zinc-100' => $active === $key,
-                'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' => $active !== $key,
-            ])>{{ $label }}</a>
-        @endforeach
-        @can('update', $repository)
-            <a href="{{ route('repositories.settings', $repository) }}" @class([
-                '-mb-px ml-auto border-b-2 px-3 py-2 whitespace-nowrap',
-                'border-purple-500 font-medium text-zinc-900 dark:text-zinc-100' => $active === 'settings',
-                'border-transparent text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100' => $active !== 'settings',
-            ])>Configuración</a>
-        @endcan
-    </nav>
+    @php
+        $active = $active ?? 'code';
+        $tabs = [
+            'code' => ['label' => 'Código', 'url' => route('repositories.show', $repository)],
+            'issues' => ['label' => 'Issues', 'url' => route('issues.index', $repository)],
+            'pulls' => ['label' => 'Pull requests', 'url' => route('pulls.index', $repository)],
+            'commits' => ['label' => 'Commits', 'url' => route('commits.index', $repository)],
+            'branches' => ['label' => 'Ramas', 'url' => route('branches.index', $repository)],
+        ];
+        if (auth()->user()?->can('update', $repository)) {
+            $tabs['settings'] = ['label' => 'Configuración', 'url' => route('repositories.settings', $repository), 'end' => true];
+        }
+    @endphp
+    <x-tabs class="mt-4" label="Secciones del repositorio" :active="$active" :items="$tabs" />
     @php
         $helps = [
             'code' => ['¿Qué es un repositorio?', 'Un repositorio guarda el código de un programa y todo su historial. Puedes navegar por las carpetas, abrir archivos y cambiar de rama con el selector.'],

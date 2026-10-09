@@ -16,14 +16,11 @@
     </x-help>
 
     <div class="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div class="inline-flex rounded-lg border border-zinc-200 bg-white p-0.5 text-sm dark:border-zinc-800 dark:bg-zinc-900" role="tablist">
-            @foreach ($labels as $value => $label)
-                <a href="{{ route($route, array_filter([$project, 'state' => $value, 'repo' => $repo, 'q' => $q])) }}" role="tab" aria-selected="{{ $state === $value ? 'true' : 'false' }}"
-                    @class(['rounded-md px-3 py-1 transition-colors', 'bg-zinc-100 font-semibold text-zinc-900 dark:bg-zinc-800 dark:text-white' => $state === $value, 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white' => $state !== $value])>
-                    {{ $label }} <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $counts[$value] }}</span>
-                </a>
-            @endforeach
-        </div>
+        <x-tabs variant="pills" label="Estado" :active="$state" :items="collect($labels)->map(fn ($label, $value) => [
+            'label' => $label,
+            'url' => route($route, array_filter([$project, 'state' => $value, 'repo' => $repo, 'q' => $q])),
+            'count' => $counts[$value],
+        ])->all()" />
         <form method="GET" action="{{ route($route, $project) }}" class="flex flex-col gap-2 sm:flex-row" role="search">
             <input type="hidden" name="state" value="{{ $state }}">
             <label class="sr-only" for="repo">Repositorio</label>

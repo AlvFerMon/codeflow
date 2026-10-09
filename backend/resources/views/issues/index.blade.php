@@ -3,8 +3,11 @@
     @include('repositories._header', ['repository' => $repository, 'active' => 'issues'])
 
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <x-collab-state-tabs :state="$state" :counts="$counts" :labels="['open' => 'Abiertas', 'closed' => 'Cerradas']"
-            route="issues.index" :repository="$repository" />
+        <x-tabs variant="pills" label="Estado" :active="$state" :items="collect(['open' => 'Abiertas', 'closed' => 'Cerradas'])->map(fn ($label, $key) => [
+            'label' => $label,
+            'url' => route('issues.index', [$repository, 'state' => $key] + request()->except(['state', 'status', 'page'])),
+            'count' => $counts[$key],
+        ])->all()" />
         @can('create', [\App\Models\Issue::class, $repository])
             <x-button :href="route('issues.create', $repository)">
                 <svg class="h-4 w-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" d="M8 3v10M3 8h10"/></svg>

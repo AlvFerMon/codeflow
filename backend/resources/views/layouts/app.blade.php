@@ -119,6 +119,9 @@
                                 </div>
                                 <a href="{{ route('profile.edit') }}" class="{{ $menuItem }}">Mi perfil y configuración</a>
                                 <a href="{{ route('projects.index') }}" class="{{ $menuItem }}">Mis proyectos</a>
+                                @if ($verified)
+                                    <a href="{{ route('mobile.enable') }}" class="{{ $menuItem }} md:hidden">Versión móvil (sencilla)</a>
+                                @endif
                                 <div class="border-t border-zinc-100 px-3 py-2 dark:border-zinc-800">
                                     <p class="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tema</p>
                                     @include('layouts._theme-switch')
