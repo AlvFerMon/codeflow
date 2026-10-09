@@ -19,7 +19,7 @@
         <label class="col-span-2 sm:col-span-3 lg:col-span-2">
             <span class="sr-only">Buscar en el título</span>
             <input type="search" name="q" value="{{ $filters['q'] }}" placeholder="Buscar en el título…"
-                class="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                class="block w-full rounded-lg border border-zinc-300 dark:border-zinc-700 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
         </label>
         <x-select name="status" :options="$L::ISSUE_STATUSES" :value="$filters['status']" placeholder="Estado" aria-label="Estado" />
         <x-select name="priority" :options="$L::PRIORITIES" :value="$filters['priority']" placeholder="Prioridad" aria-label="Prioridad" />
@@ -49,27 +49,27 @@
                 <x-empty title="No hay issues cerradas">Las issues resueltas o cerradas aparecerán aquí.</x-empty>
             @endif
         @else
-            <ul class="divide-y divide-slate-200">
+            <ul class="divide-y divide-zinc-200 dark:divide-zinc-800">
                 @foreach ($issues as $issue)
-                    <li class="flex gap-3 px-4 py-3 hover:bg-slate-50">
+                    <li class="flex gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
                         <x-collab-status-icon type="issue" :status="$issue->status" class="mt-0.5 h-5 w-5" />
                         <div class="min-w-0 flex-1">
                             <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                <a href="{{ route('issues.show', [$repository, $issue->number]) }}" class="font-medium text-slate-900 hover:text-indigo-600">
-                                    <span class="text-slate-500">#{{ $issue->number }}</span> {{ $issue->title }}
+                                <a href="{{ route('issues.show', [$repository, $issue->number]) }}" class="font-medium text-zinc-900 dark:text-zinc-100 hover:text-purple-600 dark:hover:text-purple-400">
+                                    <span class="text-zinc-500 dark:text-zinc-400">#{{ $issue->number }}</span> {{ $issue->title }}
                                 </a>
                                 @foreach ($issue->labels ?? [] as $label)
                                     <x-collab-label :label="$label" />
                                 @endforeach
                             </div>
-                            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                            <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
                                 <x-collab-issue-status :status="$issue->status" />
                                 <x-collab-priority :priority="$issue->priority" />
-                                <span>abierta por <span class="font-medium text-slate-700">{{ $issue->author?->name ?? 'usuario eliminado' }}</span>
+                                <span>abierta por <span class="font-medium text-zinc-700 dark:text-zinc-300">{{ $issue->author?->name ?? 'usuario eliminado' }}</span>
                                     <time datetime="{{ $issue->created_at->toIso8601String() }}" title="{{ $issue->created_at->format('d/m/Y H:i') }}">{{ $issue->created_at->diffForHumans() }}</time></span>
                             </div>
                         </div>
-                        <div class="flex shrink-0 items-start gap-3 text-xs text-slate-500">
+                        <div class="flex shrink-0 items-start gap-3 text-xs text-zinc-500 dark:text-zinc-400">
                             @if ($issue->assignee)
                                 <x-collab-avatar :user="$issue->assignee" size="sm" />
                             @endif

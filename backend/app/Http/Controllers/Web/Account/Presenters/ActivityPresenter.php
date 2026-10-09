@@ -61,7 +61,7 @@ final class ActivityPresenter
         return [
             'id' => $log->id,
             'actor' => $actor,
-            'sentence' => new HtmlString('<span class="font-medium text-slate-900">'.e($actor).'</span> '.$this->describe($log)),
+            'sentence' => new HtmlString('<span class="font-medium text-zinc-900 dark:text-zinc-100">'.e($actor).'</span> '.$this->describe($log)),
             'category' => strtok($log->action, '.') ?: 'other',
             'time' => $log->created_at,
             'project_id' => $log->project_id,
@@ -213,18 +213,18 @@ final class ActivityPresenter
 
     private function link(string $url, string $text, bool $mono = false): string
     {
-        $class = 'font-medium text-indigo-600 hover:underline'.($mono ? ' font-mono text-[0.9em]' : '');
+        $class = 'font-medium text-purple-600 dark:text-purple-400 hover:underline'.($mono ? ' font-mono text-[0.9em]' : '');
 
         return '<a href="'.e($url).'" class="'.$class.'">'.e($text).'</a>';
     }
 
     private function strong(string $text): string
     {
-        return '<span class="font-medium text-slate-900">'.e($text).'</span>';
+        return '<span class="font-medium text-zinc-900 dark:text-zinc-100">'.e($text).'</span>';
     }
 
     private function code(string $text): string
     {
-        return '<code class="rounded bg-slate-100 px-1 font-mono text-[0.85em] text-slate-700">'.e($text).'</code>';
+        return '<code class="rounded bg-zinc-100 dark:bg-zinc-800 px-1 font-mono text-[0.85em] text-zinc-700 dark:text-zinc-300">'.e($text).'</code>';
     }
 }

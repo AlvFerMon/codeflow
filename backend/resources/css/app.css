@@ -1,28 +1,48 @@
 @import 'tailwindcss';
 
+/* Tipografía Instrument Sans autoalojada (sin peticiones a CDNs externos) */
+@import '@fontsource/instrument-sans/latin-400.css';
+@import '@fontsource/instrument-sans/latin-500.css';
+@import '@fontsource/instrument-sans/latin-600.css';
+@import '@fontsource/instrument-sans/latin-700.css';
+@import '@fontsource/instrument-sans/latin-ext-400.css';
+@import '@fontsource/instrument-sans/latin-ext-600.css';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../views/**/*.blade.php';
 
+/* Modo oscuro por clase en <html> (el script del layout aplica la preferencia guardada o la del sistema) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
-    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+@layer base {
+    html { color-scheme: light; }
+    html.dark { color-scheme: dark; }
+    [x-cloak] { display: none !important; }
+    summary::-webkit-details-marker { display: none; }
+    input[type='checkbox'], input[type='radio'] { accent-color: var(--color-purple-600); }
 }
 
 /* Texto Markdown renderizado (README, descripciones y comentarios) */
 @layer components {
-    .markdown { @apply text-sm leading-6 text-slate-700; }
+    .markdown { @apply text-sm leading-6 text-zinc-700 dark:text-zinc-300; }
     .markdown > * + * { @apply mt-3; }
-    .markdown h1 { @apply text-xl font-semibold text-slate-900; }
-    .markdown h2 { @apply border-b border-slate-200 pb-1 text-lg font-semibold text-slate-900; }
-    .markdown h3 { @apply text-base font-semibold text-slate-900; }
-    .markdown a { @apply text-indigo-600 underline; }
+    .markdown h1 { @apply text-xl font-semibold text-zinc-900 dark:text-white; }
+    .markdown h2 { @apply border-b border-zinc-200 pb-1 text-lg font-semibold text-zinc-900 dark:border-zinc-800 dark:text-white; }
+    .markdown h3 { @apply text-base font-semibold text-zinc-900 dark:text-white; }
+    .markdown a { @apply text-purple-600 underline dark:text-purple-400; }
     .markdown ul { @apply list-disc pl-6; }
     .markdown ol { @apply list-decimal pl-6; }
-    .markdown code { @apply rounded bg-slate-100 px-1 py-0.5 font-mono text-[0.85em]; }
-    .markdown pre { @apply overflow-x-auto rounded-md bg-slate-900 p-3 text-slate-100; }
+    .markdown code { @apply rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.85em] dark:bg-zinc-800; }
+    .markdown pre { @apply overflow-x-auto rounded-lg border border-zinc-800 bg-zinc-950 p-3 text-zinc-100; }
     .markdown pre code { @apply bg-transparent p-0 text-inherit; }
-    .markdown blockquote { @apply border-l-4 border-slate-200 pl-3 text-slate-500; }
+    .markdown blockquote { @apply border-l-4 border-zinc-200 pl-3 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400; }
     .markdown table { @apply w-full border-collapse text-left; }
-    .markdown th, .markdown td { @apply border border-slate-200 px-2 py-1; }
+    .markdown th, .markdown td { @apply border border-zinc-200 px-2 py-1 dark:border-zinc-800; }
 }

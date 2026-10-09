@@ -4,14 +4,14 @@
     $changes = $log->properties['changes'] ?? [];
     $name = fn ($id) => $id ? ($users[$id] ?? 'usuario eliminado') : null;
 @endphp
-<div class="flex gap-3 py-1 pl-4 text-sm text-slate-600">
-    <span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-slate-100 text-slate-500 ring-4 ring-slate-50">
+<div class="flex gap-3 py-1 pl-4 text-sm text-zinc-600 dark:text-zinc-400">
+    <span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 ring-4 ring-zinc-50 dark:ring-zinc-800">
         <svg class="h-3.5 w-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11.5 2.5l2 2-8 8H3.5v-2z"/></svg>
     </span>
     <div class="min-w-0 flex-1 space-y-1">
         @foreach ($changes as $field => $change)
             <p class="flex flex-wrap items-center gap-1">
-                <span class="font-medium text-slate-800">{{ $log->user?->name ?? 'Alguien' }}</span>
+                <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $log->user?->name ?? 'Alguien' }}</span>
                 @switch($field)
                     @case('status')
                         cambió el estado de <x-collab-issue-status :status="$change['from']" /> a <x-collab-issue-status :status="$change['to']" />
@@ -21,9 +21,9 @@
                         @break
                     @case('assignee_id')
                         @if ($change['to'])
-                            asignó la issue a <span class="font-medium text-slate-800">{{ $name($change['to']) }}</span>
+                            asignó la issue a <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $name($change['to']) }}</span>
                         @else
-                            quitó la asignación a <span class="font-medium text-slate-800">{{ $name($change['from']) }}</span>
+                            quitó la asignación a <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $name($change['from']) }}</span>
                         @endif
                         @break
                     @case('labels')
@@ -42,7 +42,7 @@
                         @endif
                         @break
                     @case('title')
-                        cambió el título de <del class="text-slate-400">{{ $change['from'] }}</del> a <span class="font-medium text-slate-800">{{ $change['to'] }}</span>
+                        cambió el título de <del class="text-zinc-400 dark:text-zinc-500">{{ $change['from'] }}</del> a <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $change['to'] }}</span>
                         @break
                     @case('description')
                         editó la descripción
@@ -50,7 +50,7 @@
                     @default
                         modificó {{ $field }}
                 @endswitch
-                <time class="text-slate-400" title="{{ $log->created_at->format('d/m/Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
+                <time class="text-zinc-400 dark:text-zinc-500" title="{{ $log->created_at->format('d/m/Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
             </p>
         @endforeach
     </div>

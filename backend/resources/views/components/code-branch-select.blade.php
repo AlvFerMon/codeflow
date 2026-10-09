@@ -11,9 +11,9 @@
     @endforeach
     <label class="relative flex items-center">
         <span class="sr-only">Rama</span>
-        <x-code-icon name="branch" class="pointer-events-none absolute left-2.5 h-4 w-4 text-slate-500" />
+        <x-code-icon name="branch" class="pointer-events-none absolute left-2.5 h-4 w-4 text-zinc-500 dark:text-zinc-400" />
         <select name="branch" onchange="this.form.submit()"
-            class="max-w-[14rem] truncate rounded-md border border-slate-300 bg-white py-1.5 pl-8 pr-8 text-sm font-medium text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            class="max-w-[14rem] truncate rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 py-1.5 pl-8 pr-8 text-sm font-medium text-zinc-700 dark:text-zinc-300 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
             @foreach ($branches as $name)
                 <option value="{{ $name }}" @selected($name === $current)>{{ $name }}</option>
             @endforeach

@@ -102,15 +102,15 @@ function init(root) {
             const row = document.createElement('li');
             row.className = 'flex items-center gap-3 px-3 py-1.5 text-sm';
             const name = document.createElement('span');
-            name.className = 'min-w-0 flex-1 truncate font-mono text-xs' + (file.size > limits.fileBytes ? ' text-rose-600' : ' text-slate-700');
+            name.className = 'min-w-0 flex-1 truncate font-mono text-xs' + (file.size > limits.fileBytes ? ' text-rose-600' : ' text-zinc-700 dark:text-zinc-300');
             name.textContent = path;
             name.title = path;
             const size = document.createElement('span');
-            size.className = 'shrink-0 text-xs text-slate-500';
+            size.className = 'shrink-0 text-xs text-zinc-500 dark:text-zinc-400';
             size.textContent = formatBytes(file.size);
             const remove = document.createElement('button');
             remove.type = 'button';
-            remove.className = 'shrink-0 rounded px-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600';
+            remove.className = 'shrink-0 rounded px-1.5 text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10';
             remove.textContent = '✕';
             remove.title = 'Quitar';
             remove.addEventListener('click', () => { selected.delete(path); render(); });
@@ -119,7 +119,7 @@ function init(root) {
         }
         if (entries.length > shown.length) {
             const more = document.createElement('li');
-            more.className = 'px-3 py-1.5 text-xs text-slate-500';
+            more.className = 'px-3 py-1.5 text-xs text-zinc-500 dark:text-zinc-400';
             more.textContent = `… y ${entries.length - shown.length} archivo(s) más`;
             list.appendChild(more);
         }
@@ -138,10 +138,10 @@ function init(root) {
 
     ['dragenter', 'dragover'].forEach((type) => dropZone.addEventListener(type, (e) => {
         e.preventDefault();
-        dropZone.classList.add('border-indigo-500', 'bg-indigo-50');
+        dropZone.classList.add('border-purple-500', 'bg-purple-50', 'dark:bg-purple-500/10');
     }));
     ['dragleave', 'drop'].forEach((type) => dropZone.addEventListener(type, () => {
-        dropZone.classList.remove('border-indigo-500', 'bg-indigo-50');
+        dropZone.classList.remove('border-purple-500', 'bg-purple-50', 'dark:bg-purple-500/10');
     }));
     dropZone.addEventListener('drop', async (e) => {
         e.preventDefault();

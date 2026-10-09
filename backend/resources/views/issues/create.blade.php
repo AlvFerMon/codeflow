@@ -9,7 +9,7 @@
                 <x-input label="Título" name="title" required maxlength="200" autofocus placeholder="Resumen breve del error o la tarea" />
                 <div>
                     <x-textarea label="Descripción" name="description" rows="10" placeholder="Pasos para reproducirlo, comportamiento esperado, capturas…" />
-                    <p class="mt-1 text-xs text-slate-500">Admite Markdown: **negrita**, `código`, listas, enlaces y bloques ```código```.</p>
+                    <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Admite Markdown: **negrita**, `código`, listas, enlaces y bloques ```código```.</p>
                 </div>
             </div>
         </x-card>

@@ -2,11 +2,11 @@
 @props(['type' => 'issue', 'status'])
 @php
     $color = match ($status) {
-        'open', 'approved' => 'text-emerald-600',
-        'in_progress', 'in_review' => 'text-amber-600',
-        'changes_requested' => 'text-rose-600',
-        'resolved', 'merged' => 'text-purple-600',
-        default => 'text-slate-500',
+        'open', 'approved' => 'text-emerald-600 dark:text-emerald-400',
+        'in_progress', 'in_review' => 'text-amber-600 dark:text-amber-400',
+        'changes_requested' => 'text-rose-600 dark:text-rose-400',
+        'resolved', 'merged' => 'text-purple-600 dark:text-purple-400',
+        default => 'text-zinc-500 dark:text-zinc-400',
     };
 @endphp
 <svg {{ $attributes->merge(['class' => "shrink-0 {$color}"]) }} viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">

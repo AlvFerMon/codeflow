@@ -892,6 +892,27 @@ Con MySQL, por API y web:
 3. **Notificaciones en la aplicación** (tabla `notifications` de Laravel, canal `database`): cambios del proyecto
    (miembros, repositorios, ramas, commits, issues, PRs, revisiones, fusiones) y alertas. FCM queda para la fase 19.
 4. **Entorno**: Docker Compose (MySQL 8.4, PHP-FPM 8.3, nginx, Mailpit, compilación de assets). Ver `README.md`.
+5. **Diseño visual unificado** (rama `unificar-front`): se adopta el diseño propuesto en la rama `front`
+   (paleta neutra *zinc* con acento morado, tipografía Instrument Sans, tarjetas `rounded-xl`, navbar fija con buscador
+   y modo oscuro) sobre las pantallas reales de la web. Ver la sección *Sistema de diseño*.
+
+## Sistema de diseño (web)
+
+- **Tokens** en `backend/resources/css/app.css` (Tailwind 4): fuente Instrument Sans autoalojada con
+  `@fontsource/instrument-sans` (sin peticiones a CDNs), neutros `zinc`, acento `purple`, estados `emerald`/`amber`/`rose`/`sky`.
+- **Modo oscuro** por clase en `<html>` (`@custom-variant dark`). `layouts/_theme.blade.php` aplica la preferencia
+  guardada (`localStorage`) o la del sistema antes de pintar; `resources/js/theme.js` gestiona el selector
+  Claro / Oscuro / Sistema, el atajo **Ctrl/⌘ + K** del buscador y el cierre de menús desplegables.
+- **Componentes Blade** (`resources/views/components`): `button` (primary, purple, secondary, ghost, success, danger;
+  tamaños sm/md/lg), `badge` (acepta `variant` o el antiguo `color`), `card` (título, subtítulo y acciones),
+  `metric-card` (KPI con icono y pie), `input`, `select`, `textarea`, `flash`, `empty`, `user-avatar`.
+- **Layout** (`layouts/app.blade.php`): navbar sticky con logo, navegación (Inicio, Proyectos, Explorar,
+  Notificaciones con contador), buscador de repositorios públicos, botón *Nuevo*, campana con no leídas, menú de
+  usuario (perfil, tema, cerrar sesión), menú móvil y pie. `layouts/guest.blade.php` para login/registro.
+- **Panel de inicio** ("Flujo de trabajo", `HomeController`): KPIs reales (repositorios públicos/privados, PRs abiertas,
+  listas para fusionar y pendientes de tu revisión, issues abiertas y urgentes, commits de los últimos 7 días),
+  repositorios ordenados por su último commit, PRs pendientes, actividad, notificaciones y mis proyectos.
+  Todas las consultas son agregadas o con tope fijo (no crece con el número de proyectos).
 
 ## Estado de implementación
 
@@ -902,6 +923,7 @@ Con MySQL, por API y web:
 | 6-8 Proyectos, repositorios cifrados, ramas, archivos, commits, diff Myers | ✅ |
 | 9-11 Issues, pull requests (revisión, merge 3 vías, conflictos), comentarios, actividad, notificaciones | ✅ |
 | 12-bis Web Blade completa | ✅ |
+| 12-ter Diseño unificado (UI de la rama `front`) + modo oscuro | ✅ |
 | 13 Android | 🟡 esqueleto (login, proyectos, notificaciones) |
-| 14 Testing | 🟡 139 tests de backend; faltan tests de la app Android en dispositivo |
+| 14 Testing | 🟡 149 tests de backend; faltan tests de la app Android en dispositivo |
 | 15-20 Docker producción, CI/CD, análisis estático, IA, FCM, documentación final | ⏳ |

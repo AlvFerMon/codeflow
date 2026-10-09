@@ -1,8 +1,8 @@
 <x-app-layout :title="'Miembros · '.$project->name">
     <div class="mb-6">
-        <a href="{{ route('projects.show', $project) }}" class="text-sm text-slate-500 hover:underline">← {{ $project->name }}</a>
-        <h1 class="mt-1 text-2xl font-semibold text-slate-900">Miembros del proyecto</h1>
-        <p class="text-sm text-slate-500">
+        <a href="{{ route('projects.show', $project) }}" class="text-sm text-zinc-500 dark:text-zinc-400 hover:underline">← {{ $project->name }}</a>
+        <h1 class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Miembros del proyecto</h1>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400">
             Los <strong>colaboradores</strong> pueden subir código, crear ramas, issues y pull requests.
             Los <strong>observadores</strong> solo pueden ver y comentar.
         </p>
@@ -11,19 +11,19 @@
     <div class="grid gap-6 lg:grid-cols-3">
         <div class="lg:col-span-2">
             <x-card :title="$members->count().' '.($members->count() === 1 ? 'miembro' : 'miembros')">
-                <ul class="divide-y divide-slate-100">
+                <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
                     @foreach ($members as $member)
                         @php($isOwner = $member->role === \App\Support\Roles::OWNER)
                         <li class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center">
                             <div class="flex min-w-0 flex-1 items-center gap-3">
-                                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-slate-200 text-sm font-semibold text-slate-700">{{ mb_strtoupper(mb_substr($member->user?->name ?? '?', 0, 1)) }}</span>
+                                <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-zinc-200 dark:bg-zinc-700 text-sm font-semibold text-zinc-700 dark:text-zinc-300">{{ mb_strtoupper(mb_substr($member->user?->name ?? '?', 0, 1)) }}</span>
                                 <div class="min-w-0">
-                                    <p class="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-900">
+                                    <p class="flex flex-wrap items-center gap-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                         <span class="truncate">{{ $member->user?->name ?? 'Usuario eliminado' }}</span>
                                         <x-account-role-badge :role="$member->role" />
-                                        @if ($member->user_id === auth()->id())<span class="text-xs font-normal text-slate-400">(tú)</span>@endif
+                                        @if ($member->user_id === auth()->id())<span class="text-xs font-normal text-zinc-400 dark:text-zinc-500">(tú)</span>@endif
                                     </p>
-                                    <p class="truncate text-xs text-slate-500">{{ $member->user?->email }} · desde {{ $member->created_at?->translatedFormat('j M Y') }}</p>
+                                    <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $member->user?->email }} · desde {{ $member->created_at?->translatedFormat('j M Y') }}</p>
                                 </div>
                             </div>
 
@@ -34,7 +34,7 @@
                                             @csrf
                                             @method('PUT')
                                             <label class="sr-only" for="role-{{ $member->user_id }}">Rol de {{ $member->user->name }}</label>
-                                            <select id="role-{{ $member->user_id }}" name="role" class="rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                            <select id="role-{{ $member->user_id }}" name="role" class="rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-2 py-1.5 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
                                                 @foreach ($roleOptions as $value => $label)
                                                     <option value="{{ $value }}" @selected($member->role === $value)>{{ $label }}</option>
                                                 @endforeach
@@ -68,7 +68,7 @@
                 </x-card>
             @else
                 <x-card>
-                    <div class="p-4 text-sm text-slate-600">
+                    <div class="p-4 text-sm text-zinc-600 dark:text-zinc-400">
                         Solo el propietario del proyecto puede añadir miembros o cambiar sus roles.
                     </div>
                 </x-card>

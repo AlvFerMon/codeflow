@@ -5,12 +5,12 @@
         'pull_request.merged' => ['merge', 'bg-purple-600 text-white'],
         'pull_request.closed' => ['close', 'bg-rose-600 text-white'],
         'pull_request.reopened' => ['open', 'bg-emerald-600 text-white'],
-        default => ['edit', 'bg-slate-100 text-slate-500'],
+        default => ['edit', 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400'],
     };
     $fieldLabels = ['title' => 'el título', 'description' => 'la descripción', 'reviewers' => 'los revisores'];
 @endphp
-<div class="flex items-center gap-3 py-1 pl-4 text-sm text-slate-600">
-    <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full ring-4 ring-slate-50 {{ $tone }}">
+<div class="flex items-center gap-3 py-1 pl-4 text-sm text-zinc-600 dark:text-zinc-400">
+    <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full ring-4 ring-zinc-50 dark:ring-zinc-800 {{ $tone }}">
         @if ($icon === 'merge')
             <x-collab-status-icon type="pull" status="merged" class="h-3.5 w-3.5 !text-white" />
         @elseif ($icon === 'close')
@@ -22,7 +22,7 @@
         @endif
     </span>
     <p class="min-w-0 flex-1">
-        <span class="font-medium text-slate-800">{{ $log->user?->name ?? 'Alguien' }}</span>
+        <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $log->user?->name ?? 'Alguien' }}</span>
         @switch($log->action)
             @case('pull_request.merged')
                 fusionó <span class="font-mono text-xs">{{ $props['from'] ?? '' }}</span> en <span class="font-mono text-xs">{{ $props['to'] ?? '' }}</span>
@@ -42,6 +42,6 @@
             @default
                 {{ $log->action }}
         @endswitch
-        <time class="text-slate-400" title="{{ $log->created_at->format('d/m/Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
+        <time class="text-zinc-400 dark:text-zinc-500" title="{{ $log->created_at->format('d/m/Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
     </p>
 </div>
