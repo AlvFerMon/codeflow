@@ -13,6 +13,7 @@ use App\Vcs\Diff\HunkBuilder;
 use App\Vcs\Diff\MyersDiff;
 use App\Vcs\ObjectStore;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -33,6 +34,19 @@ class VcsService
 
     private readonly CommitHasher $hasher;
 
+    /**
+     * Memoria por petición (el servicio es singleton): el grafo de cada repositorio y los últimos
+     * árboles leídos. Los árboles de un commit nunca cambian; el grafo se invalida al crear commits.
+     *
+     * @var array<int,Collection>
+     */
+    private array $graphs = [];
+
+    /** @var array<int,array<string,int>> */
+    private array $trees = [];
+
+    private const TREES_KEPT = 16;
+
     public function __construct(?ObjectStore $objects = null, ?CommitHasher $hasher = null)
     {
         $this->objects = $objects ?? app(ObjectStore::class);
@@ -46,17 +60,56 @@ class VcsService
             return [];
         }
 
-        return CommitFile::where('commit_id', $commitId)->pluck('blob_id', 'path')->all();
+        if (! array_key_exists($commitId, $this->trees)) {
+            if (count($this->trees) >= self::TREES_KEPT) {
+                array_shift($this->trees); // se descarta el más antiguo (los árboles pueden ser grandes)
+            }
+            $this->trees[$commitId] = CommitFile::where('commit_id', $commitId)->pluck('blob_id', 'path')->all();
+        }
+
+        return $this->trees[$commitId];
+    }
+
+    /** Rutas de un commit que están dentro de una carpeta (filtrado en SQL, sin leer el árbol entero). */
+    public function treeUnder(?int $commitId, string $directory): array
+    {
+        if (! $commitId) {
+            return [];
+        }
+        if ($directory === '' || isset($this->trees[$commitId])) {
+            $tree = $this->tree($commitId);
+
+            return $directory === '' ? $tree : array_filter($tree, fn ($p) => str_starts_with($p, $directory.'/'), ARRAY_FILTER_USE_KEY);
+        }
+
+        // LIKE con '!' como carácter de escape (válido igual en MySQL y en SQLite)
+        $prefix = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $directory).'/';
+
+        return CommitFile::where('commit_id', $commitId)
+            ->whereRaw("path LIKE ? ESCAPE '!'", [$prefix.'%'])
+            ->pluck('blob_id', 'path')
+            ->all();
     }
 
     /** Grafo mínimo de commits de un repositorio (id, parent_id, second_parent_id). */
     public function graph(int $repositoryId): Collection
     {
-        // Objetos simples (no modelos Eloquent): recorrer el grafo es ~8 veces más rápido
-        return Commit::where('repository_id', $repositoryId)
+        // Objetos simples (no modelos Eloquent): recorrer el grafo es ~8 veces más rápido.
+        // Se calcula una vez por petición aunque varias partes de la pantalla lo necesiten.
+        return $this->graphs[$repositoryId] ??= Commit::where('repository_id', $repositoryId)
             ->toBase()
             ->get(['id', 'parent_id', 'second_parent_id'])
             ->keyBy('id');
+    }
+
+    /** Olvida el grafo memorizado (al crear commits o si se crean desde fuera del servicio). */
+    public function forgetGraph(?int $repositoryId = null): void
+    {
+        if ($repositoryId === null) {
+            $this->graphs = [];
+        } else {
+            unset($this->graphs[$repositoryId]);
+        }
     }
 
     /** @return array<int,bool> ids de commits alcanzables desde $id (incluido) */
@@ -205,6 +258,8 @@ class VcsService
             CommitFile::insert($chunk);
         }
 
+        $this->forgetGraph($repositoryId);
+
         return $commit;
     }
 
@@ -313,12 +368,37 @@ class VcsService
      *
      * @return array<int,array{path:string,status:string,additions:int,deletions:int,binary:bool,too_large:bool,hunks?:array}>
      */
-    public function diff(?int $baseCommitId, ?int $headCommitId, bool $withHunks = false): array
+    public function diff(?int $baseCommitId, ?int $headCommitId, bool $withHunks = false, ?array $hunkPaths = null): array
+    {
+        // El resumen (rutas y +/−) se guarda en caché: los commits son inmutables, así que la
+        // pareja (base, head) siempre da el mismo resultado. Los hunks (con el código descifrado)
+        // nunca se guardan en caché.
+        if (! $withHunks) {
+            return Cache::rememberForever(
+                'vcs:diff:'.($baseCommitId ?? 0).':'.($headCommitId ?? 0),
+                fn () => $this->computeDiff($baseCommitId, $headCommitId, false, null),
+            );
+        }
+
+        return $this->computeDiff($baseCommitId, $headCommitId, true, $hunkPaths);
+    }
+
+    /** Diff de un solo archivo con sus hunks (para cargarlo bajo demanda). */
+    public function fileDiff(?int $baseCommitId, ?int $headCommitId, string $path): ?array
+    {
+        return $this->computeDiff($baseCommitId, $headCommitId, true, [$path], $path)[0] ?? null;
+    }
+
+    /**
+     * @param  array<int,string>|null  $hunkPaths  Si se indica, solo se calculan los hunks de esas rutas.
+     * @param  string|null  $onlyPath  Limita el diff a una ruta.
+     */
+    private function computeDiff(?int $baseCommitId, ?int $headCommitId, bool $withHunks, ?array $hunkPaths, ?string $onlyPath = null): array
     {
         $old = $this->tree($baseCommitId);
         $new = $this->tree($headCommitId);
 
-        $paths = array_unique(array_merge(array_keys($old), array_keys($new)));
+        $paths = $onlyPath !== null ? [$onlyPath] : array_unique(array_merge(array_keys($old), array_keys($new)));
         sort($paths);
 
         $changed = [];
@@ -336,11 +416,13 @@ class VcsService
         $maxLines = (int) config('codeflow.limits.max_diff_lines');
         $myers = new MyersDiff;
         $hunkBuilder = new HunkBuilder(3);
+        $wantHunks = $hunkPaths !== null ? array_flip($hunkPaths) : null;
 
         $result = [];
         foreach ($changed as $path => [$o, $n]) {
             $oldBlob = $o ? $blobs[$o] ?? null : null;
             $newBlob = $n ? $blobs[$n] ?? null : null;
+            $hunksHere = $withHunks && ($wantHunks === null || isset($wantHunks[(string) $path]));
 
             $entry = [
                 'path' => (string) $path,
@@ -365,13 +447,13 @@ class VcsService
                         $entry['additions'] += $op['type'] === MyersDiff::INSERT ? 1 : 0;
                         $entry['deletions'] += $op['type'] === MyersDiff::DELETE ? 1 : 0;
                     }
-                    if ($withHunks) {
+                    if ($hunksHere) {
                         $hunks = $hunkBuilder->build($script, $oldLines, $newLines);
                     }
                 }
             }
 
-            if ($withHunks) {
+            if ($hunksHere) {
                 $entry['hunks'] = $hunks;
             }
 

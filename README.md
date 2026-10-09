@@ -62,6 +62,20 @@ por subida y `CODEFLOW_MAX_FILES=1000` archivos por subida. Para subirlos más, 
 - Si aun así va lento, la mejora mayor es clonar el proyecto dentro de WSL (`\\wsl$\Ubuntu\home\...`) en
   lugar de `C:\Users\...`: Docker Desktop lee los archivos de Windows mucho más despacio.
 
+### Registro y verificación del email
+
+Al crear una cuenta (en la web o desde la app con `POST /api/auth/register`) se envía un correo con un
+**código de 6 dígitos**. En desarrollo los correos no salen a Internet: se ven en **Mailpit**
+(http://localhost:8025).
+
+- Hasta verificar, la web solo muestra la pantalla «Esperando la verificación de tu email» (introducir el
+  código, reenviarlo, corregir el email o cerrar sesión). La API responde `403` con `"code": "email_not_verified"`.
+- El código caduca a los 30 minutos y admite 5 intentos; se guarda solo su hash.
+- API: `POST /api/auth/email/verify` con `{"code": "123456"}` y `POST /api/auth/email/verification-notification` para reenviarlo.
+- Los visitantes sin sesión siguen viendo los repositorios públicos como siempre.
+- Las cuentas que ya existían se dan por verificadas (migración `2026_10_09_000001`).
+- Para enviar correos reales, cambia en `.env` las variables `MAIL_*` (por ejemplo, SMTP de Gmail con una contraseña de aplicación).
+
 ### Usuarios de prueba
 
 Se crean automáticamente (`CODEFLOW_SEED_DEMO=true`) con las contraseñas de `.env`:

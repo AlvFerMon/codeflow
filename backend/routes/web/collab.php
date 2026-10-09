@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\Collab\IssueController;
+use App\Http\Controllers\Web\Collab\ProjectCollabController;
 use App\Http\Controllers\Web\Collab\PullRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,7 +11,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('repositories/{repository}/issues', [IssueController::class, 'index'])->name('issues.index');
 Route::get('repositories/{repository}/pulls', [PullRequestController::class, 'index'])->name('pulls.index');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Issues y pull requests de todo el proyecto (agregan las de sus repositorios)
+    Route::get('projects/{project}/issues', [ProjectCollabController::class, 'issues'])->name('projects.issues');
+    Route::get('projects/{project}/pulls', [ProjectCollabController::class, 'pulls'])->name('projects.pulls');
+
     Route::get('repositories/{repository}/issues/create', [IssueController::class, 'create'])->name('issues.create');
     Route::post('repositories/{repository}/issues', [IssueController::class, 'store'])->name('issues.store');
     Route::put('repositories/{repository}/issues/{number}', [IssueController::class, 'update'])->whereNumber('number')->name('issues.update');
@@ -20,6 +25,7 @@ Route::middleware('auth')->group(function () {
     Route::get('repositories/{repository}/pulls/create', [PullRequestController::class, 'create'])->name('pulls.create');
     Route::post('repositories/{repository}/pulls', [PullRequestController::class, 'store'])->name('pulls.store');
     Route::post('repositories/{repository}/pulls/{number}/comments', [PullRequestController::class, 'comment'])->whereNumber('number')->name('pulls.comment');
+    Route::put('repositories/{repository}/pulls/{number}', [PullRequestController::class, 'update'])->whereNumber('number')->name('pulls.update');
     Route::post('repositories/{repository}/pulls/{number}/reviews', [PullRequestController::class, 'review'])->whereNumber('number')->name('pulls.review');
     Route::post('repositories/{repository}/pulls/{number}/merge', [PullRequestController::class, 'merge'])->whereNumber('number')->name('pulls.merge');
     Route::post('repositories/{repository}/pulls/{number}/close', [PullRequestController::class, 'close'])->whereNumber('number')->name('pulls.close');
@@ -28,3 +34,4 @@ Route::middleware('auth')->group(function () {
 
 Route::get('repositories/{repository}/issues/{number}', [IssueController::class, 'show'])->whereNumber('number')->name('issues.show');
 Route::get('repositories/{repository}/pulls/{number}', [PullRequestController::class, 'show'])->whereNumber('number')->name('pulls.show');
+Route::get('repositories/{repository}/pulls/{number}/diff', [PullRequestController::class, 'diff'])->whereNumber('number')->name('pulls.diff');

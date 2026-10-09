@@ -75,7 +75,7 @@
                     </li>
                 @endforeach
             </ul>
-            <x-account-pagination :paginator="$notifications" />
+            <x-pagination :paginator="$notifications" />
         @endif
     </x-card>
 </x-app-layout>

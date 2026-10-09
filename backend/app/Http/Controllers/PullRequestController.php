@@ -95,7 +95,8 @@ class PullRequestController extends Controller
     {
         Gate::authorize('view', $pullRequest->repository);
 
-        return response()->json($pullRequest->comments()->with('user:id,name')->orderBy('id')->get());
+        // Paginados (30) del más antiguo al más reciente
+        return response()->json($pullRequest->comments()->with('user:id,name')->orderBy('id')->paginate(30));
     }
 
     /** Comentario general (cualquier miembro) o sobre una línea del código (no observadores). */
@@ -170,11 +171,12 @@ class PullRequestController extends Controller
             'author:id,name',
             'reviewers:id,name',
             'reviews.user:id,name',
-            'comments.user:id,name',
+            // Solo los 20 comentarios más recientes; el resto en /comments (paginado)
+            'comments' => fn ($q) => $q->with('user:id,name')->latest('id')->limit(20),
             'issues:id,number,title,status',
             'sourceBranch:id,name,head_commit_id',
             'targetBranch:id,name,head_commit_id',
-            'activity.user:id,name',
-        ]);
+            'activity' => fn ($q) => $q->with('user:id,name')->latest('id')->limit(50),
+        ])->loadCount('comments');
     }
 }

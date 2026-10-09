@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -29,9 +30,13 @@ class AuthController extends Controller
             'password' => $data['password'], // se cifra con el cast "hashed"
         ]);
 
+        // Envía el correo de verificación (listener SendEmailVerificationNotification)
+        event(new Registered($user));
+
         return response()->json([
             'user' => $user,
             'token' => $user->createToken($data['device_name'] ?? 'web')->plainTextToken,
+            'message' => 'Cuenta creada. Te hemos enviado un código para verificar tu email.',
         ], 201);
     }
 
@@ -61,6 +66,30 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json(['message' => 'Sesión cerrada.']);
+    }
+
+    /** Verifica el email con el código de 6 dígitos recibido por correo. */
+    public function verifyEmail(Request $request, \App\Services\EmailVerificationService $verification): JsonResponse
+    {
+        $data = $request->validate(['code' => 'required|string|max:20']);
+
+        $verification->verify($request->user(), $data['code']);
+
+        return response()->json(['message' => 'Email verificado.', 'user' => $request->user()->fresh()]);
+    }
+
+    /** Reenvía el código de verificación del email. */
+    public function resendVerification(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->hasVerifiedEmail()) {
+            return response()->json(['message' => 'Tu email ya está verificado.']);
+        }
+
+        $user->sendEmailVerificationNotification();
+
+        return response()->json(['message' => 'Te hemos enviado un código nuevo a '.$user->email.'.']);
     }
 
     public function me(Request $request): JsonResponse

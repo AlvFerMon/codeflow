@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-/** Alta de usuarios desde la web: crea la cuenta e inicia la sesión. */
+/** Alta de usuarios desde la web: crea la cuenta, inicia la sesión y envía el correo de verificación. */
 class RegisterController extends Controller
 {
     public function create(): View
@@ -36,11 +36,12 @@ class RegisterController extends Controller
             'password' => $data['password'], // se cifra con el cast "hashed"
         ]);
 
-        event(new Registered($user));
+        event(new Registered($user)); // envía el correo de verificación
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('home')->with('status', "¡Bienvenido a CodeFlow, {$user->name}!");
+        return redirect()->route('verification.notice')
+            ->with('status', "¡Bienvenido a CodeFlow, {$user->name}! Te hemos enviado un código a tu correo para verificar tu email.");
     }
 }

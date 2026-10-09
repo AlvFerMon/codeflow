@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Web\Code;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Code\Concerns\InteractsWithCode;
 use App\Models\Commit;
+use App\Support\DiffSelection;
 use App\Models\Repository;
 use App\Services\VcsService;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
@@ -28,11 +30,21 @@ class CommitController extends Controller
 
         $ids = $this->vcs->historyIds($repository->id, $branch?->head_commit_id, $path !== '' ? $path : null);
 
-        $commits = Commit::whereIn('id', $ids ?: [0])
-            ->with('author:id,name')
-            ->latest('id')
-            ->paginate(30)
-            ->withQueryString();
+        // Se pagina la lista de ids en PHP (ya ordenada) y solo se consultan los 30 de la página
+        $perPage = 30;
+        $page = max(1, (int) $request->query('page', 1));
+        $pageIds = array_slice($ids, ($page - 1) * $perPage, $perPage);
+        $items = $pageIds
+            ? Commit::whereIn('id', $pageIds)
+                ->select(['id', 'repository_id', 'parent_id', 'second_parent_id', 'author_id', 'sha', 'message', 'created_at'])
+                ->with('author:id,name')
+                ->orderByDesc('id')
+                ->get()
+            : collect();
+        $commits = (new LengthAwarePaginator($items, count($ids), $perPage, $page, [
+            'path' => $request->url(),
+            'query' => $request->query(),
+        ]));
 
         return view('commits.index', [
             'repository' => $repository,
@@ -45,10 +57,9 @@ class CommitController extends Controller
     }
 
     /** Detalle: {sha} completo o prefijo único de al menos 7 caracteres. */
-    public function show(Repository $repository, string $sha): View
+    /** Busca un commit por su sha completo o abreviado (mínimo 7 caracteres). */
+    private function findCommit(Repository $repository, string $sha): Commit
     {
-        Gate::authorize('view', $repository);
-
         abort_unless(preg_match('/^[0-9a-f]{7,64}$/i', $sha), 404);
 
         $matches = Commit::where('repository_id', $repository->id)
@@ -57,7 +68,31 @@ class CommitController extends Controller
             ->get();
         abort_unless($matches->count() === 1, 404, 'Commit no encontrado.');
 
-        $commit = $matches->first()->load('author:id,name');
+        return $matches->first();
+    }
+
+    /** Fragmento HTML con el diff de un archivo del commit (se carga al desplegarlo). */
+    public function diff(Request $request, Repository $repository, string $sha): View
+    {
+        Gate::authorize('view', $repository);
+
+        $commit = $this->findCommit($repository, $sha);
+        $path = (string) $request->query('path', '');
+        $file = $path !== '' ? $this->vcs->fileDiff($commit->parent_id, $commit->id, $path) : null;
+        abort_if($file === null, 404);
+
+        return view('partials._diff-fragment', [
+            'file' => $file,
+            'full' => $request->boolean('full'),
+            'fullUrl' => route('commits.diff', [$repository, $commit->sha, 'path' => $path, 'full' => 1]),
+        ]);
+    }
+
+    public function show(Repository $repository, string $sha): View
+    {
+        Gate::authorize('view', $repository);
+
+        $commit = $this->findCommit($repository, $sha)->load('author:id,name');
         $parents = Commit::whereIn('id', array_filter([$commit->parent_id, $commit->second_parent_id]))
             ->get(['id', 'repository_id', 'sha'])
             ->sortBy(fn (Commit $p) => $p->id === $commit->parent_id ? 0 : 1)
@@ -70,7 +105,10 @@ class CommitController extends Controller
             'commit' => $commit,
             'parents' => $parents,
             'branchesAtCommit' => $branchesAtCommit,
-            'files' => $this->vcs->diff($commit->parent_id, $commit->id, true),
+            'files' => DiffSelection::merge(
+                $summary = $this->vcs->diff($commit->parent_id, $commit->id),
+                $this->vcs->diff($commit->parent_id, $commit->id, true, DiffSelection::eagerPaths($summary)),
+            ),
         ]);
     }
 }

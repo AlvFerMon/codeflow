@@ -1,21 +1,30 @@
 {{--
-    Visor de diferencias. Recibe la salida de VcsService::diff(..., withHunks: true):
-    [ ['path','status','additions','deletions','binary','too_large','hunks' => [...]], ... ]
+    Visor de diferencias. files: resumen de VcsService::diff(); las entradas con 'hunks' se pintan
+    ya abiertas y el resto se carga al desplegarlas desde $diffUrl?path=… (resources/js/diff.js).
 --}}
-@props(['files' => []])
+@props(['files' => [], 'diffUrl' => null])
 @php
     $statusLabel = ['added' => 'añadido', 'deleted' => 'eliminado', 'modified' => 'modificado'];
     $statusColor = ['added' => 'green', 'deleted' => 'red', 'modified' => 'amber'];
+    $lazyCount = collect($files)->filter(fn ($f) => ! array_key_exists('hunks', $f))->count();
 @endphp
 <div class="space-y-4">
-    <p class="text-sm text-zinc-600 dark:text-zinc-400">
-        {{ count($files) }} {{ count($files) === 1 ? 'archivo cambiado' : 'archivos cambiados' }} ·
-        <span class="font-medium text-emerald-700 dark:text-emerald-300">+{{ collect($files)->sum('additions') }}</span>
-        <span class="font-medium text-rose-700 dark:text-rose-300">−{{ collect($files)->sum('deletions') }}</span>
-    </p>
+    <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+            {{ count($files) }} {{ count($files) === 1 ? 'archivo cambiado' : 'archivos cambiados' }} ·
+            <span class="font-medium text-emerald-700 dark:text-emerald-300">+{{ collect($files)->sum('additions') }}</span>
+            <span class="font-medium text-rose-700 dark:text-rose-300">−{{ collect($files)->sum('deletions') }}</span>
+        </p>
+        @if ($lazyCount > 0)
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ $lazyCount }} {{ $lazyCount === 1 ? 'archivo se carga' : 'archivos se cargan' }} al desplegar{{ $lazyCount === 1 ? 'lo' : 'los' }}.</p>
+        @endif
+    </div>
     @foreach ($files as $file)
-        <details open class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-            <summary class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 px-4 py-2 text-sm">
+        @php($eager = array_key_exists('hunks', $file))
+        @php($src = $diffUrl ? $diffUrl.'?path='.rawurlencode($file['path']) : null)
+        <details @if ($eager) open @endif @if (! $eager && $src) data-diff-src="{{ $src }}" @endif
+            class="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+            <summary class="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 border-b border-zinc-200 bg-zinc-50 px-4 py-2 text-sm dark:border-zinc-800 dark:bg-zinc-800/40">
                 <x-badge :color="$statusColor[$file['status']] ?? 'slate'">{{ $statusLabel[$file['status']] ?? $file['status'] }}</x-badge>
                 <span class="min-w-0 break-all font-mono text-zinc-800 dark:text-zinc-200">{{ $file['path'] }}</span>
                 <span class="ml-auto font-mono text-xs">
@@ -23,33 +32,20 @@
                     <span class="text-rose-700 dark:text-rose-300">−{{ $file['deletions'] }}</span>
                 </span>
             </summary>
-            @if (! empty($file['binary']))
-                <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">Archivo binario: no se muestran diferencias.</p>
-            @elseif (! empty($file['too_large']))
-                <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">El diff es demasiado grande para mostrarse.</p>
-            @elseif (empty($file['hunks']))
-                <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">Sin cambios de contenido visibles.</p>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full border-collapse font-mono text-xs leading-5">
-                        @foreach ($file['hunks'] as $hunk)
-                            <tr class="bg-sky-50 dark:bg-sky-500/10 text-sky-800 dark:text-sky-300">
-                                <td colspan="3" class="px-3 py-1">@@ -{{ $hunk['old_start'] }},{{ $hunk['old_lines'] }} +{{ $hunk['new_start'] }},{{ $hunk['new_lines'] }} @@</td>
-                            </tr>
-                            @foreach ($hunk['lines'] as $line)
-                                <tr @class([
-                                    'bg-emerald-50 dark:bg-emerald-500/10' => $line['type'] === 'add',
-                                    'bg-rose-50 dark:bg-rose-500/10' => $line['type'] === 'del',
-                                ])>
-                                    <td class="w-12 select-none border-r border-zinc-200 dark:border-zinc-800 px-2 text-right text-zinc-400 dark:text-zinc-500">{{ $line['old'] }}</td>
-                                    <td class="w-12 select-none border-r border-zinc-200 dark:border-zinc-800 px-2 text-right text-zinc-400 dark:text-zinc-500">{{ $line['new'] }}</td>
-                                    <td class="whitespace-pre px-3 @if($line['type'] === 'add') text-emerald-900 dark:text-emerald-300 @elseif($line['type'] === 'del') text-rose-900 @endif">{{ $line['type'] === 'add' ? '+' : ($line['type'] === 'del' ? '-' : ' ') }}{{ $line['text'] }}</td>
-                                </tr>
-                            @endforeach
-                        @endforeach
-                    </table>
-                </div>
-            @endif
+            <div data-diff-body>
+                @if ($eager)
+                    <x-diff-body :file="$file" :full-url="$src ? $src.'&full=1' : null" />
+                @else
+                    <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">
+                        @if ($file['binary'])
+                            Archivo binario: no se muestran diferencias.
+                        @else
+                            <span data-diff-placeholder>Despliega el archivo para ver sus cambios.</span>
+                            @if ($src)<a href="{{ $src }}&full=1" class="ml-1 text-purple-600 hover:underline dark:text-purple-400">Abrir aparte</a>@endif
+                        @endif
+                    </p>
+                @endif
+            </div>
         </details>
     @endforeach
 </div>

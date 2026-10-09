@@ -1,7 +1,6 @@
-<x-app-layout title="Editar proyecto">
-    <div class="mx-auto max-w-2xl">
-        <a href="{{ route('projects.show', $project) }}" class="text-sm text-zinc-500 dark:text-zinc-400 hover:underline">← {{ $project->name }}</a>
-        <h1 class="mb-6 mt-2 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Editar proyecto</h1>
+<x-app-layout :title="'Configuración · '.$project->name">
+    @include('projects._header', ['project' => $project, 'active' => 'settings'])
+    <div class="max-w-2xl">
         <x-card>
             <form method="POST" action="{{ route('projects.update', $project) }}" class="space-y-4 p-4 sm:p-6">
                 @csrf
@@ -22,7 +21,7 @@
                         <p class="text-sm text-zinc-600 dark:text-zinc-400">Se borrarán sus repositorios, issues, pull requests y actividad. No se puede deshacer.</p>
                     </div>
                     <form method="POST" action="{{ route('projects.destroy', $project) }}"
-                        onsubmit="return confirm(@js('¿Seguro que quieres eliminar el proyecto «'.$project->name.'» y todo su contenido? Esta acción no se puede deshacer.'))">
+                        data-confirm-title="Eliminar el proyecto" data-confirm-button="Eliminar proyecto" data-confirm="Se borrarán el proyecto «{{ $project->name }}», todos sus repositorios, su historial, issues y pull requests. Esta acción no se puede deshacer.">
                         @csrf
                         @method('DELETE')
                         <x-button variant="danger" class="w-full sm:w-auto">Eliminar proyecto</x-button>

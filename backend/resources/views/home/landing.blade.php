@@ -8,12 +8,36 @@
                 Organiza tu trabajo en proyectos, guarda el código en repositorios con ramas y commits,
                 y coordina al equipo con issues y pull requests. Cada repositorio se cifra con su propia clave.
             </p>
-            <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+            <form action="{{ route('explore') }}" method="GET" role="search" class="mt-8 flex max-w-xl flex-col gap-2 sm:flex-row">
+                <label for="landing-q" class="sr-only">Buscar repositorios públicos</label>
+                <input id="landing-q" type="search" name="q" maxlength="100" placeholder="Busca código público: nombre, descripción o proyecto…"
+                    class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm shadow-xs focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-zinc-700 dark:bg-zinc-950">
+                <x-button size="lg">Buscar</x-button>
+            </form>
+            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
                 <x-button :href="route('login')" size="lg">Iniciar sesión</x-button>
                 <x-button :href="route('register')" variant="purple" size="lg">Registrarse</x-button>
                 <x-button :href="route('explore')" variant="ghost" size="lg">Explorar repositorios públicos →</x-button>
             </div>
         </div>
+    </section>
+
+    <section class="mt-8" aria-labelledby="publicos">
+        <x-card>
+            <x-slot:title><span id="publicos">Repositorios públicos recientes</span></x-slot:title>
+            <x-slot:actions>
+                <a href="{{ route('explore') }}" class="text-xs font-semibold text-purple-600 hover:text-purple-700 dark:text-purple-400">Ver los {{ $publicTotal }} →</a>
+            </x-slot:actions>
+            @if ($publicRepositories->isEmpty())
+                <x-empty title="Todavía no hay repositorios públicos">Cuando alguien comparta su código aparecerá aquí.</x-empty>
+            @else
+                <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    @foreach ($publicRepositories as $repository)
+                        <x-public-repo-row :repository="$repository" />
+                    @endforeach
+                </ul>
+            @endif
+        </x-card>
     </section>
 
     <section class="mt-8 grid gap-4 md:grid-cols-3">

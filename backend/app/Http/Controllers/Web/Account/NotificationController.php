@@ -23,7 +23,7 @@ class NotificationController extends Controller
         return view('notifications.index', [
             'notifications' => $notifications,
             'unreadOnly' => $unreadOnly,
-            'unreadCount' => $user->unreadNotifications()->count(),
+            'unreadCount' => $user->unreadNotificationsCount(),
         ]);
     }
 

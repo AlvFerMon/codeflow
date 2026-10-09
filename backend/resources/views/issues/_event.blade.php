@@ -42,7 +42,7 @@
                         @endif
                         @break
                     @case('title')
-                        cambió el título de <del class="text-zinc-400 dark:text-zinc-500">{{ $change['from'] }}</del> a <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $change['to'] }}</span>
+                        cambió el título de <del class="text-zinc-500 dark:text-zinc-400">{{ $change['from'] }}</del> a <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $change['to'] }}</span>
                         @break
                     @case('description')
                         editó la descripción
@@ -50,7 +50,7 @@
                     @default
                         modificó {{ $field }}
                 @endswitch
-                <time class="text-zinc-400 dark:text-zinc-500" title="{{ $log->created_at->format('d/m/Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
+                <time class="text-zinc-500 dark:text-zinc-400" title="{{ $log->created_at->format('d/m/Y H:i') }}">{{ $log->created_at->diffForHumans() }}</time>
             </p>
         @endforeach
     </div>

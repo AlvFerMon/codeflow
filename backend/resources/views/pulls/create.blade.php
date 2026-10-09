@@ -15,7 +15,7 @@
         <div class="w-full sm:w-56">
             <x-select label="Destino (base)" name="target" :options="$branchOptions" :value="$target?->name" onchange="this.form.submit()" class="font-mono" />
         </div>
-        <span class="hidden pb-2 text-zinc-400 dark:text-zinc-500 sm:block" aria-hidden="true">←</span>
+        <span class="hidden pb-2 text-zinc-500 dark:text-zinc-400 sm:block" aria-hidden="true">←</span>
         <div class="w-full sm:w-56">
             <x-select label="Origen (tus cambios)" name="source" :options="$branchOptions" :value="$source?->name" placeholder="Elige una rama…" onchange="this.form.submit()" class="font-mono" />
         </div>
@@ -63,12 +63,12 @@
                                 <label class="flex items-center gap-2 text-sm">
                                     <input type="checkbox" name="reviewer_ids[]" value="{{ $reviewer->id }}" @checked(in_array($reviewer->id, old('reviewer_ids', [])))
                                         class="rounded border-zinc-300 dark:border-zinc-700 text-purple-600 dark:text-purple-400 focus:ring-purple-500">
-                                    <x-collab-avatar :user="$reviewer" size="sm" />
+                                    <x-avatar :user="$reviewer" size="sm" />
                                     <span>{{ $reviewer->name }}</span>
-                                    <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ mb_strtolower($L::ROLES[$reviewer->pivot->role] ?? '') }}</span>
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ mb_strtolower($L::ROLES[$reviewer->pivot->role] ?? '') }}</span>
                                 </label>
                             @empty
-                                <p class="text-sm text-zinc-400 dark:text-zinc-500">No hay otros colaboradores en el proyecto.</p>
+                                <p class="text-sm text-zinc-500 dark:text-zinc-400">No hay otros colaboradores en el proyecto.</p>
                             @endforelse
                         </div>
                     </x-card>
@@ -81,7 +81,7 @@
                                     <span><span class="text-zinc-500 dark:text-zinc-400">#{{ $openIssue->number }}</span> {{ $openIssue->title }}</span>
                                 </label>
                             @empty
-                                <p class="text-sm text-zinc-400 dark:text-zinc-500">No hay issues abiertas.</p>
+                                <p class="text-sm text-zinc-500 dark:text-zinc-400">No hay issues abiertas.</p>
                             @endforelse
                             @if ($openIssues->isNotEmpty())
                                 <p class="pt-1 text-xs text-zinc-500 dark:text-zinc-400">Al fusionar, las issues marcadas pasan a «Resuelta».</p>

@@ -102,4 +102,31 @@ class HomeAndExploreTest extends TestCase
         $this->assertMatchesRegularExpression('/Repositorios<\/p>.*?>2<\/span>/s', $html);
         $this->assertMatchesRegularExpression('/Issues abiertas<\/p>.*?>2<\/span>/s', $html);
     }
+
+    public function test_guests_find_public_code_from_landing_and_explore(): void
+    {
+        $this->setUpTeam();
+        $this->makeRepository($this->project, $this->owner, 'web-publica', 'public', 'Web del proyecto');
+        $this->makeRepository($this->project, $this->owner, 'api-privada', 'private');
+        $other = $this->makeProject($this->outsider, 'Biblioteca abierta');
+        $this->makeRepository($other, $this->outsider, 'utilidades', 'public', 'Funciones comunes');
+
+        // Portada: repositorios públicos recientes y buscador
+        $this->get('/')->assertOk()
+            ->assertSee('Repositorios públicos recientes')
+            ->assertSee('web-publica')->assertSee('utilidades')->assertDontSee('api-privada')
+            ->assertSee('Ver los 2', false);
+
+        // Explorar: búsqueda también por nombre de proyecto y orden por nombre
+        $this->get('/explore?q=Biblioteca')->assertOk()->assertSee('utilidades')->assertDontSee('web-publica');
+        $this->get('/explore?orden=nombre')->assertOk()->assertSeeInOrder(['utilidades', 'web-publica'])
+            ->assertSee('0 issues abiertas');
+        $this->get('/explore?orden=inventado')->assertSessionHasErrors('orden');
+
+        // Repo público visto por un invitado: aviso con acceso a login y registro
+        $repo = \App\Models\Repository::where('name', 'web-publica')->first();
+        $this->get(route('repositories.show', $repo))->assertOk()
+            ->assertSee('Estás viendo un repositorio público.')
+            ->assertSee(route('register'));
+    }
 }

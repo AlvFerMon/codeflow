@@ -242,27 +242,46 @@ class PullRequestService
     }
 
     /**
-     * Archivos modificados por el PR: desde la base común hasta la rama origen
-     * (o el commit de fusión si ya está fusionado).
+     * Commits que se comparan en el PR: [base, head]. Si está fusionado, el commit de fusión
+     * frente a su primer padre; si no, la base común con el destino frente a la rama origen.
+     *
+     * @return array{0:?int,1:?int}
      */
-    public function files(PullRequest $pullRequest, bool $withHunks = false): array
+    public function diffRange(PullRequest $pullRequest): array
     {
         if ($pullRequest->status === 'merged' && $pullRequest->merge_commit_id) {
-            $merge = Commit::find($pullRequest->merge_commit_id);
+            $merge = Commit::find($pullRequest->merge_commit_id, ['id', 'parent_id']);
 
-            return $merge ? $this->vcs->diff($merge->parent_id, $merge->id, $withHunks) : [];
+            return $merge ? [$merge->parent_id, $merge->id] : [null, null];
         }
 
         $s = $pullRequest->sourceBranch?->head_commit_id;
         $t = $pullRequest->targetBranch?->head_commit_id;
 
         if (! $s) {
-            return [];
+            return [null, null];
         }
 
-        $base = $t ? $this->vcs->mergeBase($this->vcs->graph($pullRequest->repository_id), $t, $s) : null;
+        return [$t ? $this->vcs->mergeBase($this->vcs->graph($pullRequest->repository_id), $t, $s) : null, $s];
+    }
 
-        return $this->vcs->diff($base, $s, $withHunks);
+    /**
+     * Archivos modificados por el PR (resumen en caché). Con $withHunks se añaden las líneas,
+     * solo de $hunkPaths si se indica.
+     */
+    public function files(PullRequest $pullRequest, bool $withHunks = false, ?array $hunkPaths = null): array
+    {
+        [$base, $head] = $this->diffRange($pullRequest);
+
+        return $head ? $this->vcs->diff($base, $head, $withHunks, $hunkPaths) : [];
+    }
+
+    /** Diff de un archivo del PR con sus líneas (carga bajo demanda). */
+    public function fileDiff(PullRequest $pullRequest, string $path): ?array
+    {
+        [$base, $head] = $this->diffRange($pullRequest);
+
+        return $head ? $this->vcs->fileDiff($base, $head, $path) : null;
     }
 
     /**

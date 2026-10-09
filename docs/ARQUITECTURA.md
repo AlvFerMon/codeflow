@@ -896,6 +896,18 @@ Con MySQL, por API y web:
    (paleta neutra *zinc* con acento morado, tipografía Instrument Sans, tarjetas `rounded-xl`, navbar fija con buscador
    y modo oscuro) sobre las pantallas reales de la web. Ver la sección *Sistema de diseño*.
 
+## Verificación del email
+
+- `User` implementa `MustVerifyEmail`; el correo lleva un código de 6 dígitos (`App\Notifications\VerificationCode`)
+  generado por `App\Services\EmailVerificationService` (hash en `users.email_verification_code`, caducidad de 30 min,
+  máximo 5 intentos, límites de peticiones `verification-code` y `verification-send`).
+- Web: el middleware `RedirectUnverifiedUsers` (grupo `web`) solo deja ver `verification.*` y `logout` a un usuario con
+  sesión sin verificar. Los visitantes sin sesión no se ven afectados.
+- API: `verified` (`EnsureEmailIsVerified`) en todo el grupo `auth:sanctum` salvo perfil, cierre de sesión y verificación;
+  responde `403 {code: email_not_verified}`. En las lecturas públicas un usuario sin verificar cuenta como invitado
+  (`ChecksProjectRoles::roleOf`).
+- Cambiar el email deja la cuenta sin verificar y envía un código nuevo.
+
 ## Sistema de diseño (web)
 
 - **Tokens** en `backend/resources/css/app.css` (Tailwind 4): fuente Instrument Sans autoalojada con
@@ -924,6 +936,25 @@ Con MySQL, por API y web:
 | 9-11 Issues, pull requests (revisión, merge 3 vías, conflictos), comentarios, actividad, notificaciones | ✅ |
 | 12-bis Web Blade completa | ✅ |
 | 12-ter Diseño unificado (UI de la rama `front`) + modo oscuro | ✅ |
+| 12-quater Verificación de email con código + auditoría UI/rendimiento (fases 2, 3 y 4) | ✅ |
 | 13 Android | 🟡 esqueleto (login, proyectos, notificaciones) |
-| 14 Testing | 🟡 149 tests de backend; faltan tests de la app Android en dispositivo |
+| 14 Testing | 🟡 171 tests de backend; faltan tests de la app Android en dispositivo |
 | 15-20 Docker producción, CI/CD, análisis estático, IA, FCM, documentación final | ⏳ |
+
+## Auditoría UI/UX y rendimiento: cambios aplicados
+
+Ver `docs/AUDITORIA_UI_RENDIMIENTO.xlsx` (columna «Estado»).
+
+- **Fase 2:** páginas de error en español (`resources/views/errors`), pestañas de proyecto (Resumen, Issues, Pull requests,
+  Actividad, Miembros, Configuración) con issues/PRs agregados (`ProjectCollabController`), actividad global, ayudas
+  `x-help`, confirmaciones con `<dialog>` (`data-confirm`, `resources/js/ui.js`), bloqueo de dobles envíos, mensajes
+  que se cierran, componentes unificados (`x-pagination`, `x-avatar`, `x-markdown`), contraste y foco visible.
+- **Fase 3:** repositorios del proyecto paginados con último commit (`Repository::forListing`), recuentos de issues y PRs en la
+  lista de proyectos, ramas y miembros paginados (con búsqueda), conversaciones de 20 en 20 (`PaginatesConversation`),
+  diff bajo demanda (`DiffSelection`, `commits.diff`, `pulls.diff`, `resources/js/diff.js`), edición de PRs y código
+  en un commit antiguo (`?commit=sha`, solo lectura).
+- **Fase 4:** grafo y árboles memorizados por petición en `VcsService`, resumen de diffs en caché (nunca el código), carpetas
+  filtradas en SQL (`treeUnder`), nº de commits en caché por head, historial paginado sobre la lista de ids, recuentos de
+  pestañas en una consulta, etiquetas en caché, índice de notificaciones no leídas y recuento una vez por petición,
+  límite de Explorar solo para visitantes, columnas concretas en listados y API paginada (repositorios, ramas,
+  miembros y comentarios; el detalle de issue/PR trae los 20 comentarios más recientes y `comments_count`).

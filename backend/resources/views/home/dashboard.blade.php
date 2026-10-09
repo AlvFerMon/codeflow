@@ -98,7 +98,7 @@
                                 @if ($repository->description)
                                     <p class="line-clamp-2 text-xs text-zinc-500 dark:text-zinc-400">{{ $repository->description }}</p>
                                 @endif
-                                <p class="pt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                                <p class="pt-1 text-xs text-zinc-500 dark:text-zinc-400">
                                     @if ($repository->last_commit_sha)
                                         Último commit:
                                         <a href="{{ route('commits.show', [$repository, $repository->last_commit_sha]) }}" class="font-mono text-zinc-700 hover:text-purple-600 dark:text-zinc-300 dark:hover:text-purple-400">{{ substr($repository->last_commit_sha, 0, 7) }}</a>
@@ -140,7 +140,7 @@
                                 </span>
                                 <div class="min-w-0 space-y-1">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="text-xs font-bold text-zinc-400">#{{ $pull->number }}</span>
+                                        <span class="text-xs font-bold text-zinc-500 dark:text-zinc-400">#{{ $pull->number }}</span>
                                         <a href="{{ route('pulls.show', [$pull->repository, $pull->number]) }}" class="break-words text-xs font-semibold text-zinc-900 hover:text-purple-600 dark:text-white dark:hover:text-purple-400">{{ $pull->title }}</a>
                                         <x-collab-pr-status :status="$pull->status" size="xs" />
                                     </div>
@@ -165,7 +165,7 @@
                 <section id="actividad" class="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
                     <div class="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
                         <h2 class="text-sm font-semibold text-zinc-900 dark:text-white">Actividad reciente</h2>
-                        <span class="text-[11px] text-zinc-400">últimos {{ count($activity) }} eventos</span>
+                        <span class="text-[11px] text-zinc-500 dark:text-zinc-400">últimos {{ count($activity) }} eventos</span>
                     </div>
                     @if (count($activity) === 0)
                         <x-empty title="Aún no hay actividad" class="py-8" />
@@ -175,7 +175,7 @@
                                 <li class="relative text-xs">
                                     <span class="absolute -left-[19px] top-1 h-2.5 w-2.5 rounded-full ring-4 ring-white dark:ring-zinc-900 {{ $dotColors[$item['category']] ?? 'bg-zinc-400' }}" aria-hidden="true"></span>
                                     <p class="break-words leading-5 text-zinc-700 dark:text-zinc-300">{{ $item['sentence'] }}</p>
-                                    <p class="text-[11px] text-zinc-400">
+                                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400">
                                         <time datetime="{{ $item['time']?->toIso8601String() }}" title="{{ $item['time']?->format('d/m/Y H:i') }}">{{ $item['time']?->diffForHumans() }}</time>
                                         @if ($name = $projectNames[$item['project_id']] ?? null)
                                             · <a href="{{ route('projects.activity', $item['project_id']) }}" class="hover:underline">{{ $name }}</a>
@@ -209,7 +209,7 @@
                                         @unless ($notification->read_at)<span class="ml-auto h-2 w-2 shrink-0 rounded-full bg-purple-600" title="No leída"></span>@endunless
                                     </span>
                                     <span class="mt-0.5 line-clamp-2 block text-[11px] text-zinc-500 dark:text-zinc-400">{{ $data['message'] ?? '' }}</span>
-                                    <span class="mt-0.5 block text-[11px] text-zinc-400">{{ $notification->created_at?->diffForHumans() }}</span>
+                                    <span class="mt-0.5 block text-[11px] text-zinc-500 dark:text-zinc-400">{{ $notification->created_at?->diffForHumans() }}</span>
                                 </span>
                             </button>
                         </form>

@@ -15,8 +15,9 @@ Route::get('repositories/{repository}/raw', [RepositoryController::class, 'raw']
 Route::get('repositories/{repository}/branches', [BranchController::class, 'index'])->name('branches.index');
 Route::get('repositories/{repository}/commits', [CommitController::class, 'index'])->name('commits.index');
 Route::get('repositories/{repository}/commits/{sha}', [CommitController::class, 'show'])->name('commits.show');
+Route::get('repositories/{repository}/commits/{sha}/diff', [CommitController::class, 'diff'])->name('commits.diff');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('projects/{project}/repositories/create', [RepositoryController::class, 'create'])->name('repositories.create');
     Route::post('projects/{project}/repositories', [RepositoryController::class, 'store'])->name('repositories.store');
     Route::get('repositories/{repository}/settings', [RepositoryController::class, 'settings'])->name('repositories.settings');

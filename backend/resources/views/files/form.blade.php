@@ -35,6 +35,11 @@
         @endif
     </div>
 
+    <x-help summary="¿Qué pasa al confirmar los cambios?" class="-mt-2 mb-4">
+        Se crea un <strong>commit</strong> en la rama <span class="font-mono">{{ $branch->name }}</span> con lo que subas o edites, y queda en el historial
+        con tu nombre y el mensaje que escribas. Las versiones anteriores no se pierden: siempre puedes consultarlas en «Commits».
+    </x-help>
+
     <form method="POST" action="{{ route('files.store', $repository) }}" @if ($mode === 'upload') enctype="multipart/form-data" @endif class="space-y-4">
         @csrf
         <input type="hidden" name="mode" value="{{ $mode }}">

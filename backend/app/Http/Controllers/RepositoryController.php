@@ -33,19 +33,20 @@ class RepositoryController extends Controller
     }
 
     /** Miembros: todos los repositorios del proyecto. Resto: solo los públicos (404 si no hay ninguno). */
+    /** Repositorios del proyecto, paginados (20). Quien no es miembro solo ve los públicos. */
     public function index(Project $project): JsonResponse
     {
-        $query = $project->repositories()->orderBy('name');
+        $query = Repository::query()->forListing()->where('project_id', $project->id)->orderBy('name');
 
         if (Gate::denies('view', $project)) {
             $query->where('visibility', Visibility::PUBLIC);
-            $repositories = $query->get();
-            abort_if($repositories->isEmpty(), 404);
+            $page = $query->paginate(20);
+            abort_if($page->total() === 0, 404);
 
-            return response()->json($repositories);
+            return response()->json($page);
         }
 
-        return response()->json($query->get());
+        return response()->json($query->paginate(20));
     }
 
     public function store(Request $request, Project $project): JsonResponse

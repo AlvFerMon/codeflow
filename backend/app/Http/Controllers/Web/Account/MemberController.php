@@ -20,21 +20,29 @@ class MemberController extends Controller
 {
     public function __construct(private MembershipService $memberships) {}
 
-    public function index(Project $project): View
+    public function index(Request $request, Project $project): View
     {
         Gate::authorize('view', $project);
 
-        $members = ProjectMember::where('project_id', $project->id)
+        $q = is_string($request->query('q')) ? trim(mb_substr($request->query('q'), 0, 100)) : '';
+
+        // 25 por página, por rol (propietario, colaboradores, observadores) y nombre; búsqueda por nombre o email
+        $members = ProjectMember::query()
+            ->select('project_members.*')
+            ->join('users', 'users.id', '=', 'project_members.user_id')
+            ->where('project_members.project_id', $project->id)
+            ->when($q !== '', fn ($query) => $query->where(fn ($w) => $w
+                ->where('users.name', 'like', "%{$q}%")->orWhere('users.email', 'like', "%{$q}%")))
+            ->orderByRaw("CASE project_members.role WHEN 'owner' THEN 0 WHEN 'collaborator' THEN 1 ELSE 2 END")
+            ->orderBy('users.name')
             ->with('user:id,name,email')
-            ->get()
-            ->sortBy([
-                fn ($a, $b) => Roles::level($b->role) <=> Roles::level($a->role),
-                fn ($a, $b) => strcasecmp($a->user?->name ?? '', $b->user?->name ?? ''),
-            ]);
+            ->paginate(25)
+            ->withQueryString();
 
         return view('members.index', [
             'project' => $project,
             'members' => $members,
+            'q' => $q,
             'roleOptions' => self::roleOptions(),
         ]);
     }

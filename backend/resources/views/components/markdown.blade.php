@@ -3,5 +3,5 @@
 @if (filled($text))
     <div {{ $attributes->merge(['class' => 'markdown break-words']) }}>{!! \Illuminate\Support\Str::markdown($text, ['html_input' => 'escape', 'allow_unsafe_links' => false]) !!}</div>
 @else
-    <p {{ $attributes->merge(['class' => 'text-sm italic text-zinc-400 dark:text-zinc-500']) }}>{{ $empty }}</p>
+    <p {{ $attributes->merge(['class' => 'text-sm italic text-zinc-500 dark:text-zinc-400']) }}>{{ $empty }}</p>
 @endif

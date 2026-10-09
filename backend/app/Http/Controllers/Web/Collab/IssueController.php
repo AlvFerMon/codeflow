@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web\Collab;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Collab\Concerns\HandlesServiceErrors;
+use App\Http\Controllers\Web\Collab\Concerns\PaginatesConversation;
 use App\Models\Issue;
 use App\Models\ProjectMember;
 use App\Models\Repository;
@@ -12,6 +13,7 @@ use App\Services\IssueService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -19,7 +21,7 @@ use Illuminate\View\View;
 /** Issues de un repositorio en la web. Toda la lógica de negocio vive en IssueService. */
 class IssueController extends Controller
 {
-    use HandlesServiceErrors;
+    use HandlesServiceErrors, PaginatesConversation;
 
     public function __construct(private IssueService $issues) {}
 
@@ -47,10 +49,12 @@ class IssueController extends Controller
             ->when($filters['label'], fn ($q, $v) => $q->whereJsonContains('labels', $v))
             ->when($filters['q'] !== '', fn ($q) => $q->where('title', 'like', '%'.$filters['q'].'%'));
 
-        $counts = [
-            'open' => $base()->whereIn('status', CollabLabels::ISSUE_OPEN_STATES)->count(),
-            'closed' => $base()->whereIn('status', CollabLabels::ISSUE_CLOSED_STATES)->count(),
-        ];
+        // Recuentos de las dos pestañas en una sola consulta
+        $totals = $base()->toBase()
+            ->selectRaw("SUM(CASE WHEN status IN ('open', 'in_progress') THEN 1 ELSE 0 END) as open_total")
+            ->selectRaw("SUM(CASE WHEN status IN ('resolved', 'closed') THEN 1 ELSE 0 END) as closed_total")
+            ->first();
+        $counts = ['open' => (int) ($totals->open_total ?? 0), 'closed' => (int) ($totals->closed_total ?? 0)];
 
         $issues = $base()
             ->when(
@@ -58,14 +62,19 @@ class IssueController extends Controller
                 fn ($q, $v) => $q->where('status', $v),
                 fn ($q) => $q->whereIn('status', $state === 'closed' ? CollabLabels::ISSUE_CLOSED_STATES : CollabLabels::ISSUE_OPEN_STATES),
             )
+            ->select(['id', 'repository_id', 'number', 'title', 'status', 'priority', 'labels', 'author_id', 'assignee_id', 'created_at', 'updated_at'])
             ->with(['author:id,name', 'assignee:id,name'])
             ->withCount('comments')
             ->orderByDesc('number')
             ->paginate(25)
             ->withQueryString();
 
-        $labels = Issue::where('repository_id', $repository->id)->pluck('labels')
-            ->flatten()->filter()->unique()->sort()->values();
+        // Etiquetas usadas en el repositorio: en caché hasta que cambie alguna issue
+        $version = Issue::where('repository_id', $repository->id)->max('updated_at');
+        $labels = Cache::remember("issues:labels:{$repository->id}:".md5((string) $version), now()->addDay(),
+            fn () => Issue::where('repository_id', $repository->id)->whereNotNull('labels')->pluck('labels')
+                ->flatten()->filter()->unique()->sort()->values()->all());
+        $labels = collect($labels);
 
         return view('issues.index', [
             'repository' => $repository,
@@ -114,24 +123,29 @@ class IssueController extends Controller
         );
     }
 
-    public function show(Repository $repository, int $number): View
+    public function show(Request $request, Repository $repository, int $number): View
     {
         Gate::authorize('view', $repository);
 
         $issue = $this->findIssue($repository, $number);
+        $page = $this->conversationPage($request, $issue->comments());
         $issue->load([
             'author:id,name',
             'assignee:id,name',
-            'comments.user:id,name',
             'pullRequests' => fn ($q) => $q->orderBy('number'),
-            'activity.user:id,name',
+            'activity' => fn ($q) => $q->where('action', 'issue.updated')
+                ->when($page['window']['from'], fn ($w, $from) => $w->where('created_at', '>=', $from))
+                ->when($page['window']['to'], fn ($w, $to) => $w->where('created_at', '<', $to))
+                ->with('user:id,name'),
         ]);
+        $issue->setRelation('comments', $page['comments']);
 
         $roles = ProjectMember::where('project_id', $repository->project_id)->pluck('role', 'user_id');
 
         return view('issues.show', [
             'repository' => $repository,
             'issue' => $issue,
+            'conversation' => $page,
             'timeline' => $this->timeline($issue),
             'users' => $this->usersInHistory($issue),
             'roles' => $roles,

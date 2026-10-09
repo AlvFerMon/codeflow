@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Vcs\Crypto\KeyManager;
 use App\Vcs\Crypto\RepositoryCipher;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -46,6 +47,24 @@ class Repository extends Model
         });
 
         static::deleted(fn (Repository $repository) => app(RepositoryCipher::class)->forget($repository->id));
+    }
+
+    /**
+     * Columnas que muestran los listados (sin la clave cifrada) + fecha y sha del último commit
+     * mediante subconsultas que usan el índice (repository_id, created_at).
+     */
+    public function scopeForListing(Builder $query): Builder
+    {
+        $lastCommit = fn (string $column) => Commit::select($column)
+            ->whereColumn('repository_id', 'repositories.id')
+            ->latest('created_at')
+            ->limit(1);
+
+        return $query
+            ->select(['repositories.id', 'repositories.project_id', 'repositories.name', 'repositories.description',
+                'repositories.default_branch', 'repositories.visibility', 'repositories.created_at', 'repositories.updated_at'])
+            ->addSelect(['last_commit_at' => $lastCommit('created_at'), 'last_commit_sha' => $lastCommit('sha')])
+            ->withCasts(['last_commit_at' => 'datetime']);
     }
 
     public function isPublic(): bool

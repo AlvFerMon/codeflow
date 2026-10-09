@@ -1,0 +1,21 @@
+{
+    "Hello!": "¡Hola!",
+    "Whoops!": "¡Vaya!",
+    "Regards,": "Saludos,",
+    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Si el botón «:actionText» no funciona, copia y pega esta dirección en tu navegador:",
+    "All rights reserved.": "Todos los derechos reservados.",
+    "Verify Email Address": "Verificar email",
+    "Please click the button below to verify your email address.": "Pulsa el botón para verificar tu email.",
+    "If you did not create an account, no further action is required.": "Si no has creado ninguna cuenta, no tienes que hacer nada.",
+    "Reset Password Notification": "Restablecer la contraseña",
+    "Reset Password": "Restablecer contraseña",
+    "Invalid signature.": "El enlace no es válido o ha caducado. Pide uno nuevo desde CodeFlow.",
+    "Too Many Requests": "Demasiadas peticiones",
+    "Unauthorized": "No autorizado",
+    "Forbidden": "Acceso denegado",
+    "Not Found": "No encontrado",
+    "Page Expired": "Página caducada",
+    "Server Error": "Error del servidor",
+    "Service Unavailable": "Servicio no disponible",
+    "Unauthenticated.": "Debes iniciar sesión."
+}

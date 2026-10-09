@@ -9,7 +9,7 @@
     {{-- Cabecera --}}
     <div class="mb-4">
         <h1 class="break-words text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-            {{ $pr->title }} <span class="font-normal text-zinc-400 dark:text-zinc-500">#{{ $pr->number }}</span>
+            {{ $pr->title }} <span class="font-normal text-zinc-500 dark:text-zinc-400">#{{ $pr->number }}</span>
         </h1>
         <div class="mt-2 flex flex-wrap items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             <x-collab-pr-status :status="$pr->status" class="px-2.5 py-1 text-sm" />
@@ -25,7 +25,7 @@
 
     {{-- Pestañas --}}
     <nav class="mb-6 flex gap-1 overflow-x-auto border-b border-zinc-200 dark:border-zinc-800 text-sm">
-        @foreach (['conversation' => ['Conversación', $pr->comments->count() + $pr->reviews->count()], 'files' => ['Archivos cambiados', count($files)]] as $key => [$label, $count])
+        @foreach (['conversation' => ['Conversación', $conversation['total'] + $pr->reviews->count()], 'files' => ['Archivos cambiados', count($files)]] as $key => [$label, $count])
             <a href="{{ route('pulls.show', [$repository, $pr->number, 'tab' => $key]) }}" @class([
                 '-mb-px inline-flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2',
                 'border-purple-500 font-medium text-zinc-900 dark:text-zinc-100' => $tab === $key,
@@ -40,7 +40,7 @@
         @if (count($files) === 0)
             <x-card><x-empty title="No hay archivos cambiados">La rama origen no aporta cambios respecto a la de destino.</x-empty></x-card>
         @else
-            <x-diff :files="$files" />
+            <x-diff :files="$files" :diff-url="route('pulls.diff', [$repository, $pr->number])" />
         @endif
     @else
         <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -48,17 +48,45 @@
                 {{-- Descripción --}}
                 <article class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <header class="flex flex-wrap items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 px-4 py-2 text-sm">
-                        <x-collab-avatar :user="$pr->author" size="sm" />
+                        <x-avatar :user="$pr->author" size="sm" />
                         <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $pr->author?->name ?? 'Usuario eliminado' }}</span>
                         <span class="text-zinc-500 dark:text-zinc-400">abrió este pull request
                             <time title="{{ $pr->created_at->format('d/m/Y H:i') }}">{{ $pr->created_at->diffForHumans() }}</time></span>
                     </header>
                     <div class="px-4 py-3">
-                        <x-collab-markdown :text="$pr->description" />
+                        <x-markdown :text="$pr->description" />
                     </div>
                 </article>
 
+                @if ($pr->isOpen())
+                    @can('update', $pr)
+                        <details class="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900" @if ($errors->hasAny(['title', 'description'])) open @endif>
+                            <summary class="cursor-pointer px-4 py-2.5 text-sm font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white">Editar título, descripción y revisores</summary>
+                            <form method="POST" action="{{ route('pulls.update', [$repository, $pr->number]) }}" class="space-y-3 border-t border-zinc-200 p-4 dark:border-zinc-800">
+                                @csrf @method('PUT')
+                                <x-input label="Título" name="title" :value="$pr->title" required maxlength="200" />
+                                <x-textarea label="Descripción" name="description" :value="$pr->description" rows="5" />
+                                @if ($reviewerOptions->isNotEmpty())
+                                    <fieldset>
+                                        <legend class="mb-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">Revisores</legend>
+                                        <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+                                            @foreach ($reviewerOptions as $candidate)
+                                                <label class="inline-flex items-center gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                                    <input type="checkbox" name="reviewer_ids[]" value="{{ $candidate->id }}" @checked($pr->reviewers->contains('id', $candidate->id))>
+                                                    {{ $candidate->name }}
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </fieldset>
+                                @endif
+                                <x-button>Guardar cambios</x-button>
+                            </form>
+                        </details>
+                    @endcan
+                @endif
+
                 {{-- Línea de tiempo --}}
+                @include('partials._conversation-nav', ['conversation' => $conversation, 'url' => route('pulls.show', [$repository, $pr->number])])
                 @if ($timeline->isNotEmpty())
                     <div class="relative space-y-4 before:absolute before:inset-y-0 before:left-7 before:w-px before:bg-zinc-200 dark:before:bg-zinc-700">
                         @foreach ($timeline as $entry)
@@ -172,7 +200,7 @@
                                 <div class="flex flex-wrap items-center gap-3 bg-zinc-50 dark:bg-zinc-800/40 px-4 py-3">
                                     @if ($canMerge)
                                         <form method="POST" action="{{ route('pulls.merge', [$repository, $pr->number]) }}"
-                                            onsubmit="return confirm('¿Fusionar {{ $pr->source_branch_name }} en {{ $pr->target_branch_name }}?')">
+                                            data-confirm-title="Fusionar el pull request" data-confirm-button="Fusionar" data-confirm-variant="primary" data-confirm="Los cambios de {{ $pr->source_branch_name }} se incorporarán a {{ $pr->target_branch_name }} con un commit de fusión.">
                                             @csrf
                                             <x-button variant="success">Fusionar pull request</x-button>
                                         </form>
@@ -189,7 +217,7 @@
                                     @endif
                                     @can('close', $pr)
                                         <form method="POST" action="{{ route('pulls.close', [$repository, $pr->number]) }}" class="ml-auto"
-                                            onsubmit="return confirm('¿Cerrar el pull request sin fusionar?')">
+                                            data-confirm-title="Cerrar sin fusionar" data-confirm-button="Cerrar pull request" data-confirm="El pull request se cerrará sin incorporar sus cambios. Podrás reabrirlo más adelante.">
                                             @csrf
                                             <x-button variant="secondary">Cerrar pull request</x-button>
                                         </form>
@@ -206,7 +234,7 @@
                         <form method="POST" action="{{ route('pulls.review', [$repository, $pr->number]) }}" class="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
                             @csrf
                             <h2 class="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Revisar cambios</h2>
-                            <x-textarea name="body" rows="3" placeholder="Resumen de tu revisión (obligatorio si pides cambios)…" />
+                            <x-textarea name="review_body" rows="3" placeholder="Resumen de tu revisión (obligatorio si pides cambios)…" aria-label="Resumen de la revisión" />
                             <fieldset class="mt-3 grid gap-2 sm:grid-cols-3">
                                 <legend class="sr-only">Resultado de la revisión</legend>
                                 @foreach (['approved' => ['Aprobar', 'Da el visto bueno para fusionar.'], 'changes_requested' => ['Solicitar cambios', 'Bloquea la fusión hasta resolverlos.'], 'commented' => ['Comentar', 'Opinión sin aprobar ni bloquear.']] as $value => [$label, $hint])
@@ -258,18 +286,18 @@
                 <x-card title="Revisores">
                     @forelse ($reviewStates as $row)
                         <div class="flex items-start gap-2 border-b border-zinc-100 dark:border-zinc-800 px-4 py-2 text-sm last:border-0">
-                            <x-collab-avatar :user="$row['user']" size="sm" />
+                            <x-avatar :user="$row['user']" size="sm" />
                             <span class="min-w-0 flex-1">
                                 <span class="block break-words text-zinc-800 dark:text-zinc-200">{{ $row['user']->name }}</span>
                                 @if ($row['state'])
                                     <x-collab-review-state :state="$row['state']" class="mt-1" />
                                 @else
-                                    <span class="text-xs text-zinc-400 dark:text-zinc-500">{{ $row['requested'] ? 'revisión pendiente' : '' }}</span>
+                                    <span class="text-xs text-zinc-500 dark:text-zinc-400">{{ $row['requested'] ? 'revisión pendiente' : '' }}</span>
                                 @endif
                             </span>
                         </div>
                     @empty
-                        <p class="px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">Sin revisores asignados.</p>
+                        <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">Sin revisores asignados.</p>
                     @endforelse
                 </x-card>
 
@@ -283,7 +311,7 @@
                             </span>
                         </a>
                     @empty
-                        <p class="px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">No resuelve ninguna issue.</p>
+                        <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">No resuelve ninguna issue.</p>
                     @endforelse
                 </x-card>
 
@@ -292,12 +320,12 @@
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Origen</dt>
                             <dd class="mt-1 flex items-center gap-2"><span class="{{ $branchChip }} break-all">{{ $pr->source_branch_name }}</span>
-                                @unless ($pr->sourceBranch)<span class="text-xs text-zinc-400 dark:text-zinc-500">(eliminada)</span>@endunless</dd>
+                                @unless ($pr->sourceBranch)<span class="text-xs text-zinc-500 dark:text-zinc-400">(eliminada)</span>@endunless</dd>
                         </div>
                         <div>
                             <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Destino</dt>
                             <dd class="mt-1 flex items-center gap-2"><span class="{{ $branchChip }} break-all">{{ $pr->target_branch_name }}</span>
-                                @unless ($pr->targetBranch)<span class="text-xs text-zinc-400 dark:text-zinc-500">(eliminada)</span>@endunless</dd>
+                                @unless ($pr->targetBranch)<span class="text-xs text-zinc-500 dark:text-zinc-400">(eliminada)</span>@endunless</dd>
                         </div>
                     </dl>
                 </x-card>

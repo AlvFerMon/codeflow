@@ -6,7 +6,7 @@
     <div class="mb-6 border-b border-zinc-200 dark:border-zinc-800 pb-4">
         <div class="flex flex-wrap items-start justify-between gap-3">
             <h1 class="min-w-0 break-words text-2xl font-semibold text-zinc-900 dark:text-zinc-100">
-                {{ $issue->title }} <span class="font-normal text-zinc-400 dark:text-zinc-500">#{{ $issue->number }}</span>
+                {{ $issue->title }} <span class="font-normal text-zinc-500 dark:text-zinc-400">#{{ $issue->number }}</span>
             </h1>
             @can('create', [\App\Models\Issue::class, $repository])
                 <x-button variant="secondary" :href="route('issues.create', $repository)">Nueva issue</x-button>
@@ -16,7 +16,7 @@
             <x-collab-issue-status :status="$issue->status" class="px-2.5 py-1 text-sm" />
             <span><span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $issue->author?->name ?? 'Usuario eliminado' }}</span> abrió esta issue
                 <time title="{{ $issue->created_at->format('d/m/Y H:i') }}">{{ $issue->created_at->diffForHumans() }}</time>
-                · {{ $issue->comments->count() }} {{ $issue->comments->count() === 1 ? 'comentario' : 'comentarios' }}</span>
+                · {{ $conversation['total'] }} {{ $conversation['total'] === 1 ? 'comentario' : 'comentarios' }}</span>
         </div>
     </div>
 
@@ -25,12 +25,12 @@
         <div class="min-w-0 space-y-4">
             <article class="overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                 <header class="flex flex-wrap items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 px-4 py-2 text-sm">
-                    <x-collab-avatar :user="$issue->author" size="sm" />
+                    <x-avatar :user="$issue->author" size="sm" />
                     <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $issue->author?->name ?? 'Usuario eliminado' }}</span>
                     <span class="text-zinc-500 dark:text-zinc-400">· descripción</span>
                 </header>
                 <div class="px-4 py-3">
-                    <x-collab-markdown :text="$issue->description" />
+                    <x-markdown :text="$issue->description" />
                 </div>
             </article>
 
@@ -46,6 +46,7 @@
                 </details>
             @endcan
 
+            @include('partials._conversation-nav', ['conversation' => $conversation, 'url' => route('issues.show', [$repository, $issue->number])])
             @if ($timeline->isNotEmpty())
                 <div class="relative space-y-4 before:absolute before:inset-y-0 before:left-7 before:w-px before:bg-zinc-200 dark:before:bg-zinc-700">
                     @foreach ($timeline as $entry)
@@ -102,9 +103,9 @@
                         <div><dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Asignada a</dt>
                             <dd class="mt-1 flex items-center gap-2">
                                 @if ($issue->assignee)
-                                    <x-collab-avatar :user="$issue->assignee" size="sm" /> {{ $issue->assignee->name }}
+                                    <x-avatar :user="$issue->assignee" size="sm" /> {{ $issue->assignee->name }}
                                 @else
-                                    <span class="text-zinc-400 dark:text-zinc-500">Nadie</span>
+                                    <span class="text-zinc-500 dark:text-zinc-400">Nadie</span>
                                 @endif
                             </dd></div>
                         <div><dt class="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Etiquetas</dt>
@@ -112,7 +113,7 @@
                                 @forelse ($issue->labels ?? [] as $label)
                                     <x-collab-label :label="$label" />
                                 @empty
-                                    <span class="text-zinc-400 dark:text-zinc-500">Ninguna</span>
+                                    <span class="text-zinc-500 dark:text-zinc-400">Ninguna</span>
                                 @endforelse
                             </dd></div>
                     </dl>
@@ -129,13 +130,13 @@
                         </span>
                     </a>
                 @empty
-                    <p class="px-4 py-3 text-sm text-zinc-400 dark:text-zinc-500">Ningún pull request vincula esta issue.</p>
+                    <p class="px-4 py-3 text-sm text-zinc-500 dark:text-zinc-400">Ningún pull request vincula esta issue.</p>
                 @endforelse
             </x-card>
 
             @can('delete', $issue)
                 <form method="POST" action="{{ route('issues.destroy', [$repository, $issue->number]) }}"
-                    onsubmit="return confirm('¿Eliminar la issue #{{ $issue->number }}? Esta acción no se puede deshacer.')">
+                    data-confirm-title="Eliminar la issue #{{ $issue->number }}" data-confirm-button="Eliminar issue" data-confirm="Se borrarán la issue, sus comentarios y su historial. Esta acción no se puede deshacer.">
                     @csrf @method('DELETE')
                     <x-button variant="danger" class="w-full">Eliminar issue</x-button>
                 </form>

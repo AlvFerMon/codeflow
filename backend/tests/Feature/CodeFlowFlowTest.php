@@ -19,7 +19,7 @@ class CodeFlowFlowTest extends TestCase
         $this->postJson("/api/projects/$project/members", ['email' => $dev->email, 'role' => 'collaborator'])->assertCreated();
         $repo = $this->postJson("/api/projects/$project/repositories", ['name' => 'app'])->assertCreated()->json('id');
 
-        $branches = $this->getJson("/api/repositories/$repo/branches")->assertOk()->json();
+        $branches = $this->getJson("/api/repositories/$repo/branches")->assertOk()->json('data');
         $main = collect($branches)->firstWhere('name', 'main')['id'];
 
         return [$project, $repo, $main];
@@ -77,7 +77,7 @@ class CodeFlowFlowTest extends TestCase
         $project = $this->postJson('/api/projects', ['name' => 'P'])->json('id');
         $this->postJson("/api/projects/$project/members", ['email' => $viewer->email, 'role' => 'observer'])->assertCreated();
         $repo = $this->postJson("/api/projects/$project/repositories", ['name' => 'r'])->json('id');
-        $main = collect($this->getJson("/api/repositories/$repo/branches")->json())->firstWhere('name', 'main')['id'];
+        $main = collect($this->getJson("/api/repositories/$repo/branches")->json('data'))->firstWhere('name', 'main')['id'];
 
         Sanctum::actingAs($viewer);
         $this->getJson("/api/branches/$main/files")->assertOk();

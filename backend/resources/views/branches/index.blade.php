@@ -2,7 +2,7 @@
     @include('repositories._header', ['repository' => $repository, 'active' => 'branches'])
 
     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <x-card :title="count($rows).' '.(count($rows) === 1 ? 'rama' : 'ramas')" class="min-w-0 overflow-hidden">
+        <x-card :title="$branches->total().' '.($branches->total() === 1 ? 'rama' : 'ramas')" class="min-w-0 overflow-hidden">
             @if ($rows->isEmpty())
                 <x-empty title="El repositorio no tiene ramas" />
             @else
@@ -43,7 +43,7 @@
                                 @else
                                     <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Sin commits.</p>
                                 @endif
-                                <p class="mt-0.5 text-xs text-zinc-400 dark:text-zinc-500">
+                                <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">
                                     Creada por {{ $branch->creator?->name ?? 'usuario eliminado' }} el {{ $branch->created_at->format('d/m/Y') }}
                                 </p>
                             </div>
@@ -62,8 +62,8 @@
                                         </span>
                                     @else
                                         <form method="POST" action="{{ route('branches.destroy', $branch) }}"
-                                            data-confirm="¿Eliminar la rama {{ $branch->name }}? Los commits que solo estén en esta rama dejarán de ser accesibles."
-                                            onsubmit="return confirm(this.dataset.confirm)">
+                                            data-confirm-title="Eliminar la rama {{ $branch->name }}" data-confirm-button="Eliminar rama"
+                                            data-confirm="Los commits que solo estén en esta rama dejarán de ser accesibles. Esta acción no se puede deshacer.">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" class="px-2.5 py-1 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10" title="Eliminar rama">
@@ -76,6 +76,7 @@
                         </li>
                     @endforeach
                 </ul>
+                <x-pagination :paginator="$branches" />
             @endif
         </x-card>
 

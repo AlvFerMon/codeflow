@@ -27,15 +27,24 @@ class BranchController extends Controller
         Gate::authorize('view', $repository);
 
         $graph = $vcs->graph($repository->id);
-        $branches = $repository->branches()->with(['headCommit.author:id,name', 'creator:id,name'])->get();
-        $default = $branches->firstWhere('name', $repository->default_branch);
-        $defaultAncestors = $vcs->ancestors($graph, $default?->head_commit_id);
+
+        // Página de 20 ramas: la principal primero y después por fecha de su último commit (en SQL)
+        $branches = $repository->branches()
+            ->select('branches.*')
+            ->leftJoin('commits as head', 'head.id', '=', 'branches.head_commit_id')
+            ->orderByRaw('CASE WHEN branches.name = ? THEN 0 ELSE 1 END', [$repository->default_branch])
+            ->orderByRaw('COALESCE(head.created_at, branches.created_at) DESC')
+            ->with(['headCommit.author:id,name', 'creator:id,name'])
+            ->paginate(20);
+
+        $defaultHead = $repository->branches()->where('name', $repository->default_branch)->first(['id', 'head_commit_id']);
+        $defaultAncestors = $vcs->ancestors($graph, $defaultHead?->head_commit_id);
 
         $openPrs = PullRequest::where('repository_id', $repository->id)
             ->whereIn('status', PullRequest::OPEN_STATES)
             ->get(['source_branch_id', 'target_branch_id']);
 
-        $rows = $branches->map(function (Branch $branch) use ($graph, $vcs, $repository, $defaultAncestors, $openPrs) {
+        $rows = $branches->getCollection()->map(function (Branch $branch) use ($graph, $vcs, $repository, $defaultAncestors, $openPrs) {
             $ancestors = $vcs->ancestors($graph, $branch->head_commit_id);
 
             return [
@@ -47,16 +56,14 @@ class BranchController extends Controller
                 'open_prs' => $openPrs->filter(fn ($pr) => in_array($branch->id, [$pr->source_branch_id, $pr->target_branch_id]))->count(),
                 'last_modified' => $branch->headCommit?->created_at ?? $branch->created_at,
             ];
-        })->sortBy([
-            fn ($a, $b) => $b['is_default'] <=> $a['is_default'],
-            fn ($a, $b) => $b['last_modified'] <=> $a['last_modified'],
-        ])->values();
+        });
 
         return view('branches.index', [
             'repository' => $repository,
             'rows' => $rows,
-            'fromOptions' => $branches->sortBy('name')->pluck('name', 'id')->all(),
-            'defaultId' => $default?->id,
+            'branches' => $branches,
+            'fromOptions' => $repository->branches()->orderBy('name')->pluck('name', 'id')->all(),
+            'defaultId' => $defaultHead?->id,
         ]);
     }
 

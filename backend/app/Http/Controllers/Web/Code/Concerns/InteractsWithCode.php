@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web\Code\Concerns;
 
 use App\Models\Branch;
+use App\Models\Commit;
 use App\Models\Repository;
 use Closure;
 use Illuminate\Http\RedirectResponse;
@@ -25,6 +26,28 @@ trait InteractsWithCode
 
         // Si la rama por defecto no existe se usa la primera que haya
         return $branch ?? Branch::where('repository_id', $repository->id)->orderBy('id')->first();
+    }
+
+    /**
+     * Versión del código que se muestra: un commit concreto (?commit=sha, solo lectura) o la
+     * cabeza de la rama (?branch=). Devuelve [rama, commit fijado o null, id del commit a mostrar].
+     *
+     * @return array{0:?Branch,1:?Commit,2:?int}
+     */
+    protected function resolveRef(Repository $repository, ?string $branchName, ?string $sha): array
+    {
+        if ($sha !== null && $sha !== '') {
+            abort_unless(preg_match('/^[0-9a-f]{7,64}$/i', $sha), 404);
+            $matches = Commit::where('repository_id', $repository->id)->where('sha', 'like', strtolower($sha).'%')->limit(2)->get();
+            abort_unless($matches->count() === 1, 404, 'Commit no encontrado.');
+            $commit = $matches->first()->load('author:id,name');
+
+            return [$this->resolveBranch($repository, null), $commit, $commit->id];
+        }
+
+        $branch = $this->resolveBranch($repository, $branchName);
+
+        return [$branch, null, $branch?->head_commit_id];
     }
 
     /** Ruta de carpeta/archivo recibida por la URL, sin barras sobrantes. */

@@ -27,6 +27,12 @@
     [x-cloak] { display: none !important; }
     summary::-webkit-details-marker { display: none; }
     input[type='checkbox'], input[type='radio'] { accent-color: var(--color-purple-600); }
+    /* Foco visible en enlaces, pestañas y desplegables (los botones y campos tienen su propio anillo) */
+    :where(a, summary, button, [tabindex]):focus-visible {
+        outline: 2px solid var(--color-purple-500);
+        outline-offset: 2px;
+        border-radius: 0.375rem;
+    }
 }
 
 /* Texto Markdown renderizado (README, descripciones y comentarios) */

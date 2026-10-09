@@ -1,0 +1,1 @@
+@include('errors.layout', ['code' => 419, 'title' => 'La página ha caducado', 'text' => 'Ha pasado demasiado tiempo desde que abriste el formulario. Vuelve atrás, recarga la página e inténtalo de nuevo.'])

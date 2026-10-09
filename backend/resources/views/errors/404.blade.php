@@ -1,0 +1,1 @@
+@include('errors.layout', ['code' => 404, 'title' => 'No encontramos esta página', 'text' => 'Puede que la dirección esté mal escrita, que se haya borrado o que sea un repositorio privado al que no tienes acceso.'])

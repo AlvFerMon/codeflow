@@ -4,13 +4,26 @@
     @php
         $branchName = $branch->name;
         $branchParam = $branchName !== $repository->default_branch ? $branchName : null;
-        $fileParams = array_filter([$repository, 'branch' => $branchParam, 'path' => $path]);
+        $refParams = $atCommit ? ['commit' => substr($atCommit->sha, 0, 12)] : ['branch' => $branchParam];
+        $fileParams = array_filter([$repository, ...$refParams, 'path' => $path]);
     @endphp
+
+    @if ($atCommit)
+        <div class="mb-4 flex flex-col gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 sm:flex-row sm:items-center dark:text-amber-200" role="status">
+            <x-code-icon name="history" class="h-5 w-5" />
+            <span>Estás viendo el código tal como estaba en el commit
+                <a href="{{ route('commits.show', [$repository, $atCommit->sha]) }}" class="font-mono font-semibold underline">{{ substr($atCommit->sha, 0, 7) }}</a>
+                ({{ $atCommit->created_at->format('d/m/Y H:i') }}). Es solo lectura.</span>
+            <a href="{{ route('repositories.show', [$repository]) }}" class="font-semibold underline-offset-2 hover:underline sm:ml-auto">Volver a la versión actual →</a>
+        </div>
+    @endif
 
     <div class="space-y-4">
         <div class="flex flex-wrap items-center gap-3">
-            <x-code-branch-select :action="route('repositories.blob', $repository)" :branches="$branches" :current="$branchName" :params="['path' => $path]" />
-            <x-code-breadcrumbs :repository="$repository" :branch="$branch" :path="$path" class="min-w-0 flex-1" />
+            @unless ($atCommit)
+                <x-code-branch-select :action="route('repositories.blob', $repository)" :branches="$branches" :current="$branchName" :params="['path' => $path]" />
+            @endunless
+            <x-code-breadcrumbs :repository="$repository" :branch="$branch" :commit="$atCommit" :path="$path" class="min-w-0 flex-1" />
         </div>
 
         <x-card class="overflow-hidden">
@@ -42,7 +55,7 @@
                     <x-button variant="ghost" class="px-2.5 py-1 text-xs" :href="route('repositories.raw', $fileParams + ['download' => 1])">
                         <x-code-icon name="download" /> Descargar
                     </x-button>
-                    @can('push', $repository)
+                    @if (! $atCommit && auth()->user()?->can('push', $repository))
                         @unless ($file['binary'])
                             <x-button variant="ghost" class="px-2.5 py-1 text-xs" :href="route('files.edit', [$repository, 'branch' => $branchName, 'path' => $path])">
                                 <x-code-icon name="pencil" /> Editar
@@ -52,15 +65,15 @@
                             onclick="document.getElementById('delete-file').toggleAttribute('open')">
                             <x-code-icon name="trash" /> Eliminar
                         </x-button>
-                    @endcan
+                    @endif
                 </div>
             </div>
 
-            @can('push', $repository)
+            @if (! $atCommit && auth()->user()?->can('push', $repository))
                 <details id="delete-file" class="border-b border-rose-200 dark:border-rose-500/30 bg-rose-50/50 dark:bg-rose-500/10 [&:not([open])]:hidden">
                     <summary class="sr-only">Eliminar archivo</summary>
                     <form method="POST" action="{{ route('files.destroy', $repository) }}" class="space-y-3 p-4"
-                        data-confirm="¿Eliminar {{ $path }}?" onsubmit="return confirm(this.dataset.confirm)">
+                        data-confirm-title="Eliminar el archivo" data-confirm-button="Eliminar archivo" data-confirm="Se creará un commit que elimina «{{ $path }}» de esta rama. El historial anterior se conserva.">
                         @csrf
                         @method('DELETE')
                         <input type="hidden" name="branch" value="{{ $branchName }}">
@@ -73,7 +86,7 @@
                         </div>
                     </form>
                 </details>
-            @endcan
+            @endif
 
             {{-- Contenido --}}
             @if ($file['binary'])
@@ -88,7 +101,7 @@
                     <x-button class="mt-4" variant="secondary" :href="route('repositories.raw', $fileParams)">Ver en bruto</x-button>
                 </div>
             @elseif ($rendered)
-                <div class="markdown p-4 sm:p-6">{!! \Illuminate\Support\Str::markdown($file['content'], ['html_input' => 'escape', 'allow_unsafe_links' => false]) !!}</div>
+                <x-markdown :text="$file['content']" class="p-4 sm:p-6" />
             @elseif (empty($lines))
                 <p class="px-4 py-8 text-center text-sm text-zinc-500 dark:text-zinc-400">El archivo está vacío.</p>
             @else
@@ -97,7 +110,7 @@
                         <tbody>
                             @foreach ($lines as $i => $line)
                                 <tr id="L{{ $i + 1 }}" class="hover:bg-amber-50/60 dark:hover:bg-amber-500/10 target:bg-amber-100 dark:target:bg-amber-500/20">
-                                    <td class="w-1 select-none whitespace-nowrap border-r border-zinc-200 dark:border-zinc-800 px-3 text-right align-top text-zinc-400 dark:text-zinc-500">
+                                    <td class="w-1 select-none whitespace-nowrap border-r border-zinc-200 dark:border-zinc-800 px-3 text-right align-top text-zinc-500 dark:text-zinc-400">
                                         <a href="#L{{ $i + 1 }}" class="hover:text-zinc-700 dark:hover:text-zinc-300">{{ $i + 1 }}</a>
                                     </td>
                                     <td class="whitespace-pre px-4 text-zinc-800 dark:text-zinc-200">{{ $line }}</td>

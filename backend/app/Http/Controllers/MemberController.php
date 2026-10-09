@@ -21,7 +21,7 @@ class MemberController extends Controller
         Gate::authorize('view', $project);
 
         return response()->json(
-            ProjectMember::where('project_id', $project->id)->with('user:id,name,email')->get()
+            ProjectMember::where('project_id', $project->id)->with('user:id,name,email')->orderBy('id')->paginate(50)
         );
     }
 

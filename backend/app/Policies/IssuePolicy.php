@@ -40,7 +40,7 @@ class IssuePolicy
         $repository = $issue->repository;
         $project = $repository->project;
 
-        if ($user !== null && $issue->author_id === $user->id && Roles::level($user->roleIn($project)) >= Roles::level(Roles::COLLABORATOR)) {
+        if ($user !== null && $issue->author_id === $user->id && Roles::level($this->roleOf($user, $project)) >= Roles::level(Roles::COLLABORATOR)) {
             return Response::allow();
         }
 

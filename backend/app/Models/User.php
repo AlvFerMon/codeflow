@@ -2,19 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+/**
+ * Usuario de CodeFlow. Debe verificar su email (MustVerifyEmail): hasta entonces solo puede ver
+ * lo público y la pantalla de aviso. Si cambia de email, vuelve a quedar sin verificar.
+ */
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
 
     protected $fillable = ['name', 'email', 'password'];
 
-    protected $hidden = ['password', 'remember_token'];
+    protected $hidden = ['password', 'remember_token', 'email_verification_code', 'email_verification_expires_at', 'email_verification_attempts'];
 
     /** Caché por instancia (y, por tanto, por petición) del rol en cada proyecto. */
     private array $projectRoles = [];
@@ -23,10 +28,40 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_verification_expires_at' => 'datetime',
+            'email_verification_attempts' => 'integer',
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_active' => 'boolean',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        // Cambiar el email obliga a verificar la dirección nueva
+        static::updating(function (User $user) {
+            if ($user->isDirty('email') && ! $user->isDirty('email_verified_at')) {
+                $user->email_verified_at = null;
+            }
+        });
+
+        static::updated(function (User $user) {
+            if ($user->wasChanged('email') && ! $user->hasVerifiedEmail()) {
+                $user->sendEmailVerificationNotification();
+            }
+        });
+    }
+
+    /** El correo de verificación lleva un código de 6 dígitos (no un enlace). */
+    public function sendEmailVerificationNotification(): void
+    {
+        app(\App\Services\EmailVerificationService::class)->send($this);
+    }
+
+    /** Nº de notificaciones sin leer, calculado una sola vez por petición (cabecera y página). */
+    public function unreadNotificationsCount(): int
+    {
+        return once(fn () => $this->unreadNotifications()->count());
     }
 
     public function isAdmin(): bool

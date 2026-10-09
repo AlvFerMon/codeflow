@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Web\Collab;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Collab\Concerns\HandlesServiceErrors;
+use App\Http\Controllers\Web\Collab\Concerns\PaginatesConversation;
+use App\Support\DiffSelection;
 use App\Models\Branch;
 use App\Models\Commit;
 use App\Models\Issue;
@@ -24,7 +26,7 @@ use Illuminate\View\View;
 /** Pull Requests de un repositorio en la web. Toda la lógica de negocio vive en PullRequestService. */
 class PullRequestController extends Controller
 {
-    use HandlesServiceErrors;
+    use HandlesServiceErrors, PaginatesConversation;
 
     /** Eventos del historial que ya se muestran de otra forma (comentarios, revisiones, cabecera). */
     private const HIDDEN_EVENTS = [
@@ -54,10 +56,11 @@ class PullRequestController extends Controller
         $base = fn () => PullRequest::where('repository_id', $repository->id)
             ->when($filters['author'], fn ($q, $v) => $q->where('author_id', $v));
 
-        $counts = [
-            'open' => $base()->whereIn('status', PullRequest::OPEN_STATES)->count(),
-            'closed' => $base()->whereIn('status', CollabLabels::PR_CLOSED_STATES)->count(),
-        ];
+        $totals = $base()->toBase()
+            ->selectRaw("SUM(CASE WHEN status IN ('open', 'in_review', 'approved', 'changes_requested') THEN 1 ELSE 0 END) as open_total")
+            ->selectRaw("SUM(CASE WHEN status IN ('closed', 'merged') THEN 1 ELSE 0 END) as closed_total")
+            ->first();
+        $counts = ['open' => (int) ($totals->open_total ?? 0), 'closed' => (int) ($totals->closed_total ?? 0)];
 
         $pulls = $base()
             ->when(
@@ -65,6 +68,7 @@ class PullRequestController extends Controller
                 fn ($q, $v) => $q->where('status', $v),
                 fn ($q) => $q->whereIn('status', $state === 'closed' ? CollabLabels::PR_CLOSED_STATES : PullRequest::OPEN_STATES),
             )
+            ->select(['id', 'repository_id', 'number', 'title', 'status', 'author_id', 'source_branch_name', 'target_branch_name', 'created_at', 'updated_at'])
             ->with(['author:id,name', 'reviewers:id,name'])
             ->withCount('comments')
             ->orderByDesc('number')
@@ -171,24 +175,49 @@ class PullRequestController extends Controller
         );
     }
 
+    /** Fragmento HTML con el diff de un archivo del PR (se carga al desplegarlo). */
+    public function diff(Request $request, Repository $repository, int $number): View
+    {
+        Gate::authorize('view', $repository);
+
+        $pr = $this->findPullRequest($repository, $number);
+        $path = (string) $request->query('path', '');
+        $file = $path !== '' ? $this->pullRequests->fileDiff($pr->load(['sourceBranch:id,head_commit_id', 'targetBranch:id,head_commit_id']), $path) : null;
+        abort_if($file === null, 404);
+
+        return view('partials._diff-fragment', [
+            'file' => $file,
+            'full' => $request->boolean('full'),
+            'fullUrl' => route('pulls.diff', [$repository, $number, 'path' => $path, 'full' => 1]),
+        ]);
+    }
+
     public function show(Request $request, Repository $repository, int $number): View
     {
         Gate::authorize('view', $repository);
 
         $pr = $this->findPullRequest($repository, $number);
+        $page = $this->conversationPage($request, $pr->comments());
+        $window = fn ($q) => $q
+            ->when($page['window']['from'], fn ($w, $from) => $w->where('created_at', '>=', $from))
+            ->when($page['window']['to'], fn ($w, $to) => $w->where('created_at', '<', $to));
         $pr->load([
             'author:id,name',
             'reviewers:id,name',
-            'reviews.user:id,name',
-            'comments.user:id,name',
+            'reviews' => fn ($q) => $q->with('user:id,name'),
             'issues' => fn ($q) => $q->orderBy('number'),
             'sourceBranch:id,name,head_commit_id',
             'targetBranch:id,name,head_commit_id',
-            'activity.user:id,name',
+            'activity' => fn ($q) => $window($q)->with('user:id,name'),
         ]);
+        $pr->setRelation('comments', $page['comments']);
 
         $tab = $request->query('tab') === 'files' ? 'files' : 'conversation';
-        $files = $this->pullRequests->files($pr, $tab === 'files');
+        // Resumen en caché; en la pestaña Archivos se pintan ya los primeros archivos (DiffSelection)
+        $files = $this->pullRequests->files($pr);
+        if ($tab === 'files') {
+            $files = DiffSelection::merge($files, $this->pullRequests->files($pr, true, DiffSelection::eagerPaths($files)));
+        }
 
         return view('pulls.show', [
             'repository' => $repository,
@@ -198,10 +227,16 @@ class PullRequestController extends Controller
             'commitCount' => $this->commitCount($pr),
             'mergeability' => $pr->isOpen() ? $this->pullRequests->mergeability($pr) : null,
             'mergedBy' => $pr->merged_by ? User::find($pr->merged_by, ['id', 'name']) : null,
-            'timeline' => $tab === 'conversation' ? $this->timeline($pr) : collect(),
+            'timeline' => $tab === 'conversation' ? $this->timeline($pr, $page['window']) : collect(),
+            'conversation' => $page,
             'reviewStates' => $this->latestReviewStates($pr),
             'roles' => ProjectMember::where('project_id', $repository->project_id)->pluck('role', 'user_id'),
             'mergeDecision' => $request->user() ? Gate::inspect('merge', $pr) : null,
+            // Candidatos a revisor para el formulario de edición (solo si puede editar)
+            'reviewerOptions' => $pr->isOpen() && $request->user()?->can('update', $pr)
+                ? $repository->project->members()->wherePivotIn('role', [Roles::OWNER, Roles::COLLABORATOR])
+                    ->where('users.id', '!=', $pr->author_id)->orderBy('name')->get(['users.id', 'users.name'])
+                : collect(),
         ]);
     }
 
@@ -238,14 +273,40 @@ class PullRequestController extends Controller
         $pr = $this->findPullRequest($repository, $number);
         Gate::authorize('review', $pr);
 
+        // El campo de la revisión se llama review_body (distinto del comentario) para que, tras un
+        // error de validación, el texto no aparezca también en el formulario de comentarios.
+        if (! $request->has('review_body') && $request->has('body')) {
+            $request->merge(['review_body' => $request->input('body')]);
+        }
+
         $data = $request->validate([
             'state' => ['required', Rule::in(PullRequestService::REVIEW_STATES)],
-            'body' => 'nullable|string|max:10000|required_if:state,changes_requested',
-        ], self::VALIDATION_MESSAGES + ['body.required_if' => 'Explica qué cambios solicitas.'], self::VALIDATION_ATTRIBUTES);
+            'review_body' => 'nullable|string|max:10000|required_if:state,changes_requested',
+        ], self::VALIDATION_MESSAGES + ['review_body.required_if' => 'Explica qué cambios solicitas.'], self::VALIDATION_ATTRIBUTES);
 
         return $this->attempt(
-            fn () => $this->pullRequests->review($pr, $request->user(), $data['state'], $data['body'] ?? null),
+            fn () => $this->pullRequests->review($pr, $request->user(), $data['state'], $data['review_body'] ?? null),
             fn () => redirect()->route('pulls.show', [$repository, $pr->number])->with('status', 'Revisión enviada.'),
+        );
+    }
+
+    /** Editar título, descripción y revisores de un PR abierto (autor, propietario o admin). */
+    public function update(Request $request, Repository $repository, int $number): RedirectResponse
+    {
+        $pr = $this->findPullRequest($repository, $number);
+        Gate::authorize('update', $pr);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:200',
+            'description' => 'nullable|string|max:20000',
+            'reviewer_ids' => 'array',
+            'reviewer_ids.*' => 'integer',
+        ], self::VALIDATION_MESSAGES, self::VALIDATION_ATTRIBUTES);
+        $data['reviewer_ids'] = $data['reviewer_ids'] ?? [];
+
+        return $this->attempt(
+            fn () => $this->pullRequests->update($pr, $request->user(), $data),
+            fn () => redirect()->route('pulls.show', [$repository, $pr->number])->with('status', 'Pull request actualizado.'),
         );
     }
 
@@ -319,10 +380,12 @@ class PullRequestController extends Controller
     }
 
     /** Comentarios, revisiones y eventos (cierre, reapertura, fusión...) en orden cronológico. */
-    private function timeline(PullRequest $pr): Collection
+    private function timeline(PullRequest $pr, array $window): Collection
     {
         $comments = $pr->comments->map(fn ($c) => ['type' => 'comment', 'at' => $c->created_at, 'order' => 1, 'id' => $c->id, 'item' => $c]);
-        $reviews = $pr->reviews->map(fn ($r) => ['type' => 'review', 'at' => $r->created_at, 'order' => 2, 'id' => $r->id, 'item' => $r]);
+        // Las revisiones se cargan todas (hacen falta para el estado de cada revisor), pero solo
+        // se pintan las de la ventana de la página actual
+        $reviews = $pr->reviews->filter(fn ($r) => $this->inWindow($r->created_at, $window))->map(fn ($r) => ['type' => 'review', 'at' => $r->created_at, 'order' => 2, 'id' => $r->id, 'item' => $r]);
         $events = $pr->activity
             ->reject(fn ($log) => in_array($log->action, self::HIDDEN_EVENTS, true))
             ->map(fn ($log) => ['type' => 'event', 'at' => $log->created_at, 'order' => 3, 'id' => $log->id, 'item' => $log]);

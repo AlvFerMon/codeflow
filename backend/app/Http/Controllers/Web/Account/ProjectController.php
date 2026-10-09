@@ -7,6 +7,8 @@ use App\Http\Controllers\Web\Account\Presenters\ActivityPresenter;
 use App\Models\ActivityLog;
 use App\Models\Project;
 use App\Models\ProjectMember;
+use App\Models\PullRequest;
+use App\Models\Repository;
 use App\Services\ProjectService;
 use App\Support\Roles;
 use Illuminate\Http\RedirectResponse;
@@ -28,7 +30,11 @@ class ProjectController extends Controller
 
         $projects = Project::query()
             ->with('owner:id,name')
-            ->withCount('repositories')
+            ->withCount([
+                'repositories',
+                'issues as open_issues_count' => fn ($q) => $q->whereIn('issues.status', ['open', 'in_progress']),
+                'pullRequests as open_pulls_count' => fn ($q) => $q->whereIn('pull_requests.status', PullRequest::OPEN_STATES),
+            ])
             ->when(! $user->isAdmin(), fn ($q) => $q->whereIn('id', $roles->keys()))
             ->latest()
             ->paginate(18);
@@ -70,9 +76,17 @@ class ProjectController extends Controller
             'project' => $project->load('owner:id,name'),
             // El administrador que no es miembro actúa como propietario (igual que la API)
             'role' => $user->roleIn($project) ?? ($user->isAdmin() ? Roles::OWNER : null),
-            'repositories' => $project->repositories()->orderBy('name')->get(),
-            'members' => ProjectMember::where('project_id', $project->id)->with('user:id,name,email')->get()
-                ->sortBy([fn ($a, $b) => Roles::level($b->role) <=> Roles::level($a->role), fn ($a, $b) => strcasecmp($a->user?->name ?? '', $b->user?->name ?? '')]),
+            // Repositorios paginados (12) con columnas concretas y su último commit
+            'repositories' => Repository::query()->forListing()
+                ->where('project_id', $project->id)
+                ->withCount(['branches'])
+                ->orderBy('name')
+                ->paginate(12, pageName: 'repos'),
+            // Miembros: recuento + los primeros por rol (la lista completa está en la pestaña Miembros)
+            'membersCount' => ProjectMember::where('project_id', $project->id)->count(),
+            'members' => ProjectMember::where('project_id', $project->id)->with('user:id,name')
+                ->orderByRaw("CASE role WHEN 'owner' THEN 0 WHEN 'collaborator' THEN 1 ELSE 2 END")
+                ->orderBy('id')->limit(6)->get(),
             'activity' => $presenter->presentMany($activity),
         ]);
     }

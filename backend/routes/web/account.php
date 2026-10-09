@@ -11,12 +11,17 @@ use Illuminate\Support\Facades\Route;
 
 // Portada, exploración, perfil, notificaciones, proyectos y miembros
 Route::get('/', HomeController::class)->name('home');
-Route::get('explore', ExploreController::class)->middleware('throttle:120,1')->name('explore');
+Route::get('explore', ExploreController::class)->middleware('throttle:explore')->name('explore');
 
+// El perfil también está disponible sin verificar (p. ej. para corregir un email mal escrito)
 Route::middleware('auth')->group(function () {
     Route::get('profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:10,1')->name('profile.password');
+});
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('activity', [ActivityController::class, 'global'])->name('activity.index');
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');

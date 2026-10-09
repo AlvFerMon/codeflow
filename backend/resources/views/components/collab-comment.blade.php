@@ -14,7 +14,7 @@
         'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10' => $observer,
         'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40' => ! $observer,
     ])>
-        <x-collab-avatar :user="$comment->user" size="sm" />
+        <x-avatar :user="$comment->user" size="sm" />
         <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $comment->user?->name ?? 'Usuario eliminado' }}</span>
         @if ($observer)
             <x-badge color="amber" title="Comentario de un observador: genera una alerta para el equipo">
@@ -28,6 +28,6 @@
         <time class="text-zinc-500 dark:text-zinc-400" datetime="{{ $comment->created_at?->toIso8601String() }}" title="{{ $comment->created_at?->format('d/m/Y H:i') }}">{{ $comment->created_at?->diffForHumans() }}</time>
     </header>
     <div class="px-4 py-3">
-        <x-collab-markdown :text="$comment->body" :empty="$empty" />
+        <x-markdown :text="$comment->body" :empty="$empty" />
     </div>
 </article>

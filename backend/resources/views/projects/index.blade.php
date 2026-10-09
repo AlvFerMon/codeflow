@@ -29,7 +29,7 @@
             @endforeach
         </div>
         @if ($projects->hasPages())
-            <x-card class="mt-4"><x-account-pagination :paginator="$projects" /></x-card>
+            <x-card class="mt-4"><x-pagination :paginator="$projects" /></x-card>
         @endif
     @endif
 </x-app-layout>

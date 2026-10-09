@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Code\Concerns\InteractsWithCode;
 use App\Models\Blob;
 use App\Models\Commit;
+use App\Models\CommitFile;
 use App\Models\Project;
 use App\Models\Repository;
 use App\Services\RepositoryService;
@@ -14,6 +15,7 @@ use App\Support\Visibility;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -68,13 +70,15 @@ class RepositoryController extends Controller
     {
         Gate::authorize('view', $repository);
 
-        $branch = $this->resolveBranch($repository, $request->query('branch'));
+        [$branch, $atCommit, $headId] = $this->resolveRef($repository, $request->query('branch'), $request->query('commit'));
         $path = $this->cleanPath($request->query('path'));
-        $tree = $this->vcs->tree($branch?->head_commit_id);
+        // En una carpeta solo se leen las rutas que cuelgan de ella (filtro en SQL)
+        $tree = $this->vcs->treeUnder($headId, $path);
 
         // Si la ruta es un archivo, se muestra el archivo
-        if ($path !== '' && isset($tree[$path])) {
-            return redirect()->route('repositories.blob', [$repository, 'branch' => $branch->name, 'path' => $path]);
+        if ($path !== '' && $headId && CommitFile::where('commit_id', $headId)->where('path', $path)->exists()) {
+            return redirect()->route('repositories.blob', array_filter([$repository,
+                'commit' => $atCommit?->sha, 'branch' => $atCommit ? null : $branch->name, 'path' => $path]));
         }
         abort_unless($this->directoryExists($tree, $path), 404, 'La carpeta no existe en esta rama.');
 
@@ -97,18 +101,19 @@ class RepositoryController extends Controller
             }
         }
 
-        $graph = $this->vcs->graph($repository->id);
 
         return view('repositories.show', [
             'repository' => $repository,
             'branch' => $branch,
+            'atCommit' => $atCommit,
             'branches' => $repository->branches()->orderBy('name')->pluck('name'),
             'path' => $path,
             'entries' => $entries,
             'sizes' => $sizes,
             'readme' => $readme,
-            'lastCommit' => $branch?->head_commit_id ? Commit::with('author:id,name')->find($branch->head_commit_id) : null,
-            'commitsCount' => count($this->vcs->ancestors($graph, $branch?->head_commit_id)),
+            'lastCommit' => $atCommit ?? ($headId ? Commit::with('author:id,name')->find($headId) : null),
+            // El nº de commits de un head no cambia nunca: se guarda en caché por id de commit
+            'commitsCount' => $headId ? Cache::rememberForever('vcs:count:'.$headId, fn () => count($this->vcs->ancestors($this->vcs->graph($repository->id), $headId))) : 0,
             'branchesCount' => $repository->branches()->count(),
         ]);
     }
@@ -118,7 +123,7 @@ class RepositoryController extends Controller
     {
         Gate::authorize('view', $repository);
 
-        [$branch, $path, $blobId] = $this->locateFile($request, $repository);
+        [$branch, $path, $blobId, $atCommit] = $this->locateFile($request, $repository);
         $file = $this->vcs->readFile($repository->id, $blobId);
 
         $isMarkdown = (bool) preg_match('/\.(md|markdown)$/i', $path);
@@ -134,6 +139,7 @@ class RepositoryController extends Controller
         return view('repositories.blob', [
             'repository' => $repository,
             'branch' => $branch,
+            'atCommit' => $atCommit,
             'branches' => $repository->branches()->orderBy('name')->pluck('name'),
             'path' => $path,
             'file' => $file,
@@ -236,14 +242,14 @@ class RepositoryController extends Controller
      */
     private function locateFile(Request $request, Repository $repository): array
     {
-        $branch = $this->resolveBranch($repository, $request->query('branch'));
+        [$branch, $atCommit, $headId] = $this->resolveRef($repository, $request->query('branch'), $request->query('commit'));
         $path = $this->cleanPath($request->query('path'));
         abort_if(! $branch || $path === '', 404);
 
-        $tree = $this->vcs->tree($branch->head_commit_id);
+        $tree = $this->vcs->tree($headId);
         abort_unless(isset($tree[$path]), 404, 'El archivo no existe en esta rama.');
 
-        return [$branch, $path, (int) $tree[$path]];
+        return [$branch, $path, (int) $tree[$path], $atCommit];
     }
 
     /** @return array<string,string> */

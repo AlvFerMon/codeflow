@@ -130,7 +130,7 @@ class PullRequestsWebTest extends TestCase
         $pr = $this->makePullRequest($this->makeBranch('feature/login'));
 
         $this->actAs($this->owner)->post(route('pulls.review', [$this->repo, $pr->number]), ['state' => 'changes_requested'])
-            ->assertSessionHasErrors('body');
+            ->assertSessionHasErrors('review_body');
         $this->assertSame(0, $pr->reviews()->count());
     }
 

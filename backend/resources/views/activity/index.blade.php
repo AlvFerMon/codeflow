@@ -1,9 +1,5 @@
 <x-app-layout :title="'Actividad · '.$project->name">
-    <div class="mb-6">
-        <a href="{{ route('projects.show', $project) }}" class="text-sm text-zinc-500 dark:text-zinc-400 hover:underline">← {{ $project->name }}</a>
-        <h1 class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Actividad del proyecto</h1>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400">Todo lo que ha pasado en {{ $project->name }}, de lo más reciente a lo más antiguo.</p>
-    </div>
+    @include('projects._header', ['project' => $project, 'active' => 'activity'])
 
     <x-card>
         @if ($items->isEmpty())
@@ -15,7 +11,7 @@
                     <x-account-activity-item :item="$item" />
                 @endforeach
             </ul>
-            <x-account-pagination :paginator="$logs" />
+            <x-pagination :paginator="$logs" />
         @endif
     </x-card>
 </x-app-layout>

@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\PullRequest;
 use App\Models\Repository;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -28,12 +29,22 @@ class HomeController extends Controller
 
     private const PROJECTS_SHOWN = 6;
 
-    public function __invoke(Request $request, ActivityPresenter $presenter): View
+    public function __invoke(Request $request, ActivityPresenter $presenter): View|RedirectResponse
     {
         $user = $request->user();
 
         if (! $user) {
-            return view('home.landing');
+            return view('home.landing', [
+                'publicRepositories' => Repository::query()->forListing()->with('project:id,name')
+                    ->where('visibility', Repository::VISIBILITY_PUBLIC)
+                    ->orderByDesc('last_commit_at')->orderByDesc('updated_at')
+                    ->limit(6)->get(),
+                'publicTotal' => Repository::where('visibility', Repository::VISIBILITY_PUBLIC)->count(),
+            ]);
+        }
+
+        if (! $user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
         }
 
         // "Mis proyectos": solo aquellos de los que soy miembro (también para el admin)
@@ -119,15 +130,8 @@ class HomeController extends Controller
     /** Repositorios ordenados por su último commit, con el sha y la fecha de ese commit. */
     private function recentRepositories(array $projectIds)
     {
-        $lastCommit = fn (string $column) => Commit::select($column)
-            ->whereColumn('repository_id', 'repositories.id')
-            ->latest('created_at')
-            ->limit(1);
-
         return Repository::query()
-            ->select(['id', 'project_id', 'name', 'description', 'default_branch', 'visibility', 'updated_at'])
-            ->addSelect(['last_commit_at' => $lastCommit('created_at'), 'last_commit_sha' => $lastCommit('sha')])
-            ->withCasts(['last_commit_at' => 'datetime'])
+            ->forListing()
             ->with('project:id,name')
             ->whereIn('project_id', $projectIds)
             ->orderByDesc('last_commit_at')

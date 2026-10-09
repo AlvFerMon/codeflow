@@ -15,6 +15,9 @@
                 @if ($commit->second_parent_id)
                     <x-badge color="purple">commit de fusión</x-badge>
                 @endif
+                <x-button variant="secondary" size="sm" :href="route('repositories.show', [$repository, 'commit' => substr($commit->sha, 0, 12)])">
+                    <x-code-icon name="code" /> Ver el código en este commit
+                </x-button>
             </div>
             @if ($body !== '')
                 <div class="mt-3 whitespace-pre-wrap break-words text-sm text-zinc-700 dark:text-zinc-300">{{ $body }}</div>
@@ -31,7 +34,7 @@
         </div>
         <div class="flex flex-col gap-2 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40 px-4 py-3 text-sm sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:px-5">
             <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <x-code-avatar :user="$commit->author" />
+                <x-avatar :user="$commit->author" />
                 <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $commit->author?->name ?? 'Usuario eliminado' }}</span>
                 <span class="whitespace-nowrap text-zinc-500 dark:text-zinc-400">· <time datetime="{{ $commit->created_at->toIso8601String() }}" title="{{ $commit->created_at->diffForHumans() }}">{{ $commit->created_at->translatedFormat('j \d\e F \d\e Y, H:i') }}</time></span>
             </span>
@@ -57,6 +60,6 @@
     @if (empty($files))
         <x-card><x-empty title="Este commit no cambia ningún archivo" /></x-card>
     @else
-        <x-diff :files="$files" />
+        <x-diff :files="$files" :diff-url="route('commits.diff', [$repository, $commit->sha])" />
     @endif
 </x-app-layout>

@@ -9,6 +9,7 @@ use App\Services\RepositoryService;
 use App\Services\VcsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 
 class CommitController extends Controller
@@ -18,9 +19,13 @@ class CommitController extends Controller
     {
         Gate::authorize('view', $branch->repository);
 
-        $ids = array_keys($vcs->ancestors($vcs->graph($branch->repository_id), $branch->head_commit_id));
+        // Paginación sobre la lista de ids (ordenada) para no enviar un IN con todo el historial
+        $ids = $vcs->historyIds($branch->repository_id, $branch->head_commit_id);
+        $page = max(1, (int) request()->query('page', 1));
+        $items = Commit::whereIn('id', array_slice($ids, ($page - 1) * 30, 30) ?: [0])
+            ->with('author:id,name')->orderByDesc('id')->get();
 
-        return Commit::whereIn('id', $ids)->with('author:id,name')->latest('id')->paginate(30);
+        return new LengthAwarePaginator($items, count($ids), 30, $page, ['path' => request()->url(), 'query' => request()->query()]);
     }
 
     /** Todos los commits del repositorio. */

@@ -19,7 +19,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | - Lecturas públicas: autenticación opcional. Sin token se actúa como invitado
 |   y las policies deciden (repos públicos sí, privados 404).
-| - Escrituras y datos personales: auth:sanctum (401 sin token).
+| - Escrituras y datos personales: auth:sanctum (401 sin token) y email verificado
+|   (403 con code=email_not_verified). Sin verificar se actúa como invitado en las lecturas.
 */
 
 Route::prefix('auth')->group(function () {
@@ -54,12 +55,18 @@ Route::middleware(['optional.sanctum', 'throttle:120,1'])->group(function () {
     Route::get('pull-requests/{pullRequest}/comments', [PullRequestController::class, 'comments']);
 });
 
+// Sesión y perfil: disponibles aunque el email no esté verificado
 Route::middleware('auth:sanctum')->group(function () {
-    // Sesión y perfil
     Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::post('auth/email/verify', [AuthController::class, 'verifyEmail'])->middleware('throttle:verification-code');
+    Route::post('auth/email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:verification-send');
     Route::get('me', [AuthController::class, 'me']);
     Route::put('me', [AuthController::class, 'updateProfile']);
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
+});
+
+// Todo lo demás exige email verificado (403 con code=email_not_verified)
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Notificaciones
     Route::get('me/notifications', [NotificationController::class, 'index']);

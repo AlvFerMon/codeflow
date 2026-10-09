@@ -15,9 +15,18 @@ use Illuminate\Auth\Access\Response;
  */
 trait ChecksProjectRoles
 {
+    /**
+     * Rol efectivo en el proyecto. Un usuario sin email verificado se trata como visitante
+     * (sin rol): solo ve lo público hasta que verifique su dirección.
+     */
+    protected function roleOf(?User $user, Project $project): ?string
+    {
+        return $user !== null && $user->hasVerifiedEmail() ? $user->roleIn($project) : null;
+    }
+
     protected function isMember(?User $user, Project $project): bool
     {
-        return $user !== null && $user->roleIn($project) !== null;
+        return $this->roleOf($user, $project) !== null;
     }
 
     /** Puede ver el repositorio: es público o el usuario es miembro del proyecto. */
@@ -32,7 +41,7 @@ trait ChecksProjectRoles
      */
     protected function requireRole(?User $user, Project $project, string $minimum, ?Repository $repository = null, string $message = 'No tienes permisos suficientes en este proyecto.'): Response
     {
-        if ($user !== null && Roles::level($user->roleIn($project)) >= Roles::level($minimum)) {
+        if (Roles::level($this->roleOf($user, $project)) >= Roles::level($minimum)) {
             return Response::allow();
         }
 
@@ -43,6 +52,6 @@ trait ChecksProjectRoles
 
     protected function isRole(?User $user, Project $project, string $role): bool
     {
-        return $user !== null && $user->roleIn($project) === $role;
+        return $this->roleOf($user, $project) === $role;
     }
 }

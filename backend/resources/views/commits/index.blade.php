@@ -19,7 +19,9 @@
 
     @if ($commits->isEmpty())
         <x-card>
-            <x-empty title="No hay commits">
+            <x-empty title="No hay commits"
+                :action="$path === '' && auth()->user()?->can('push', $repository) ? 'Subir archivos' : null"
+                :href="route('files.create', ['repository' => $repository, 'mode' => 'upload', 'branch' => $branchName])">
                 {{ $path !== '' ? 'Ningún commit de esta rama ha modificado este archivo.' : 'Esta rama todavía no tiene commits.' }}
             </x-empty>
         </x-card>
@@ -35,7 +37,7 @@
                         <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
                             @foreach ($dayCommits as $commit)
                                 <li class="flex items-start gap-3 px-4 py-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/40">
-                                    <x-code-avatar :user="$commit->author" size="h-7 w-7 text-xs" class="mt-0.5 hidden sm:grid" />
+                                    <x-avatar :user="$commit->author" size="h-7 w-7 text-xs" class="mt-0.5 hidden sm:grid" />
                                     <div class="min-w-0 flex-1">
                                         <a href="{{ route('commits.show', [$repository, $commit->sha]) }}" class="block truncate text-sm font-medium text-zinc-900 dark:text-zinc-100 hover:text-purple-600 dark:hover:text-purple-400 hover:underline" title="{{ $commit->message }}">
                                             {{ \Illuminate\Support\Str::before((string) $commit->message, "\n") }}
@@ -60,7 +62,7 @@
         @if ($commits->hasPages())
             <nav class="mt-6 flex items-center justify-center gap-2" aria-label="Paginación">
                 @if ($commits->onFirstPage())
-                    <span class="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-400 dark:text-zinc-500">Más recientes</span>
+                    <span class="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-500 dark:text-zinc-400">Más recientes</span>
                 @else
                     <x-button variant="secondary" class="py-1.5" :href="$commits->previousPageUrl()">Más recientes</x-button>
                 @endif
@@ -68,7 +70,7 @@
                 @if ($commits->hasMorePages())
                     <x-button variant="secondary" class="py-1.5" :href="$commits->nextPageUrl()">Más antiguos</x-button>
                 @else
-                    <span class="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-400 dark:text-zinc-500">Más antiguos</span>
+                    <span class="rounded-lg border border-zinc-200 dark:border-zinc-800 px-3 py-1.5 text-sm text-zinc-500 dark:text-zinc-400">Más antiguos</span>
                 @endif
             </nav>
         @endif

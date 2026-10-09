@@ -22,20 +22,28 @@ class BranchController extends Controller
 
         $graph = $vcs->graph($repository->id);
 
-        $branches = $repository->branches()->with(['headCommit.author:id,name', 'creator:id,name'])->get()
-            ->map(function (Branch $branch) use ($graph, $vcs, $repository) {
+        $openPrs = PullRequest::where('repository_id', $repository->id)
+            ->whereIn('status', PullRequest::OPEN_STATES)
+            ->get(['source_branch_id', 'target_branch_id']);
+
+        // Paginado (50): la principal primero y el resto por nombre
+        $page = $repository->branches()
+            ->orderByRaw('CASE WHEN name = ? THEN 0 ELSE 1 END', [$repository->default_branch])
+            ->orderBy('name')
+            ->with(['headCommit.author:id,name', 'creator:id,name'])
+            ->paginate(50);
+
+        $page->setCollection($page->getCollection()
+            ->map(function (Branch $branch) use ($graph, $vcs, $repository, $openPrs) {
                 return array_merge($branch->toArray(), [
                     'is_default' => $branch->name === $repository->default_branch,
                     'commits_count' => count($vcs->ancestors($graph, $branch->head_commit_id)),
                     'last_modified' => ($branch->headCommit?->created_at ?? $branch->created_at),
-                    'open_pull_requests' => PullRequest::where('repository_id', $repository->id)
-                        ->whereIn('status', PullRequest::OPEN_STATES)
-                        ->where(fn ($q) => $q->where('source_branch_id', $branch->id)->orWhere('target_branch_id', $branch->id))
-                        ->count(),
+                    'open_pull_requests' => $openPrs->filter(fn ($pr) => in_array($branch->id, [$pr->source_branch_id, $pr->target_branch_id]))->count(),
                 ]);
-            });
+            }));
 
-        return response()->json($branches->values());
+        return response()->json($page);
     }
 
     public function store(Request $request, Repository $repository): JsonResponse

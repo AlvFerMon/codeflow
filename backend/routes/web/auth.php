@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\Auth\EmailVerificationController;
 use App\Http\Controllers\Web\Auth\LoginController;
 use App\Http\Controllers\Web\Auth\PasswordResetController;
 use App\Http\Controllers\Web\Auth\RegisterController;
@@ -22,3 +23,11 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::post('logout', [LoginController::class, 'destroy'])->middleware('auth')->name('logout');
+
+// Verificación del email con un código de 6 dígitos
+Route::middleware('auth')->group(function () {
+    Route::get('email/verify', [EmailVerificationController::class, 'notice'])->name('verification.notice');
+    Route::post('email/verify', [EmailVerificationController::class, 'verify'])->middleware('throttle:verification-code')->name('verification.verify');
+    Route::post('email/verification-notification', [EmailVerificationController::class, 'send'])->middleware('throttle:verification-send')->name('verification.send');
+    Route::put('email/verify/email', [EmailVerificationController::class, 'changeEmail'])->middleware('throttle:5,1')->name('verification.email');
+});

@@ -2,7 +2,7 @@
     <div class="mx-auto max-w-2xl">
         <nav class="mb-2 text-sm">
             <a href="{{ route('projects.show', $project) }}" class="text-purple-600 dark:text-purple-400 hover:underline">{{ $project->name }}</a>
-            <span class="text-zinc-400 dark:text-zinc-500">/</span>
+            <span class="text-zinc-500 dark:text-zinc-400">/</span>
             <span class="text-zinc-600 dark:text-zinc-400">Nuevo repositorio</span>
         </nav>
         <h1 class="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Crear un repositorio</h1>

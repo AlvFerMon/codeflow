@@ -55,10 +55,11 @@ class IssueController extends Controller
         $issue->load([
             'author:id,name',
             'assignee:id,name',
-            'comments.user:id,name',
+            // Solo los 20 comentarios más recientes; el resto en /comments (paginado)
+            'comments' => fn ($q) => $q->with('user:id,name')->latest('id')->limit(20),
             'pullRequests:id,number,title,status',
-            'activity.user:id,name',
-        ]);
+            'activity' => fn ($q) => $q->with('user:id,name')->latest('id')->limit(50),
+        ])->loadCount('comments');
 
         $payload = $issue->toArray();
         $payload['history'] = $payload['activity'];
@@ -99,7 +100,8 @@ class IssueController extends Controller
     {
         Gate::authorize('view', $issue->repository);
 
-        return response()->json($issue->comments()->with('user:id,name')->orderBy('id')->get());
+        // Paginados (30) del más antiguo al más reciente
+        return response()->json($issue->comments()->with('user:id,name')->orderBy('id')->paginate(30));
     }
 
     public function storeComment(Request $request, Issue $issue): JsonResponse

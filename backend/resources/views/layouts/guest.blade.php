@@ -28,5 +28,6 @@
             @include('layouts._theme-switch')
         </div>
     </main>
+    @include('layouts._confirm-dialog')
 </body>
 </html>

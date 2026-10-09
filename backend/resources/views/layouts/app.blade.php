@@ -10,12 +10,15 @@
 </head>
 @php
     $user = auth()->user();
-    $unread = $user ? $user->unreadNotifications()->count() : 0;
+    // Sin email verificado se navega como visitante (solo lo público) hasta confirmar el correo
+    $verified = $user?->hasVerifiedEmail() ?? false;
+    $unread = $verified ? $user->unreadNotificationsCount() : 0;
     $navItems = array_filter([
         ['label' => 'Inicio', 'route' => 'home', 'active' => request()->routeIs('home')],
-        $user ? ['label' => 'Proyectos', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*', 'repositories.*', 'files.*', 'branches.*', 'commits.*', 'issues.*', 'pulls.*', 'members.*')] : null,
+        $verified ? ['label' => 'Proyectos', 'route' => 'projects.index', 'active' => request()->routeIs('projects.*', 'repositories.*', 'files.*', 'branches.*', 'commits.*', 'issues.*', 'pulls.*', 'members.*')] : null,
         ['label' => 'Explorar', 'route' => 'explore', 'active' => request()->routeIs('explore')],
-        $user ? ['label' => 'Notificaciones', 'route' => 'notifications.index', 'active' => request()->routeIs('notifications.*'), 'count' => $unread] : null,
+        $verified ? ['label' => 'Actividad', 'route' => 'activity.index', 'active' => request()->routeIs('activity.index')] : null,
+        $verified ? ['label' => 'Notificaciones', 'route' => 'notifications.index', 'active' => request()->routeIs('notifications.*'), 'count' => $unread] : null,
     ]);
     $navLink = 'rounded-lg px-3 py-1.5 text-xs transition-colors';
     $navActive = 'bg-zinc-100 font-semibold text-zinc-900 dark:bg-zinc-800 dark:text-white';
@@ -86,6 +89,7 @@
                     </form>
 
                     @auth
+                        @if ($verified)
                         @can('create', \App\Models\Project::class)
                             <span class="hidden sm:inline"><x-button variant="purple" size="sm" :href="route('projects.create')" title="Crear un proyecto nuevo">
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
@@ -101,6 +105,7 @@
                                 <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-purple-600 ring-2 ring-white dark:ring-zinc-900"></span>
                             @endif
                         </a>
+                        @endif
 
                         <details class="relative border-l border-zinc-200 pl-1 dark:border-zinc-800" data-dropdown>
                             <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Menú de usuario">
@@ -116,10 +121,10 @@
                                     <p class="truncate text-xs font-semibold text-zinc-900 dark:text-white">{{ $user->name }}</p>
                                     <p class="truncate text-[11px] text-zinc-500 dark:text-zinc-400">{{ $user->email }}</p>
                                 </div>
-                                <a href="{{ route('profile.edit') }}" class="{{ $menuItem }}">Mi perfil</a>
+                                <a href="{{ route('profile.edit') }}" class="{{ $menuItem }}">Mi perfil y configuración</a>
                                 <a href="{{ route('projects.index') }}" class="{{ $menuItem }}">Mis proyectos</a>
                                 <div class="border-t border-zinc-100 px-3 py-2 dark:border-zinc-800">
-                                    <p class="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-400">Tema</p>
+                                    <p class="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tema</p>
                                     @include('layouts._theme-switch')
                                 </div>
                                 <form method="POST" action="{{ route('logout') }}" class="border-t border-zinc-100 dark:border-zinc-800">
@@ -158,9 +163,10 @@
                 @guest
                     @include('layouts._theme-switch')
                 @endguest
-                <span class="text-zinc-400 dark:text-zinc-500">Hecho con Laravel y Tailwind</span>
+                <span class="text-zinc-500 dark:text-zinc-400">Hecho con Laravel y Tailwind</span>
             </div>
         </div>
     </footer>
+    @include('layouts._confirm-dialog')
 </body>
 </html>

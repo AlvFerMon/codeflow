@@ -28,9 +28,10 @@ class AuthPagesTest extends TestCase
             'email' => 'nueva@codeflow.test',
             'password' => 'secreto123',
             'password_confirmation' => 'secreto123',
-        ])->assertRedirect(route('home'));
+        ])->assertRedirect(route('verification.notice'));
 
         $user = User::where('email', 'nueva@codeflow.test')->firstOrFail();
+        $this->assertFalse($user->hasVerifiedEmail());
         $this->assertAuthenticatedAs($user);
         $this->assertTrue(Hash::check('secreto123', $user->password));
         $this->assertFalse($user->isAdmin());

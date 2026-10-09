@@ -29,6 +29,9 @@ class ProfilePagesTest extends TestCase
             ->assertRedirect(route('profile.edit'))->assertSessionHas('status');
         $this->assertSame('Nombre Nuevo', $user->fresh()->name);
         $this->assertSame('nuevo@codeflow.test', $user->fresh()->email);
+        // El email nuevo hay que verificarlo de nuevo (código por correo)
+        $this->assertFalse($user->fresh()->hasVerifiedEmail());
+        $user->forceFill(['email_verified_at' => now()])->save();
 
         $this->from('/profile')->put('/profile', ['name' => 'X', 'email' => $other->email])->assertSessionHasErrors('email');
     }

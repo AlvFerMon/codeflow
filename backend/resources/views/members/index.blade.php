@@ -1,16 +1,24 @@
 <x-app-layout :title="'Miembros · '.$project->name">
-    <div class="mb-6">
-        <a href="{{ route('projects.show', $project) }}" class="text-sm text-zinc-500 dark:text-zinc-400 hover:underline">← {{ $project->name }}</a>
-        <h1 class="mt-1 text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Miembros del proyecto</h1>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400">
-            Los <strong>colaboradores</strong> pueden subir código, crear ramas, issues y pull requests.
-            Los <strong>observadores</strong> solo pueden ver y comentar.
-        </p>
-    </div>
+    @include('projects._header', ['project' => $project, 'active' => 'members'])
+    <x-help summary="¿Qué puede hacer cada rol?" class="-mt-2 mb-4">
+        El <strong>propietario</strong> gestiona el proyecto, sus repositorios y sus miembros. Los <strong>colaboradores</strong> pueden subir código,
+        crear ramas, issues y pull requests. Los <strong>observadores</strong> solo pueden ver y escribir comentarios, que llegan al equipo como alertas.
+    </x-help>
 
     <div class="grid gap-6 lg:grid-cols-3">
         <div class="lg:col-span-2">
-            <x-card :title="$members->count().' '.($members->count() === 1 ? 'miembro' : 'miembros')">
+            <x-card :title="$members->total().' '.($members->total() === 1 ? 'miembro' : 'miembros').($q !== '' ? ' para «'.$q.'»' : '')">
+                <x-slot:actions>
+                    <form method="GET" action="{{ route('members.index', $project) }}" role="search" class="flex gap-1.5">
+                        <label for="member-q" class="sr-only">Buscar miembro</label>
+                        <input id="member-q" type="search" name="q" value="{{ $q }}" maxlength="100" placeholder="Nombre o email…"
+                            class="w-40 rounded-lg border border-zinc-300 bg-white px-2.5 py-1 text-xs shadow-xs focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 sm:w-52 dark:border-zinc-700 dark:bg-zinc-900">
+                        <x-button size="sm" variant="secondary">Buscar</x-button>
+                    </form>
+                </x-slot:actions>
+                @if ($members->isEmpty())
+                    <x-empty title="Ningún miembro coincide con «{{ $q }}»">Prueba con otro nombre o email.</x-empty>
+                @endif
                 <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
                     @foreach ($members as $member)
                         @php($isOwner = $member->role === \App\Support\Roles::OWNER)
@@ -21,7 +29,7 @@
                                     <p class="flex flex-wrap items-center gap-2 text-sm font-medium text-zinc-900 dark:text-zinc-100">
                                         <span class="truncate">{{ $member->user?->name ?? 'Usuario eliminado' }}</span>
                                         <x-account-role-badge :role="$member->role" />
-                                        @if ($member->user_id === auth()->id())<span class="text-xs font-normal text-zinc-400 dark:text-zinc-500">(tú)</span>@endif
+                                        @if ($member->user_id === auth()->id())<span class="text-xs font-normal text-zinc-500 dark:text-zinc-400">(tú)</span>@endif
                                     </p>
                                     <p class="truncate text-xs text-zinc-500 dark:text-zinc-400">{{ $member->user?->email }} · desde {{ $member->created_at?->translatedFormat('j M Y') }}</p>
                                 </div>
@@ -42,7 +50,7 @@
                                             <x-button variant="secondary" class="px-2.5! py-1.5!">Cambiar</x-button>
                                         </form>
                                         <form method="POST" action="{{ route('members.destroy', [$project, $member->user]) }}"
-                                            onsubmit="return confirm(@js('¿Quitar a '.$member->user->name.' del proyecto? Perderá el acceso a sus repositorios privados.'))">
+                                            data-confirm-title="Quitar del proyecto" data-confirm-button="Quitar" data-confirm="{{ $member->user->name }} dejará de ser miembro y perderá el acceso a los repositorios privados del proyecto.">
                                             @csrf
                                             @method('DELETE')
                                             <x-button variant="ghost" class="px-2.5! py-1.5! text-rose-600! hover:bg-rose-50!">Quitar</x-button>
@@ -53,6 +61,7 @@
                         </li>
                     @endforeach
                 </ul>
+                <x-pagination :paginator="$members" />
             </x-card>
         </div>
 

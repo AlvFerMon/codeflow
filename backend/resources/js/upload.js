@@ -113,6 +113,7 @@ function init(root) {
             remove.className = 'shrink-0 rounded px-1.5 text-zinc-400 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10';
             remove.textContent = '✕';
             remove.title = 'Quitar';
+            remove.setAttribute('aria-label', 'Quitar ' + path);
             remove.addEventListener('click', () => { selected.delete(path); render(); });
             row.append(name, size, remove);
             list.appendChild(row);
