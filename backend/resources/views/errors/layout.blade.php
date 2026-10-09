@@ -13,18 +13,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex">
     <title>{{ $title }} · CodeFlow</title>
+    @include('layouts._icons')
     @include('layouts._theme')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-full flex-col items-center justify-center bg-zinc-50 px-4 py-12 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
     <main class="w-full max-w-lg text-center">
         <a href="{{ url('/') }}" class="mb-8 inline-flex items-center gap-2.5" aria-label="CodeFlow, inicio">
-            <span class="h-10 w-10 rounded-xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-sky-500 p-0.5 shadow-sm">
-                <span class="flex h-full w-full items-center justify-center rounded-[10px] bg-zinc-950">
-                    <svg class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5"/></svg>
-                </span>
-            </span>
-            <span class="text-xl font-bold tracking-tight">CodeFlow</span>
+            <x-logo size="h-10 w-10" text="text-xl" />
         </a>
         <div class="rounded-xl border border-zinc-200/80 bg-white p-8 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
             <p class="font-mono text-sm font-semibold text-purple-600 dark:text-purple-400">Error {{ $code }}</p>
