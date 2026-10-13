@@ -21,8 +21,8 @@
                     @csrf
                     @method('PUT')
                     <x-input label="Contraseña actual" name="current_password" type="password" required autocomplete="current-password" />
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <x-input label="Contraseña nueva" name="password" type="password" required minlength="8" autocomplete="new-password" help="Mínimo 8 caracteres." />
+                    <div class="space-y-4">
+                        <x-password-strength label="Contraseña nueva" name="password" required minlength="8" autocomplete="new-password" />
                         <x-input label="Repite la contraseña nueva" name="password_confirmation" type="password" required minlength="8" autocomplete="new-password" />
                     </div>
                     <p class="text-xs text-zinc-500 dark:text-zinc-400">Al cambiarla se cerrará la sesión en tus otros dispositivos (navegadores y app Android).</p>

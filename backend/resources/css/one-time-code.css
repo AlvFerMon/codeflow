@@ -1,0 +1,250 @@
+/* =============================================================================
+   Bencho "One-time code" (OTP) — Liquid Goo Filter & Spring Physics
+   MIT licensed — bencho.dev/licence
+   Adapted for CodeFlow (Blade + Vite, Vanilla JS, no React).
+
+   ── ARCHITECTURE ─────────────────────────────────────────────────────────────
+   1. Single Invisible Native Input:
+      Transparent <input> positioned across the entire row so system SMS/email
+      autofill, mobile keyboards (inputmode="numeric"), screen readers, and
+      clipboard paste work without custom keyboard reimplementations.
+
+   2. Liquid SVG Filter (Goo):
+      feGaussianBlur (stdDeviation: 3) + feColorMatrix (alpha cut: 24, offset: -12)
+      fuses contiguous active cells and cursor pills into an organic surface.
+      The <defs> are kept out of flow with .liq-defs to protect flex/grid layouts.
+
+   3. Physics & Frame Animations:
+      - Spring merge: k = 0.075, zeta = 0.42 for cursor translation and pill fusion.
+      - Digit expansion pop: POP_MS = 260ms (half sine wave).
+      - Rejection shake: SHAKE_MS = 620ms with right-to-left digit draining and #e5484d.
+   ============================================================================= */
+
+/* ── 1. SVG Definitions Hidden Outside Flow ────────────────────────────────── */
+.liq-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* ── 2. Wrapper ────────────────────────────────────────────────────────────── */
+.otp-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── 3. OTP Component & 5 Design Tokens ────────────────────────────────────── */
+.otp {
+  /* 5 Design Tokens locales mapeados a Zinc */
+  --card:      var(--color-zinc-100, #f4f4f5);   /* Superficie base de tarjeta   */
+  --fill-slab: var(--color-zinc-100, #f4f4f5);   /* Relleno de celda inactiva    */
+  --fill-on:   var(--color-zinc-900, #18181b);   /* Relleno activo / cursor      */
+  --ink:       var(--color-zinc-900, #18181b);   /* Color tipográfico del dígito */
+  --font-ui:   var(--font-sans, system-ui);      /* Tipografía de la interfaz    */
+
+  /* Tokens de feedback de error */
+  --ink-err:   #e5484d;                          /* rose-500                     */
+  --fill-err:  rgba(229, 72, 77, 0.12);
+
+  /* Geometría de celda */
+  --slot-w: 42px;
+  --slot-h: 52px;
+  --slot-gap: 8px;
+  --slot-radius: 12px;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  user-select: none;
+  -webkit-user-select: none;
+  box-sizing: border-box;
+}
+
+@media (min-width: 480px) {
+  .otp {
+    --slot-w: 48px;
+    --slot-h: 58px;
+    --slot-gap: 10px;
+    --slot-radius: 14px;
+  }
+}
+
+/* ── Dark Mode Token Overrides ─────────────────────────────────────────────── */
+:where(.dark, .dark *) .otp {
+  --card:      var(--color-zinc-800, #27272a);
+  --fill-slab: var(--color-zinc-800, #27272a);
+  --fill-on:   var(--color-zinc-100, #f4f4f5);
+  --ink:       var(--color-zinc-100, #f4f4f5);
+}
+
+/* ── 4. Input Nativo Invisible (Accesibilidad y Teclados Móviles) ─────────── */
+.otp-native {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.001; /* Casi invisible pero interactivo para toques y lectores */
+  cursor: text;
+  z-index: 5;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1px;
+  color: transparent;
+  caret-color: transparent;
+  letter-spacing: normal;
+}
+
+/* ── 5. Celdas Visuales (Slabs) y Glifos Numéricos ─────────────────────────── */
+.otp-slabs {
+  display: flex;
+  align-items: center;
+  gap: var(--slot-gap);
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.otp-slot {
+  position: relative;
+  width: var(--slot-w);
+  height: var(--slot-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.otp-slab {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--slot-radius);
+  background: var(--fill-slab);
+  border: 1.5px solid rgba(var(--ink-rgb, 24, 24, 27), 0.08);
+  transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+  box-sizing: border-box;
+}
+
+:where(.dark, .dark *) .otp-slab {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Resalte de la celda activa cuando tiene foco */
+.otp[data-focused="true"] .otp-slot[data-active="true"] .otp-slab {
+  border-color: var(--color-purple-500, #a855f7);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+}
+
+.otp-char {
+  position: relative;
+  z-index: 3;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 1.625rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink);
+  transform: scale(1);
+  transition: transform 120ms cubic-bezier(0.2, 0, 0, 1), opacity 150ms ease, color 180ms ease;
+  will-change: transform;
+}
+
+/* Efecto Pop de dígito recibido (POP_MS = 260ms) */
+.otp-char[data-popping="true"] {
+  transform: scale(1.18);
+}
+
+/* ── 6. Bandeja Líquida con Filtro Goo (SVG Liquid Fusion) ─────────────────── */
+.otp-goo {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.otp-blob-track {
+  display: flex;
+  align-items: center;
+  gap: var(--slot-gap);
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.otp-blob {
+  width: var(--slot-w);
+  height: var(--slot-h);
+  border-radius: var(--slot-radius);
+  background: var(--fill-slab);
+  opacity: 0;
+  transform: scale(0.9);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.otp-blob[data-filled="true"] {
+  opacity: 0.85;
+  transform: scale(1);
+}
+
+/* Cápsula deslizante / cursor elástico sincronizado con MERGE (k=0.075, zeta=0.42) */
+.otp-pill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--slot-w);
+  height: var(--slot-h);
+  border-radius: var(--slot-radius);
+  background: var(--fill-on);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(var(--pill-x, 0px), 0);
+  transition: opacity 180ms ease;
+}
+
+.otp[data-focused="true"] .otp-pill {
+  opacity: 0.12;
+}
+
+/* ── 7. Estado de Error / Rechazo y Temblor Amortiguado (data-phase="no") ──── */
+.otp[data-phase="no"] .otp-char {
+  color: var(--ink-err);
+}
+
+.otp[data-phase="no"] .otp-slab {
+  border-color: var(--ink-err) !important;
+  background-color: var(--fill-err);
+}
+
+@keyframes otp-shake {
+  0%, 100% { transform: translateX(0); }
+  12% { transform: translateX(-9px); }
+  25% { transform: translateX(8px); }
+  38% { transform: translateX(-6px); }
+  50% { transform: translateX(5px); }
+  63% { transform: translateX(-3px); }
+  75% { transform: translateX(2px); }
+  88% { transform: translateX(-1px); }
+}
+
+.otp[data-phase="no"] {
+  animation: otp-shake 620ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* ── 8. Reducción de Movimiento (Accesibilidad) ────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .otp-goo {
+    filter: none !important;
+  }
+  .otp[data-phase="no"] {
+    animation: none;
+  }
+  .otp-char {
+    transition: none;
+  }
+}

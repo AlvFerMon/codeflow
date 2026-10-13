@@ -11,12 +11,15 @@
         </p>
     </div>
 
-    <form method="POST" action="{{ route('verification.verify') }}" class="mt-6 space-y-3">
+    <form method="POST" action="{{ route('verification.verify') }}" class="mt-6 space-y-4">
         @csrf
-        <label for="code" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Código de verificación</label>
-        <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" pattern="[0-9 ]*" required autofocus
-            placeholder="123456" value="{{ old('code') }}"
-            class="block w-full rounded-lg border bg-white px-3 py-3 text-center font-mono text-2xl tracking-[0.5em] text-zinc-900 shadow-xs placeholder-zinc-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-600 {{ $errors->has('code') ? 'border-rose-400 dark:border-rose-500/60' : 'border-zinc-300 dark:border-zinc-700' }}">
+        <div class="space-y-3">
+            <label for="code" class="block text-center text-sm font-medium text-zinc-700 dark:text-zinc-300">Código de verificación</label>
+            <x-one-time-code name="code" :length="6" :value="old('code', '')" :error="$errors->has('code')" autofocus />
+            @error('code')
+                <p class="text-center text-xs font-medium text-rose-600 dark:text-rose-400" role="alert">{{ $message }}</p>
+            @enderror
+        </div>
         <x-button variant="purple" size="lg" class="w-full">Verificar email</x-button>
     </form>
 

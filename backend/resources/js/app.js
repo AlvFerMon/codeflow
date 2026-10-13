@@ -3,3 +3,6 @@ import './ui';
 import './diff';
 import './upload';
 import './icon-bar';
+import './search-seek';
+import './one-time-code';
+import './password-strength';

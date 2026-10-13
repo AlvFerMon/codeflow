@@ -5,7 +5,7 @@
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
         <x-input label="Correo electrónico" name="email" type="email" :value="$email" required autocomplete="username" />
-        <x-input label="Contraseña nueva" name="password" type="password" required autofocus autocomplete="new-password" minlength="8" help="Mínimo 8 caracteres." />
+        <x-password-strength label="Contraseña nueva" name="password" required autofocus autocomplete="new-password" minlength="8" />
         <x-input label="Repite la contraseña" name="password_confirmation" type="password" required autocomplete="new-password" minlength="8" />
         <x-button variant="purple" size="lg" class="w-full">Guardar contraseña</x-button>
     </form>
