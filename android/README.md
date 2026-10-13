@@ -3,7 +3,8 @@
 Cliente Android de CodeFlow escrito en **Kotlin + Jetpack Compose (Material 3)**. Consume la API REST de Laravel
 (`backend/`) con un token personal de Sanctum por dispositivo.
 
-App sencilla para **seguir tus proyectos desde el móvil**:
+App sencilla para **seguir tus proyectos desde el móvil** (solo consulta y avisos: el código, las subidas y las
+revisiones se hacen desde la web):
 
 - **Actividad**: quién ha hecho qué, en qué proyecto, repositorio y rama, y cuándo (filtro por proyecto, deslizar para actualizar).
 - **Notificaciones**: lista con no leídas resaltadas, marcar una o todas como leídas, insignia en la barra inferior.
@@ -95,7 +96,6 @@ android/
         │   │   ├── activity/              # Feed de actividad con filtro por proyecto
         │   │   ├── notifications/         # Notificaciones (alertas resaltadas, marcar como leídas)
         │   │   ├── projects/              # Mis proyectos
-        │   │   └── repositories/ issues/ pullrequests/ explore/   # (vacíos) mejoras futuras
         │   └── navigation/CodeFlowNavHost.kt
         ├── debug/                         # network_security_config (HTTP en la red local, solo debug)
         └── test/                          # Tests JVM: ApiResult, PageDto, ActivityDto, LoginViewModel, ServerUrl, fechas, avisos
@@ -150,7 +150,6 @@ O en Android Studio: clic derecho en `app/src/test` › *Run 'Tests in…'*.
 | ✅ | Actividad de mis proyectos (`GET /api/me/activity`) con filtro por proyecto |
 | ✅ | Notificaciones: lista, insignia, marcar como leídas, avisos en la barra del sistema (sondeo) |
 | ✅ | Proyectos de los que soy miembro |
-| Futuro | Repositorios, ramas, commits con diff, issues y pull requests desde el móvil |
 | Futuro | Notificaciones push instantáneas con Firebase Cloud Messaging |
 
 ## Versiones
