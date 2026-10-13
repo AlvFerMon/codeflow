@@ -28,7 +28,7 @@
     $navIdle = 'font-medium text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100';
     $menuItem = 'flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800';
 @endphp
-<body class="flex min-h-full flex-col bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-purple-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100">
+<body class="flex min-h-full flex-col bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-purple-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100{{ $verified && $isPhone ? ' has-mobile-nav' : '' }}">
     <a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg dark:focus:bg-zinc-900">Saltar al contenido</a>
 
     <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/85 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/85">
@@ -63,16 +63,8 @@
                         </span>
                     </a>
 
-                    <nav class="hidden items-center gap-1 md:flex" aria-label="Principal">
-                        @foreach ($navItems as $item)
-                            <a href="{{ route($item['route']) }}" @class([$navLink, 'flex items-center gap-1.5', $navActive => $item['active'], $navIdle => ! $item['active']]) @if ($item['active']) aria-current="page" @endif>
-                                {{ $item['label'] }}
-                                @if (($item['count'] ?? 0) > 0)
-                                    <span class="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-purple-500/10 px-1 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ $item['count'] > 99 ? '99+' : $item['count'] }}</span>
-                                @endif
-                            </a>
-                        @endforeach
-                    </nav>
+                    {{-- Barra de navegación con indicador elástico (Bencho Icon bar) --}}
+                    <x-icon-bar :items="$navItems" class="hidden md:inline-flex" />
                 </div>
 
                 <div class="flex items-center gap-2 sm:gap-3">

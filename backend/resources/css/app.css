@@ -7,6 +7,7 @@
 @import '@fontsource/instrument-sans/latin-700.css';
 @import '@fontsource/instrument-sans/latin-ext-400.css';
 @import '@fontsource/instrument-sans/latin-ext-600.css';
+@import './icon-bar.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
