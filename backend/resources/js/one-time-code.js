@@ -203,13 +203,13 @@ export function initOneTimeCode(otpContainer) {
 
     syncDisplay(true);
 
-    // Auto-submit when code is completely entered
+    // Auto-submit when code is completely entered — wait for pop (260ms) and spring settle (~450ms) to finish cleanly
     if (clean.length === length) {
       const form = otpContainer.closest('form');
       if (form) {
         setTimeout(() => {
           form.requestSubmit();
-        }, 180);
+        }, 550);
       }
     }
   });

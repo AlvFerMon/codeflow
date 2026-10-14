@@ -96,22 +96,28 @@ export function initIconBar(nav) {
     applyStyle(nav, m);
   }
 
-  /* ── navigate(toIndex) ─────────────────────────────────────────────────────
-     The two-phase elastic transition.
+  /* ── navigate(toIndex, onComplete) ─────────────────────────────────────────
+     The two-phase elastic transition matching the established design tokens:
 
      stretch  Leading edge jumps to the destination; the indicator dilates to
-              span both origin and destination simultaneously.
+              span both origin and destination simultaneously (180 ms).
 
-     settle   After 150 ms (slightly before the 180 ms stretch CSS duration
-              ends, so they overlap cleanly) the trailing edge springs to the
-              destination with an overshoot cubic-bezier. */
-  function navigate(toIndex) {
-    if (toIndex === currentIndex) return;
+     settle   After 150 ms (slightly before the 180 ms stretch duration ends),
+              the trailing edge springs to the destination with the tuned
+              overshoot cubic-bezier (420 ms). Total: 570 ms. */
+  function navigate(toIndex, onComplete) {
+    if (toIndex === currentIndex) {
+      if (typeof onComplete === 'function') onComplete();
+      return;
+    }
     if (!measures.length) measure();
 
     const from = measures[currentIndex];
     const to   = measures[toIndex];
-    if (!from || !to) return;
+    if (!from || !to) {
+      if (typeof onComplete === 'function') onComplete();
+      return;
+    }
 
     const reduced    = prefersReducedMotion();
     const goingRight = toIndex > currentIndex;
@@ -123,6 +129,7 @@ export function initIconBar(nav) {
       // Respect the user's motion preference — instant jump, no spring.
       ind.setAttribute('data-phase', 'idle');
       applyStyle(nav, to);
+      if (typeof onComplete === 'function') onComplete();
       return;
     }
 
@@ -143,18 +150,38 @@ export function initIconBar(nav) {
        150 ms into stretch (before the 180 ms CSS transition ends) we flip
        to the settle curve and write the final geometry. The CSS
        cubic-bezier(0.22, 1, 0.36, 1.35) with p2y = 1.35 overshoots and
-       then pulls back — that overshoot is the "spring feel". */
+       then pulls back. */
     timer = window.setTimeout(() => {
       ind.setAttribute('data-phase', 'settle');
       applyStyle(nav, to);
+
+      if (typeof onComplete === 'function') {
+        window.setTimeout(onComplete, 420);
+      }
     }, 150);
   }
 
   /* ── slot click bindings ────────────────────────────────────────────────────
-     We intercept the click to fire the animation, then let the default <a>
-     href navigate naturally. No e.preventDefault() — the link still works. */
+     Intercept standard internal link clicks to let the elastic spring animation
+     play cleanly from start to finish before navigating to the next page. */
   slots.forEach((slot, i) => {
-    slot.addEventListener('click', () => navigate(i));
+    slot.addEventListener('click', (e) => {
+      const href = slot.getAttribute('href');
+      const isPlainClick = !e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && e.button === 0;
+      const isInternal = href && !href.startsWith('#') && slot.target !== '_blank';
+
+      if (isPlainClick && isInternal) {
+        if (i === currentIndex) {
+          return;
+        }
+        e.preventDefault();
+        navigate(i, () => {
+          window.location.href = href;
+        });
+      } else {
+        navigate(i);
+      }
+    });
   });
 
   /* ── ResizeObserver ─────────────────────────────────────────────────────────
