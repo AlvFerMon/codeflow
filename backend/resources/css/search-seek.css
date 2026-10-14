@@ -107,10 +107,10 @@
 
 /* Focus-visible ring on the overall pill when keyboard-focused */
 .sek:focus-within {
-  border-color: var(--color-purple-500, #a855f7);
+  border-color: var(--color-hot-fuchsia, #FF3366);
   box-shadow:
     var(--sek-shadow),
-    0 0 0 2px rgba(168, 85, 247, 0.2);
+    0 0 0 2px rgba(255, 51, 102, 0.2);
 }
 
 /* -----------------------------------------------------------------------------

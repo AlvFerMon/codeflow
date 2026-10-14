@@ -4,10 +4,12 @@
     $variantClasses = match ($variant) {
         'secondary' => 'border border-zinc-300/80 bg-white text-zinc-800 shadow-xs hover:bg-zinc-50 hover:text-zinc-950 focus-visible:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200 dark:hover:bg-zinc-700/80 dark:hover:text-white',
         'ghost' => 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 focus-visible:ring-zinc-400 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100',
-        'purple' => 'bg-purple-600 text-white shadow-xs shadow-purple-600/20 hover:bg-purple-500 focus-visible:ring-purple-500',
+        'purple', 'fuchsia' => 'bg-[#FF3366] text-white shadow-xs shadow-[#FF3366]/20 hover:bg-[#e62052] focus-visible:ring-[#FF3366]',
+        'amethyst' => 'bg-[#9448BC] text-white shadow-xs shadow-[#9448BC]/20 hover:bg-[#8038a8] focus-visible:ring-[#9448BC]',
+        'teal' => 'bg-[#2EC4B6] text-white shadow-xs shadow-[#2EC4B6]/20 hover:bg-[#25ab9e] focus-visible:ring-[#2EC4B6]',
         'success' => 'bg-emerald-600 text-white shadow-xs shadow-emerald-600/20 hover:bg-emerald-500 focus-visible:ring-emerald-500',
         'danger' => 'bg-rose-600 text-white shadow-xs shadow-rose-600/20 hover:bg-rose-500 focus-visible:ring-rose-500',
-        default => 'bg-zinc-900 text-white shadow-xs hover:bg-zinc-800 focus-visible:ring-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-white dark:focus-visible:ring-zinc-100',
+        default => 'bg-[#FF3366] text-white shadow-xs hover:bg-[#e62052] focus-visible:ring-[#FF3366]',
     };
     $sizeClasses = match ($size) {
         'sm' => 'gap-1.5 px-2.5 py-1 text-xs',

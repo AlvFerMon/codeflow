@@ -28,6 +28,51 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+
+    /* ── Paleta Base e Identidad Principal ─────────────────────────────────── */
+    --color-ghost-white: #F2F4FF;
+    --color-deep-black:  #000501;
+
+    --color-hot-fuchsia:    #FF3366;
+    --color-light-sea-green:#2EC4B6;
+    --color-chartreuse:     #CAFE48;
+    --color-amethyst:       #9448BC;
+
+    /* ── Derivados para Contraste WCAG AA ───────────────────────────────────── */
+    --color-chartreuse-deep: #486000; /* Texto/icono sobre fondo claro (4.8:1)   */
+    --color-on-chartreuse:   #1E2800; /* Texto sobre fondo Chartreuse (12.8:1)   */
+
+    /* Roles de Color Semántico — Light (por defecto) */
+    --color-primary:               #FF3366;
+    --color-on-primary:            #FFFFFF;
+    --color-primary-container:     #FFE5EB;
+    --color-on-primary-container:  #90002F;
+
+    --color-secondary:             #0E8377;
+    --color-on-secondary:          #FFFFFF;
+    --color-secondary-container:   #D3F6F2;
+    --color-on-secondary-container:#004F47;
+
+    --color-brand-purple:          #9448BC;
+    --color-tertiary-container:    #F3E8FC;
+    --color-on-tertiary-container: #500A73;
+
+    --color-surface-variant:       #E3E7F8;
+    --color-on-surface-variant:    #3D435A;
+    --color-outline:               #C4C9E0;
+}
+
+/* ── Sobrescribir variables de tema dinámico en modo oscuro ───────────────── */
+:root {
+    --bg-base: var(--color-ghost-white);
+    --surface-base: var(--color-ghost-white);
+    --ink-base: #101323;
+}
+
+.dark {
+    --bg-base: var(--color-deep-black);
+    --surface-base: var(--color-deep-black);
+    --ink-base: #F0F4EF;
 }
 
 @layer base {
@@ -35,12 +80,26 @@
     html.dark { color-scheme: dark; }
     [x-cloak] { display: none !important; }
     summary::-webkit-details-marker { display: none; }
-    input[type='checkbox'], input[type='radio'] { accent-color: var(--color-purple-600); }
-    /* Foco visible en enlaces, pestañas y desplegables (los botones y campos tienen su propio anillo) */
+    input[type='checkbox'], input[type='radio'] { accent-color: var(--color-hot-fuchsia); }
+    /* Foco visible con Hot Fuchsia de alto contraste */
     :where(a, summary, button, [tabindex]):focus-visible {
-        outline: 2px solid var(--color-purple-500);
+        outline: 2px solid var(--color-hot-fuchsia);
         outline-offset: 2px;
         border-radius: 0.375rem;
+    }
+}
+
+/* Clases utilitarias funcionales de acento y badges */
+@utility bg-chartreuse-badge {
+    background-color: var(--color-chartreuse);
+    color: var(--color-on-chartreuse);
+}
+
+@utility text-chartreuse-accessible {
+    color: var(--color-chartreuse-deep);
+
+    @variant dark {
+        color: var(--color-chartreuse);
     }
 }
 

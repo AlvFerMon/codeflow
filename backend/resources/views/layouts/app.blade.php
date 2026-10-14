@@ -42,7 +42,7 @@
     $navIdle   = 'font-medium text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100';
     $menuItem  = 'flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800';
 @endphp
-<body class="flex min-h-full flex-col bg-zinc-50 font-sans text-zinc-900 antialiased selection:bg-purple-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100{{ $verified ? ' has-mobile-nav' : '' }}">
+<body class="flex min-h-full flex-col bg-[#F2F4FF] font-sans text-zinc-900 antialiased selection:bg-[#FF3366] selection:text-white dark:bg-[#000501] dark:text-zinc-100{{ $verified ? ' has-mobile-nav' : '' }}">
     <a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg dark:focus:bg-zinc-900">Saltar al contenido</a>
 
     <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/85 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/85">
@@ -58,13 +58,13 @@
                             @foreach ($navItems as $item)
                                 <a href="{{ route($item['route']) }}" @class([$menuItem, 'font-semibold text-zinc-950! dark:text-white!' => $item['active']]) @if ($item['active']) aria-current="page" @endif>
                                     {{ $item['label'] }}
-                                    @if (($item['count'] ?? 0) > 0)<span class="ml-auto rounded-full bg-purple-500/10 px-1.5 text-[10px] font-bold text-purple-600 dark:text-purple-400">{{ $item['count'] > 99 ? '99+' : $item['count'] }}</span>@endif
+                                    @if (($item['count'] ?? 0) > 0)<span class="ml-auto rounded-full bg-[#9448BC]/15 px-1.5 text-[10px] font-bold text-[#9448BC] dark:text-[#C687EB]">{{ $item['count'] > 99 ? '99+' : $item['count'] }}</span>@endif
                                 </a>
                             @endforeach
                             @unless ($isPhone)
                             <form action="{{ route('explore') }}" method="GET" class="border-t border-zinc-100 p-2 dark:border-zinc-800">
                                 <input type="search" name="q" placeholder="Buscar repositorios públicos…" aria-label="Buscar repositorios públicos"
-                                    class="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-zinc-700 dark:bg-zinc-800">
+                                    class="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs focus:border-[#FF3366] focus:outline-none focus:ring-2 focus:ring-[#FF3366]/20 dark:border-zinc-700 dark:bg-zinc-800">
                             </form>
                             @endunless
                         </nav>
@@ -73,7 +73,7 @@
                     <a href="{{ route('home') }}" class="group flex items-center gap-2.5" aria-label="CodeFlow, inicio">
                         <x-logo size="h-8 w-8" class="transition-transform group-hover:scale-105" />
                         <span class="flex items-center gap-2">
-                            <span class="hidden items-center rounded-lg bg-purple-50 px-1.5 py-0.5 text-[10px] font-semibold text-purple-700 ring-1 ring-inset ring-purple-700/10 sm:inline-flex dark:bg-purple-950/50 dark:text-purple-300 dark:ring-purple-400/20">VCS v1.0</span>
+                            <span class="hidden items-center rounded-lg bg-[#CAFE48]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[#486000] ring-1 ring-inset ring-[#CAFE48]/30 sm:inline-flex dark:bg-[#CAFE48]/20 dark:text-[#CAFE48] dark:ring-[#CAFE48]/30">VCS v1.0</span>
                         </span>
                     </a>
 
@@ -103,7 +103,7 @@
                             <span class="sr-only">Notificaciones{{ $unread > 0 ? ' ('.$unread.' sin leer)' : '' }}</span>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
                             @if ($unread > 0)
-                                <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-purple-600 ring-2 ring-white dark:ring-zinc-900"></span>
+                                <span class="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#FF3366] ring-2 ring-white dark:ring-zinc-900"></span>
                             @endif
                         </a>
                         @endif
@@ -177,8 +177,8 @@
     @include('layouts._confirm-dialog')
 
     {{-- Barra de navegación inferior con indicador elástico (Bencho Icon bar) — móvil --}}
-    {{-- Se renderiza para todos los usuarios verificados; se oculta en ≥ md con CSS.  --}}
-    {{-- La clase has-mobile-nav en <body> activa el padding-bottom solo en < md.     --}}
+    {{-- Se renderiza para usuarios verificados; se oculta en escritorio (≥ 1024px / lg) con CSS. --}}
+    {{-- La clase has-mobile-nav en <body> activa el padding-bottom solo en < 1024px. --}}
     @if ($verified)
         <x-icon-bar-mobile :items="$mobileNavItems" />
     @endif

@@ -1,6 +1,6 @@
 <x-guest-layout title="Verifica tu email">
     <div class="text-center">
-        <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+        <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#9448BC]/15 text-[#9448BC] dark:text-[#C687EB]">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
         </span>
         <h1 class="mt-4 text-xl font-semibold text-zinc-900 dark:text-white">Esperando la verificación de tu email</h1>

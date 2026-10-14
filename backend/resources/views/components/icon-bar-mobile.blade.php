@@ -1,7 +1,7 @@
 {{-- Componente: barra de navegación inferior para móvil (Bencho Icon bar)
      Uso:  <x-icon-bar-mobile :items="$mobileNavItems" />
 
-     El div.gnav-mobile está oculto en ≥ md (md:hidden) y visible en < md.
+     El div.gnav-mobile está oculto en escritorio ≥ 1024px (lg:hidden) y visible en < 1024px.
      En el CSS, .gnav-mobile es position:fixed + pointer-events:none. El
      .gnav interior es el pill clicable con pointer-events:auto.
      El padding-bottom usa env(safe-area-inset-bottom) para iOS.
@@ -14,7 +14,7 @@
 --}}
 @props(['items' => []])
 
-<div class="gnav-mobile md:hidden" role="navigation" aria-label="Navegación principal">
+<div class="gnav-mobile lg:hidden" role="navigation" aria-label="Navegación principal">
     <nav class="gnav" aria-label="Navegación principal">
         {{-- Indicador elástico — JS escribe --ind-move e --ind-size sobre el .gnav --}}
         <span class="gnav-ind" data-phase="idle" aria-hidden="true"></span>

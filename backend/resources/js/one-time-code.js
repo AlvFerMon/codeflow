@@ -203,13 +203,19 @@ export function initOneTimeCode(otpContainer) {
 
     syncDisplay(true);
 
-    // Auto-submit when code is completely entered — wait for pop (260ms) and spring settle (~450ms) to finish cleanly
+    // Auto-submit when code is completely entered — transition to 'ok' state and let success animation display fully
     if (clean.length === length) {
       const form = otpContainer.closest('form');
       if (form) {
+        // Trigger visual success/validation animation once all digits are entered
+        setTimeout(() => {
+          otpContainer.dataset.phase = 'ok';
+        }, POP_MS);
+
+        // Allow ample time for the pop (260ms), spring settle (~450ms) and success state animation to show completely
         setTimeout(() => {
           form.requestSubmit();
-        }, 550);
+        }, 850);
       }
     }
   });

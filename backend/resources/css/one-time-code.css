@@ -137,8 +137,8 @@
 
 /* Resalte de la celda activa cuando tiene foco */
 .otp[data-focused="true"] .otp-slot[data-active="true"] .otp-slab {
-  border-color: var(--color-purple-500, #a855f7);
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.25);
+  border-color: var(--color-hot-fuchsia, #FF3366);
+  box-shadow: 0 0 0 2px rgba(255, 51, 102, 0.25);
 }
 
 .otp-char {
@@ -234,6 +234,27 @@
 
 .otp[data-phase="no"] {
   animation: otp-shake 620ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* ── 7b. Estado de Éxito / Validación Completa (data-phase="ok") ──────────── */
+.otp[data-phase="ok"] .otp-char {
+  color: #10b981; /* emerald-500 */
+}
+
+.otp[data-phase="ok"] .otp-slab {
+  border-color: #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+}
+
+@keyframes otp-success-pulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.otp[data-phase="ok"] {
+  animation: otp-success-pulse 450ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 /* ── 8. Reducción de Movimiento (Accesibilidad) ────────────────────────────── */

@@ -8,9 +8,9 @@
     @include('layouts._theme')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="relative flex min-h-full flex-col items-center justify-center bg-zinc-50 px-4 py-12 font-sans text-zinc-900 antialiased selection:bg-purple-500 selection:text-white dark:bg-zinc-950 dark:text-zinc-100">
+<body class="relative flex min-h-full flex-col items-center justify-center bg-[#F2F4FF] px-4 py-12 font-sans text-zinc-900 antialiased selection:bg-[#FF3366] selection:text-white dark:bg-[#000501] dark:text-zinc-100">
     {{-- Halo de color de fondo --}}
-    <div class="pointer-events-none absolute inset-x-0 top-0 -z-0 h-72 bg-gradient-to-b from-purple-500/10 via-indigo-500/5 to-transparent dark:from-purple-500/15" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute inset-x-0 top-0 -z-0 h-72 bg-gradient-to-b from-[#9448BC]/10 via-[#FF3366]/5 to-transparent dark:from-[#9448BC]/15" aria-hidden="true"></div>
 
     <main class="relative w-full max-w-md">
         <a href="{{ route('home') }}" class="group mb-8 flex items-center justify-center gap-2.5" aria-label="CodeFlow, inicio">

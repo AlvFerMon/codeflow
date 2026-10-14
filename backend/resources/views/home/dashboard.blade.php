@@ -35,34 +35,34 @@
 
         {{-- Métricas --}}
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <x-metric-card title="Repositorios" :value="$stats['repositories']" :change="$projectsTotal.' '.($projectsTotal === 1 ? 'proyecto' : 'proyectos')" accent="blue" :href="route('projects.index')">
+            <x-metric-card title="Repositorios" :value="$stats['repositories']" :change="$projectsTotal.' '.($projectsTotal === 1 ? 'proyecto' : 'proyectos')" accent="teal" :href="route('projects.index')">
                 <x-slot:icon>
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg>
                 </x-slot:icon>
                 <x-slot:footer>
-                    <span class="font-medium text-emerald-600 dark:text-emerald-400">● {{ $stats['public'] }} {{ $stats['public'] === 1 ? 'público' : 'públicos' }}</span> · {{ $stats['private'] }} {{ $stats['private'] === 1 ? 'privado' : 'privados' }}
+                    <span class="font-medium text-[#0E8377] dark:text-[#4DE3D6]">● {{ $stats['public'] }} {{ $stats['public'] === 1 ? 'público' : 'públicos' }}</span> · {{ $stats['private'] }} {{ $stats['private'] === 1 ? 'privado' : 'privados' }}
                 </x-slot:footer>
             </x-metric-card>
 
-            <x-metric-card title="Pull requests" :value="$stats['pulls']" change="abiertas" accent="green">
+            <x-metric-card title="Pull requests" :value="$stats['pulls']" change="abiertas" accent="fuchsia">
                 <x-slot:icon>
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
                 </x-slot:icon>
                 <x-slot:footer>{{ $stats['pulls_approved'] }} {{ $stats['pulls_approved'] === 1 ? 'lista' : 'listas' }} para fusionar · {{ $stats['pulls_to_review'] }} esperan tu revisión</x-slot:footer>
             </x-metric-card>
 
-            <x-metric-card title="Issues abiertas" :value="$stats['issues']" :change="$stats['issues_urgent'].' de prioridad alta'" accent="amber">
+            <x-metric-card title="Issues abiertas" :value="$stats['issues']" :change="$stats['issues_urgent'].' de prioridad alta'" accent="chartreuse">
                 <x-slot:icon>
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
                 </x-slot:icon>
                 <x-slot:footer>{{ $stats['issues_resolved_week'] }} resueltas o cerradas en los últimos 7 días</x-slot:footer>
             </x-metric-card>
 
-            <x-metric-card title="Commits" :value="$stats['commits_week']" change="últimos 7 días" accent="purple">
+            <x-metric-card title="Commits" :value="$stats['commits_week']" change="últimos 7 días" accent="amethyst">
                 <x-slot:icon>
                     <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="3.25"/><path stroke-linecap="round" d="M2.25 12h6.5m6.5 0h6.5"/></svg>
                 </x-slot:icon>
-                <x-slot:footer><span class="font-mono text-purple-600 dark:text-purple-400">{{ $stats['commits_today'] }} hoy</span> · motor VcsService</x-slot:footer>
+                <x-slot:footer><span class="font-mono text-[#9448BC] dark:text-[#C687EB]">{{ $stats['commits_today'] }} hoy</span> · motor VcsService</x-slot:footer>
             </x-metric-card>
         </div>
 

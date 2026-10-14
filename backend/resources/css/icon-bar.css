@@ -218,15 +218,16 @@
   padding:         0 0.25rem;
   border-radius:   9999px;
 
-  background:  rgba(147, 51, 234, 0.12); /* purple-600 / 12%                   */
+  background:  rgba(148, 72, 188, 0.15); /* Amethyst #9448BC / 15%             */
   font-size:   0.625rem;                 /* 10px                                */
   font-weight: 700;
   line-height: 1;
-  color:       #9333ea;                  /* purple-600                          */
+  color:       #9448BC;                  /* Amethyst                            */
 }
 
 :where(.dark, .dark *) .gnav-badge {
-  color: #c084fc;                        /* purple-400                          */
+  color: #C687EB;                        /* Amethyst accesible para dark mode   */
+  background: rgba(198, 135, 235, 0.20);
 }
 
 /* =============================================================================
@@ -262,8 +263,15 @@
   justify-content: space-around;  /* slots spread evenly                        */
 }
 
+/* Ocultar forzosamente en resoluciones de escritorio (>= 1024px) */
+@media (min-width: 1024px) {
+  .gnav-mobile {
+    display: none !important;
+  }
+}
+
 /* Body padding so content doesn't hide behind the bar */
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   body.has-mobile-nav {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }
