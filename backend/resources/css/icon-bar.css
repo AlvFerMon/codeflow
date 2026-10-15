@@ -1,0 +1,290 @@
+/* =============================================================================
+   Bencho "Icon bar" — design tokens + CSS physics engine
+   MIT licensed — bencho.dev/licence
+   Adapted for CodeFlow (Blade + Vite, no React).
+   All classes are scoped to .gnav / .gnav-* so nothing leaks globally.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. DESIGN TOKENS — scoped to .gnav
+      18 tokens mapped from Bencho's original to CodeFlow's zinc/purple palette.
+      Anything not listed here falls back to the browser default (usually wrong).
+   ----------------------------------------------------------------------------- */
+
+.gnav {
+  /* ── Layout ─────────────────────────────────────────────────────────────── */
+  --bar-gap:  4px;   /* gap between slot pills                                 */
+  --bar-pad:  4px;   /* padding inside the outer pane — also the indicator top */
+  --bar-slot: 36px;  /* fixed height of every slot; drives border-radius math  */
+
+  /* ── Glass recipe ───────────────────────────────────────────────────────── */
+  --g-blur:    8px;   /* backdrop blur radius                                   */
+  --g-bright:  100%;  /* brightness() filter — 100% = neutral                  */
+  --g-sat:     120%;  /* saturate() filter — lifts colours slightly             */
+
+  /* ── Edge lighting (three-stop inner highlight) ─────────────────────────── */
+  /*    hi   = top rim, most visible                                            */
+  /*    lo   = side rims, subtle                                                */
+  /*    far  = bottom rim, barely there                                         */
+  --g-edge-hi:  0.15;
+  --g-edge-lo:  0.05;
+  --g-edge-far: 0.08;
+
+  /* ── Shadow ─────────────────────────────────────────────────────────────── */
+  --g-lift:     0.06;           /* drop-shadow opacity under the pane           */
+  --g-spec:     0.08;           /* specular: white inset highlight on indicator */
+  --shadow-rgb: 0, 0, 0;        /* RGB of the shadow colour (black)             */
+
+  /* Composed shadow shorthand used on .gnav-ind */
+  --g-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, var(--g-spec, 0)),
+    0 2px 8px     rgba(var(--shadow-rgb), var(--g-lift, 0));
+
+  /* ── Ink (text / icon colour) ────────────────────────────────────────────── */
+  --ink:     #18181b;         /* zinc-900 in light mode                         */
+  --ink-rgb: 24, 24, 27;      /* same as above, split for rgba() use            */
+
+  /* ── Pane (bar surface) ─────────────────────────────────────────────────── */
+  --pane:       rgba(255, 255, 255, 0.75); /* white frosted glass               */
+  --pane-edge:  rgba(228, 228, 231, 0.8);  /* zinc-200 @ 80%                    */
+  --pane-thumb: rgba(244, 244, 245, 1);    /* zinc-100 solid — the indicator bg  */
+}
+
+/* ── Dark-mode token overrides ─────────────────────────────────────────────── */
+:where(.dark, .dark *) .gnav {
+  --g-edge-hi:  0.10;
+  --g-edge-lo:  0.03;
+  --g-edge-far: 0.05;
+  --g-lift:     0.25;   /* stronger shadow in dark so the bar lifts off the bg  */
+  --g-spec:     0.04;
+
+  --ink:     #f4f4f5;         /* zinc-100 in dark mode                          */
+  --ink-rgb: 244, 244, 245;
+
+  --pane:       rgba(24, 24, 27, 0.75); /* zinc-900 @ 75%                        */
+  --pane-edge:  rgba(39, 39, 42, 1);    /* zinc-800                               */
+  --pane-thumb: rgba(39, 39, 42, 1);    /* zinc-800 — indicator background        */
+}
+
+/* =============================================================================
+   2. THE PANE — frosted glass container
+      Frosted glass surface. Three-stop inner edge creates the glass material:
+        top rim   — rgba(white, g-edge-hi)  — most visible
+        side rims — rgba(ink,   g-edge-lo)  — subtle
+        bot rim   — rgba(ink,   g-edge-far) — barely there
+      Because they share one background colour they read as one surface.
+   ============================================================================= */
+
+.gnav {
+  position:    relative;
+  display:     inline-flex;
+  align-items: center;
+  gap:         var(--bar-gap);
+  padding:     var(--bar-pad);
+
+  /* pill shape: slot-height / 2 + padding so outer corners align with slots */
+  border-radius: calc(var(--bar-slot) / 2 + var(--bar-pad));
+
+  background:        var(--pane);
+  backdrop-filter:         blur(var(--g-blur)) brightness(var(--g-bright)) saturate(var(--g-sat));
+  -webkit-backdrop-filter: blur(var(--g-blur)) brightness(var(--g-bright)) saturate(var(--g-sat));
+
+  box-shadow:
+    inset  0   1px 0   rgba(255, 255, 255, var(--g-edge-hi)),
+    inset  1px 0   0   rgba(var(--ink-rgb), var(--g-edge-lo)),
+    inset -1px 0   0   rgba(var(--ink-rgb), var(--g-edge-lo)),
+    inset  0  -1px 0   rgba(var(--ink-rgb), var(--g-edge-far)),
+    0      2px 12px    rgba(var(--shadow-rgb), var(--g-lift));
+
+  border: 1px solid var(--pane-edge);
+}
+
+/* =============================================================================
+   3. SLOTS — individual nav links
+      Each link is a fixed-height pill. Height = --bar-slot so the indicator
+      math works in exact slot-units rather than hunting for pixel offsets.
+   ============================================================================= */
+
+.gnav-slot {
+  position:        relative;
+  z-index:         1;            /* above the indicator                          */
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.375rem;
+
+  height:          var(--bar-slot);
+  padding:         0 0.75rem;
+  border-radius:   calc(var(--bar-slot) / 2);
+
+  font-size:       0.75rem;      /* 12px                                        */
+  font-weight:     500;
+  color:           var(--ink);
+  opacity:         0.55;         /* dim when inactive                            */
+  text-decoration: none;
+  white-space:     nowrap;
+  cursor:          pointer;
+
+  transition: opacity 180ms ease;
+}
+
+.gnav-slot:hover {
+  opacity: 0.85;
+}
+
+/* Active slot — full opacity + heavier weight */
+.gnav-slot[aria-current="page"],
+.gnav-slot[data-active="true"] {
+  opacity:     1;
+  font-weight: 600;
+}
+
+/* =============================================================================
+   4. INDICATOR — the elastic pill
+      Lives behind the slots (z-index < slots). Its position and size are
+      written as CSS custom properties by the JS engine:
+        --ind-move  translateX value (left edge of the active slot)
+        --ind-size  width of the indicator
+
+      TWO PHASES, not one continuous animation:
+
+      stretch  The leading edge jumps to the destination immediately; the
+               trailing edge stays, so the pill dilates (grows wider) to
+               cover both origin and destination simultaneously.
+               Duration is short — it is a reach, not an arrival.
+
+      settle   The trailing edge (whichever side was left behind) snaps to
+               the destination with a tuned overshoot curve. The pill is now
+               at its final size and position.
+
+      The cubic-bezier curves below have the overshoot baked in:
+        p2y > 1 pushes the value past its target and snaps it back.
+        1.35 is the "tuned" default — springy without looking broken.
+        Raise it (e.g. 1.6) for more bounce; lower (e.g. 1.1) for stiffer.
+   ============================================================================= */
+
+.gnav-ind {
+  position:      absolute;
+  top:           var(--bar-pad);     /* flush with inner padding                */
+  left:          0;                  /* JS moves it via transform               */
+  height:        var(--bar-slot);
+  border-radius: calc(var(--bar-slot) / 2);
+  background:    var(--pane-thumb);
+  box-shadow:    var(--g-shadow);
+  pointer-events: none;              /* clicks pass through to the slots        */
+
+  /* JS writes these on every navigation; these are safe fallbacks: */
+  width:     var(--ind-size, var(--bar-slot));
+  transform: translateX(var(--ind-move, var(--bar-pad)));
+}
+
+/* ── stretch phase ─────────────────────────────────────────────────────────────
+   The leading edge is already at the destination; the indicator dilates.
+   Both width and transform animate together so the pill expands toward dest. */
+.gnav-ind[data-phase="stretch"] {
+  transition:
+    width     180ms cubic-bezier(0.4, 0, 0.6, 1),
+    transform 180ms cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+/* ── settle phase ──────────────────────────────────────────────────────────────
+   Trailing edge arrives with an elastic overshoot (p2y = 1.35).
+   The pill compresses back to the destination slot width.
+   Longer duration (420ms) gives the spring time to ring and settle. */
+.gnav-ind[data-phase="settle"] {
+  transition:
+    width     420ms cubic-bezier(0.22, 1, 0.36, 1.35),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1.35);
+}
+
+/* ── idle phase ────────────────────────────────────────────────────────────────
+   No transition at all. Used on:
+     • first paint — so the indicator doesn't slide in from position 0
+     • resize      — so it snaps to the correct slot without animating */
+.gnav-ind[data-phase="idle"] {
+  transition: none;
+}
+
+/* =============================================================================
+   5. BADGE — unread-count pill on a slot
+   ============================================================================= */
+
+.gnav-badge {
+  display:         inline-flex;
+  align-items:     center;
+  justify-content: center;
+  height:          1rem;
+  min-width:       1rem;
+  padding:         0 0.25rem;
+  border-radius:   9999px;
+
+  background:  rgba(148, 72, 188, 0.15); /* Amethyst #9448BC / 15%             */
+  font-size:   0.625rem;                 /* 10px                                */
+  font-weight: 700;
+  line-height: 1;
+  color:       #9448BC;                  /* Amethyst                            */
+}
+
+:where(.dark, .dark *) .gnav-badge {
+  color: #C687EB;                        /* Amethyst accesible para dark mode   */
+  background: rgba(198, 135, 235, 0.20);
+}
+
+/* =============================================================================
+   6. MOBILE BOTTOM BAR
+      A fixed full-width tray that floats above the iOS home indicator.
+      The .gnav inside stretches to fill it (justify: space-around).
+      pointer-events: none on the tray + auto on the .gnav keep tap targets
+      clean — nothing outside the pill shape is accidentally tappable.
+   ============================================================================= */
+
+.gnav-mobile {
+  position: fixed;
+  bottom:   0;
+  left:     0;
+  right:    0;
+  z-index:  50;
+
+  display:         flex;
+  justify-content: center;
+
+  /* Safe-area padding for iOS home indicator */
+  padding:        0.5rem 1rem;
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+
+  background:    transparent;
+  pointer-events: none;   /* tray itself is not tappable                        */
+}
+
+.gnav-mobile .gnav {
+  pointer-events:  auto;          /* but the pill is                            */
+  flex:            1;
+  max-width:       26rem;         /* comfortable reading width on large phones  */
+  justify-content: space-around;  /* slots spread evenly                        */
+}
+
+/* Ocultar forzosamente en resoluciones de escritorio (>= 1024px) */
+@media (min-width: 1024px) {
+  .gnav-mobile {
+    display: none !important;
+  }
+}
+
+/* Body padding so content doesn't hide behind the bar */
+@media (max-width: 1023px) {
+  body.has-mobile-nav {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* =============================================================================
+   7. ACCESSIBILITY — prefers-reduced-motion
+      Keep the geometry updates (indicator still moves) but disable the spring.
+   ============================================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .gnav-ind[data-phase="stretch"],
+  .gnav-ind[data-phase="settle"] {
+    transition: none;
+  }
+}

@@ -8,16 +8,18 @@
 ])
 @php
     $accentBorder = match ($accent) {
-        'green', 'emerald' => 'hover:border-emerald-500/50',
-        'purple' => 'hover:border-purple-500/50',
-        'amber' => 'hover:border-amber-500/50',
-        default => 'hover:border-sky-500/50',
+        'green', 'emerald', 'teal' => 'hover:border-[#2EC4B6]/50',
+        'purple', 'amethyst' => 'hover:border-[#9448BC]/50',
+        'amber', 'chartreuse', 'yellow' => 'hover:border-[#CAFE48]/60',
+        'fuchsia', 'hot-fuchsia', 'rose', 'pink' => 'hover:border-[#FF3366]/50',
+        default => 'hover:border-[#2EC4B6]/50',
     };
     $iconBg = match ($accent) {
-        'green', 'emerald' => 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400',
-        'purple' => 'bg-purple-50 text-purple-600 dark:bg-purple-950/40 dark:text-purple-400',
-        'amber' => 'bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400',
-        default => 'bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-400',
+        'green', 'emerald', 'teal' => 'bg-[#2EC4B6]/15 text-[#0E8377] dark:bg-[#2EC4B6]/20 dark:text-[#4DE3D6]',
+        'purple', 'amethyst' => 'bg-[#9448BC]/15 text-[#9448BC] dark:bg-[#9448BC]/25 dark:text-[#C687EB]',
+        'amber', 'chartreuse', 'yellow' => 'bg-[#CAFE48]/20 text-[#486000] dark:bg-[#CAFE48]/25 dark:text-[#CAFE48]',
+        'fuchsia', 'hot-fuchsia', 'rose', 'pink' => 'bg-[#FF3366]/15 text-[#FF3366] dark:bg-[#FF3366]/25 dark:text-[#FF4D79]',
+        default => 'bg-[#2EC4B6]/15 text-[#0E8377] dark:bg-[#2EC4B6]/20 dark:text-[#4DE3D6]',
     };
     $tag = $href ? 'a' : 'div';
 @endphp

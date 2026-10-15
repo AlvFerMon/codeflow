@@ -1,0 +1,274 @@
+/* =============================================================================
+   Bencho "Search / Seek" — Design Tokens + CSS Physical Geometry
+   MIT licensed — bencho.dev/licence
+   Adapted for CodeFlow (Blade + Vite, Vanilla JS, no React).
+
+   ── HOW IT WORKS ─────────────────────────────────────────────────────────────
+   The search component is conceived as a SINGLE ELASTIC OBJECT:
+     - Closed: a compact glass circle measuring --shut (36px).
+     - Open:   an elongated glass capsule/pill measuring --span (280px-300px).
+     - The SVG lens never translates with respect to the box; the box grows
+       fluidly around it while the lens remains anchored at its origin.
+     - The text input is revealed during the last third of the expansion
+       through the progression variable --say (0 to 1).
+     - An ambient magnetic pull (give = 50) gently attracts the closed circle
+       toward the cursor.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. DESIGN TOKENS (12 Tokens) — scoped locally to .sek
+      Mapped directly to CodeFlow's Zinc palette with full .dark support.
+   ----------------------------------------------------------------------------- */
+
+.sek {
+  /* ── 12 Design Tokens ───────────────────────────────────────────────────── */
+  --bg:        var(--color-zinc-50, #fafafa);    /* Page background reference   */
+  --font-ui:   var(--font-sans, system-ui);      /* UI typography family        */
+  --g-blur:    8px;                              /* Glass backdrop blur         */
+  --g-sat:     120%;                             /* Saturation boost            */
+  --ink:       #18181b;                          /* Primary text / icon: zinc-900*/
+  --ink-2:     #27272a;                          /* Secondary text: zinc-800    */
+  --ink-3:     #52525b;                          /* Placeholder: zinc-600       */
+  --ink-4:     #71717a;                          /* Subtle borders: zinc-500    */
+  --ink-5:     #d4d4d8;                          /* Inactive lens / rim: zinc-300*/
+  --ink-rgb:   24, 24, 27;                       /* RGB components for rgba()   */
+  --pane:      rgba(255, 255, 255, 0.75);        /* White frosted glass         */
+  --pane-edge: rgba(228, 228, 231, 0.8);         /* Glass perimeter: zinc-200 80%*/
+
+  /* ── Geometry and State Variables ───────────────────────────────────────── */
+  --shut:      36px;                             /* Diameter of closed circle   */
+  --span:      280px;                            /* Width of expanded capsule   */
+  --w:         var(--shut);                      /* Dynamic width driven by JS  */
+  --say:       0;                                /* Input reveal: 0 (shut) to 1 */
+  --mag-x:     0px;                              /* Magnetic translation X      */
+  --mag-y:     0px;                              /* Magnetic translation Y      */
+
+  /* ── Glass Shadow Recipe ────────────────────────────────────────────────── */
+  --g-edge-hi: 0.15;
+  --g-edge-lo: 0.05;
+  --g-lift:    0.06;
+  --g-spec:    0.08;
+  --shadow-rgb: 0, 0, 0;
+
+  --sek-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, var(--g-spec)),
+    inset 1px 0 0 rgba(var(--ink-rgb), var(--g-edge-lo)),
+    inset -1px 0 0 rgba(var(--ink-rgb), var(--g-edge-lo)),
+    0 2px 8px rgba(var(--shadow-rgb), var(--g-lift));
+}
+
+/* ── Dark mode token overrides ────────────────────────────────────────────── */
+:where(.dark, .dark *) .sek {
+  --bg:        var(--color-zinc-950, #09090b);
+  --ink:       #f4f4f5;                          /* zinc-100                    */
+  --ink-2:     #e4e4e7;                          /* zinc-200                    */
+  --ink-3:     #a1a1aa;                          /* zinc-400                    */
+  --ink-4:     #71717a;                          /* zinc-500                    */
+  --ink-5:     #52525b;                          /* zinc-600                    */
+  --ink-rgb:   244, 244, 245;
+  --pane:      rgba(24, 24, 27, 0.75);           /* zinc-900 @ 75%              */
+  --pane-edge: rgba(39, 39, 42, 1);              /* zinc-800                    */
+
+  --g-edge-hi: 0.10;
+  --g-edge-lo: 0.03;
+  --g-lift:    0.25;
+  --g-spec:    0.04;
+}
+
+/* -----------------------------------------------------------------------------
+   2. CONTAINER (.sek)
+      The outer shell: dynamically sized via width: var(--w) and shifted by
+      the magnetic force via translate(var(--mag-x), var(--mag-y)).
+   ----------------------------------------------------------------------------- */
+
+.sek {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  height: var(--shut);
+  width: var(--w);
+  min-width: var(--shut);
+  max-width: var(--span);
+  border-radius: calc(var(--shut) / 2);
+  background: var(--pane);
+  backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  border: 1px solid var(--pane-edge);
+  box-shadow: var(--sek-shadow);
+  transform: translate(var(--mag-x), var(--mag-y));
+  overflow: hidden;
+  box-sizing: border-box;
+  font-family: var(--font-ui);
+  user-select: none;
+  contain: layout paint;
+  will-change: width, transform;
+}
+
+/* Focus-visible ring on the overall pill when keyboard-focused */
+.sek:focus-within {
+  border-color: var(--color-hot-fuchsia, #FF3366);
+  box-shadow:
+    var(--sek-shadow),
+    0 0 0 2px rgba(255, 51, 102, 0.2);
+}
+
+/* -----------------------------------------------------------------------------
+   3. THE LENS (.sek-lens)
+      The magnifying glass icon never translates with respect to the box;
+      the box expands outward from it.
+   ----------------------------------------------------------------------------- */
+
+.sek-lens {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--shut);
+  height: var(--shut);
+  min-width: var(--shut);
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  outline: none;
+  transition: color 150ms ease, transform 150ms ease;
+  flex-shrink: 0;
+}
+
+.sek-lens:hover {
+  color: var(--ink);
+}
+
+.sek[data-open="true"] .sek-lens {
+  color: var(--ink);
+}
+
+.sek-lens svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 2;
+  transition: transform 180ms ease;
+}
+
+/* Subtle micro-rotation on click or active */
+.sek:active .sek-lens svg {
+  transform: scale(0.92);
+}
+
+/* -----------------------------------------------------------------------------
+   4. THE FIELD & INPUT (.sek-field, .sek-input)
+      Revealed smoothly during the last third of expansion via --say (0 to 1).
+   ----------------------------------------------------------------------------- */
+
+.sek-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding-right: 0.5rem;
+  opacity: var(--say);
+  transform: translateX(calc((1 - var(--say)) * -10px));
+  pointer-events: none;
+}
+
+.sek[data-open="true"] .sek-field {
+  pointer-events: auto;
+}
+
+.sek-input {
+  width: 100%;
+  height: 100%;
+  padding: 0 0.25rem 0 0.125rem;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  outline: none;
+  box-shadow: none;
+}
+
+.sek-input::placeholder {
+  color: var(--ink-3);
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+/* Remove default webkit search decoration cancel buttons */
+.sek-input::-webkit-search-cancel-button,
+.sek-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* -----------------------------------------------------------------------------
+   5. ACCESSORIES (.sek-k & .sek-clear)
+      Keyboard shortcut pill and clear button.
+   ----------------------------------------------------------------------------- */
+
+.sek-k {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--pane-edge);
+  background: rgba(var(--ink-rgb), 0.04);
+  color: var(--ink-4);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: var(--say);
+  transition: opacity 120ms ease;
+  user-select: none;
+}
+
+.sek-clear {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  margin-left: 0.25rem;
+  border: none;
+  border-radius: 9999px;
+  background: rgba(var(--ink-rgb), 0.08);
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  opacity: var(--say);
+}
+
+.sek-clear:hover {
+  background: rgba(var(--ink-rgb), 0.15);
+  color: var(--ink);
+}
+
+.sek[data-has-value="true"] .sek-k {
+  display: none;
+}
+
+.sek[data-has-value="true"] .sek-clear {
+  display: inline-flex;
+}
+
+/* -----------------------------------------------------------------------------
+   6. REDUCED MOTION
+   ----------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .sek {
+    will-change: auto;
+  }
+}

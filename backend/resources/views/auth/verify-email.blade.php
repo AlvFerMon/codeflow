@@ -1,6 +1,6 @@
 <x-guest-layout title="Verifica tu email">
     <div class="text-center">
-        <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+        <span class="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[#9448BC]/15 text-[#9448BC] dark:text-[#C687EB]">
             <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"/></svg>
         </span>
         <h1 class="mt-4 text-xl font-semibold text-zinc-900 dark:text-white">Esperando la verificación de tu email</h1>
@@ -11,12 +11,15 @@
         </p>
     </div>
 
-    <form method="POST" action="{{ route('verification.verify') }}" class="mt-6 space-y-3">
+    <form method="POST" action="{{ route('verification.verify') }}" class="mt-6 space-y-4">
         @csrf
-        <label for="code" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Código de verificación</label>
-        <input id="code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="7" pattern="[0-9 ]*" required autofocus
-            placeholder="123456" value="{{ old('code') }}"
-            class="block w-full rounded-lg border bg-white px-3 py-3 text-center font-mono text-2xl tracking-[0.5em] text-zinc-900 shadow-xs placeholder-zinc-300 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:bg-zinc-900 dark:text-white dark:placeholder-zinc-600 {{ $errors->has('code') ? 'border-rose-400 dark:border-rose-500/60' : 'border-zinc-300 dark:border-zinc-700' }}">
+        <div class="space-y-3">
+            <label for="code" class="block text-center text-sm font-medium text-zinc-700 dark:text-zinc-300">Código de verificación</label>
+            <x-one-time-code name="code" :length="6" :value="old('code', '')" :error="$errors->has('code')" autofocus />
+            @error('code')
+                <p class="text-center text-xs font-medium text-rose-600 dark:text-rose-400" role="alert">{{ $message }}</p>
+            @enderror
+        </div>
         <x-button variant="purple" size="lg" class="w-full">Verificar email</x-button>
     </form>
 

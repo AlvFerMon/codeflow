@@ -27,7 +27,7 @@
             'ml-auto' => $item['end'] ?? false,
             // Subrayado
             '-mb-px border-b-2 px-3 py-2' => ! $pills,
-            'border-purple-500 font-medium text-zinc-900 dark:text-white' => ! $pills && $isActive,
+            'border-[#FF3366] font-medium text-zinc-900 dark:text-white' => ! $pills && $isActive,
             'border-transparent text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100' => ! $pills && ! $isActive,
             // Píldoras
             'rounded-md px-3 py-1' => $pills,
@@ -38,7 +38,7 @@
             @if ($count !== null && ($count > 0 || $pills))
                 <span @class([
                     'rounded-full px-1.5 text-[11px] font-semibold tabular-nums',
-                    'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300' => $item['highlight'] ?? false,
+                    'bg-[#9448BC]/15 text-[#9448BC] dark:bg-[#9448BC]/25 dark:text-[#C687EB]' => $item['highlight'] ?? false,
                     'bg-zinc-200/70 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-300' => ! ($item['highlight'] ?? false),
                 ])>{{ $count }}</span>
             @endif

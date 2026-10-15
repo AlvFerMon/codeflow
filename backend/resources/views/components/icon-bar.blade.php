@@ -1,0 +1,39 @@
+{{-- Componente: barra de navegación con indicador elástico (Bencho Icon bar)
+     Uso:  <x-icon-bar :items="$navItems" class="hidden md:inline-flex" />
+
+     Cada item del array $items debe tener:
+       label   string  — texto del enlace
+       route   string  — nombre de ruta Laravel (usado con route())
+       active  bool    — si este slot está activo en la solicitud actual
+       count   int?    — (opcional) badge de elementos sin leer
+--}}
+@props(['items' => [], 'aria-label' => 'Principal'])
+
+<nav
+    class="gnav"
+    aria-label="{{ $attributes->get('aria-label', 'Principal') }}"
+    {{-- Propagamos atributos adicionales (ej. class="hidden md:inline-flex") --}}
+    {{ $attributes->except('aria-label') }}
+>
+    {{-- Indicador elástico — el JS escribe --ind-move e --ind-size sobre el .gnav --}}
+    <span class="gnav-ind" data-phase="idle" aria-hidden="true"></span>
+
+    @foreach ($items as $item)
+        <a
+            href="{{ route($item['route']) }}"
+            class="gnav-slot"
+            @if ($item['active'])
+                aria-current="page"
+                data-active="true"
+            @endif
+        >
+            {{ $item['label'] }}
+
+            @if (($item['count'] ?? 0) > 0)
+                <span class="gnav-badge" aria-label="{{ $item['count'] }} sin leer">
+                    {{ $item['count'] > 99 ? '99+' : $item['count'] }}
+                </span>
+            @endif
+        </a>
+    @endforeach
+</nav>
