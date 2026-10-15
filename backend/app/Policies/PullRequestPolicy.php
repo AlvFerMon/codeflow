@@ -68,6 +68,14 @@ class PullRequestPolicy
         return $this->requireRole($user, $project, Roles::OWNER, $repository, 'No tienes permisos para fusionar Pull Requests.');
     }
 
+    /** Lanzar una revisión con IA: colaboradores y propietario (los observadores solo ven los resultados). */
+    public function analyze(?User $user, PullRequest $pullRequest): Response
+    {
+        $repository = $pullRequest->repository;
+
+        return $this->requireRole($user, $repository->project, Roles::COLLABORATOR, $repository, 'Solo los colaboradores y el propietario pueden analizar el Pull Request con IA.');
+    }
+
     /** Cerrar o reabrir: el propietario o el autor. */
     public function close(?User $user, PullRequest $pullRequest): Response
     {

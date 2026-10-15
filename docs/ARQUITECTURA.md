@@ -784,7 +784,15 @@ El estado se recalcula con la **última revisión de cada revisor**. Cada revisi
 
 ---
 
-## 15. Arquitectura futura del módulo de IA (opcional)
+## 15. Módulo de IA (opcional)
+
+> **Implementado (primera versión):** revisión de pull requests con Ollama. `App\Ai\AiReviewer` (`OllamaReviewer` /
+> `NullReviewer`), `DiffBatcher` (lotes de diff con números de línea), `PullRequestAnalysisService` + job
+> `RunPullRequestAnalysis` (cola `ai`, servicio Docker `queue`), tablas `ai_analyses` y `ai_findings` (sin código).
+> El diff se descifra **en memoria** (no hay workspace en disco). La respuesta se pide con esquema JSON
+> (*structured outputs*) y se valida: hallazgos de archivos ajenos al PR o con gravedad/categoría desconocidas se
+> descartan y los bloques de código se eliminan. Pendiente: la capa 1 (análisis estático en contenedores aislados).
+
 
 El módulo `Analysis` **escucha eventos** y el núcleo nunca depende de él (`CODEFLOW_AI_ENABLED=false` → todo funciona igual).
 

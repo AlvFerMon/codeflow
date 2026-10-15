@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\Collab\IssueController;
 use App\Http\Controllers\Web\Collab\ProjectCollabController;
+use App\Http\Controllers\Web\Collab\PullRequestAnalysisController;
 use App\Http\Controllers\Web\Collab\PullRequestController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,8 +31,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('repositories/{repository}/pulls/{number}/merge', [PullRequestController::class, 'merge'])->whereNumber('number')->name('pulls.merge');
     Route::post('repositories/{repository}/pulls/{number}/close', [PullRequestController::class, 'close'])->whereNumber('number')->name('pulls.close');
     Route::post('repositories/{repository}/pulls/{number}/reopen', [PullRequestController::class, 'reopen'])->whereNumber('number')->name('pulls.reopen');
+    // Revisión con IA (opcional): se lanza en segundo plano
+    Route::post('repositories/{repository}/pulls/{number}/ai', [PullRequestAnalysisController::class, 'store'])->whereNumber('number')->middleware('throttle:6,1')->name('pulls.ai.store');
 });
 
 Route::get('repositories/{repository}/issues/{number}', [IssueController::class, 'show'])->whereNumber('number')->name('issues.show');
 Route::get('repositories/{repository}/pulls/{number}', [PullRequestController::class, 'show'])->whereNumber('number')->name('pulls.show');
 Route::get('repositories/{repository}/pulls/{number}/diff', [PullRequestController::class, 'diff'])->whereNumber('number')->name('pulls.diff');
+Route::get('repositories/{repository}/pulls/{number}/ai', [PullRequestAnalysisController::class, 'show'])->whereNumber('number')->name('pulls.ai.show');

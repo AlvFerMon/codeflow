@@ -2,6 +2,7 @@
 # Uso:  docker compose up -d --build      (la primera vez tarda unos minutos)
 #       Web: http://localhost:8080   ·   Correos de prueba: http://localhost:8025
 #       MySQL (DBeaver): localhost:${DB_FORWARD_PORT}
+#       IA (opcional): docker compose --profile ia up -d   (Ollama + procesador de la cola de análisis)
 name: codeflow
 
 services:
@@ -35,7 +36,7 @@ services:
     depends_on:
       mysql:
         condition: service_healthy
-    environment:
+    environment: &app-env
       APP_NAME: CodeFlow
       APP_ENV: local
       APP_DEBUG: "true"
@@ -73,6 +74,11 @@ services:
       SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD}
       SEED_DEMO_PASSWORD: ${SEED_DEMO_PASSWORD}
+      # IA opcional (revisión de pull requests con un modelo local). Ver README › Revisión con IA
+      CODEFLOW_AI_ENABLED: ${CODEFLOW_AI_ENABLED:-false}
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5-coder:3b}
+      CODEFLOW_AI_TIMEOUT: ${CODEFLOW_AI_TIMEOUT:-300}
       TZ: Europe/Madrid
     volumes:
       - ./backend:/var/www/html
@@ -101,6 +107,34 @@ services:
       - node-modules:/app/node_modules
       - vendor:/app/vendor:ro
 
+  # ── IA opcional (perfil "ia") ─────────────────────────────────────────────────
+  # Motor de IA local. Más adelante puede ir en otro servidor: basta con cambiar OLLAMA_URL.
+  # Descargar el modelo la primera vez: docker compose exec ollama ollama pull qwen2.5-coder:3b
+  ollama:
+    image: ollama/ollama:${OLLAMA_IMAGE_TAG:-latest}
+    profiles: ["ia"]
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+
+  # Procesa en segundo plano la cola "ai" (los análisis tardan de segundos a minutos)
+  queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    profiles: ["ia"]
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment: *app-env
+    working_dir: /var/www/html
+    # Espera a que el contenedor "app" haya instalado las dependencias y migrado la base de datos
+    entrypoint: ["sh", "-c", "until [ -f vendor/autoload.php ] && php artisan migrate:status >/dev/null 2>&1; do sleep 3; done; exec php artisan queue:work database --queue=ai --tries=1 --timeout=1800 --sleep=3"]
+    volumes:
+      - ./backend:/var/www/html
+      - vendor:/var/www/html/vendor
+      - laravel-cache:/var/www/cache
+
   mailpit:
     image: axllent/mailpit:v1.21
     restart: unless-stopped
@@ -112,3 +146,4 @@ volumes:
   node-modules:
   vendor:
   laravel-cache:
+  ollama-data:

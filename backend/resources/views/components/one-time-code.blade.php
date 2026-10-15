@@ -25,7 +25,7 @@
 
 <div class="otp-wrap">
     {{-- Filtro SVG Goo aislado fuera del flujo de layout (.liq-defs) --}}
-    <svg class="liq-defs" aria-hidden="true" focusable="false">
+    <svg class="liq-defs" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
         <defs>
             <filter id="{{ $filterId }}" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
                 <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />

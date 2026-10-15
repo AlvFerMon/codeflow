@@ -12,3 +12,5 @@ Thumbs.db
 /android/app/build
 # Carpeta de salidas de Claude (Cowork): no forma parte del proyecto
 /Claude outputs/
+# Salidas de herramientas de análisis (graphify): no forman parte del proyecto
+/graphify-out/

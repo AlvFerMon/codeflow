@@ -103,11 +103,12 @@
 
 /* ── 5. Celdas Visuales (Slabs) y Glifos Numéricos ─────────────────────────── */
 .otp-slabs {
+  /* Sin z-index propio: así el fondo de la celda (z 1), la bandeja líquida (z 2) y el
+     dígito (z 3) se apilan en el mismo contexto (.otp) y el cursor queda visible. */
   display: flex;
   align-items: center;
   gap: var(--slot-gap);
   position: relative;
-  z-index: 2;
   pointer-events: none;
 }
 
@@ -124,6 +125,7 @@
 .otp-slab {
   position: absolute;
   inset: 0;
+  z-index: 1;
   border-radius: var(--slot-radius);
   background: var(--fill-slab);
   border: 1.5px solid rgba(var(--ink-rgb, 24, 24, 27), 0.08);
@@ -163,9 +165,18 @@
 .otp-goo {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   overflow: visible;
+  /* La transparencia se aplica a toda la bandeja DESPUÉS del filtro Goo: dentro del filtro
+     las formas deben ser opacas (el corte alfa 24a-12 borra todo lo que esté por debajo del 50 %). */
+  opacity: 0.22;
+  --goo-fill: var(--color-amethyst, #9448BC);
+}
+
+:where(.dark, .dark *) .otp-goo {
+  opacity: 0.35;
+  --goo-fill: #C687EB;
 }
 
 .otp-blob-track {
@@ -181,14 +192,14 @@
   width: var(--slot-w);
   height: var(--slot-h);
   border-radius: var(--slot-radius);
-  background: var(--fill-slab);
+  background: var(--goo-fill);
   opacity: 0;
   transform: scale(0.9);
   transition: opacity 160ms ease, transform 160ms ease;
 }
 
 .otp-blob[data-filled="true"] {
-  opacity: 0.85;
+  opacity: 1;
   transform: scale(1);
 }
 
@@ -200,7 +211,7 @@
   width: var(--slot-w);
   height: var(--slot-h);
   border-radius: var(--slot-radius);
-  background: var(--fill-on);
+  background: var(--goo-fill);
   opacity: 0;
   pointer-events: none;
   transform: translate(var(--pill-x, 0px), 0);
@@ -208,7 +219,7 @@
 }
 
 .otp[data-focused="true"] .otp-pill {
-  opacity: 0.12;
+  opacity: 1;
 }
 
 /* ── 7. Estado de Error / Rechazo y Temblor Amortiguado (data-phase="no") ──── */

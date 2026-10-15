@@ -9,11 +9,10 @@
 --}}
 @props(['items' => [], 'aria-label' => 'Principal'])
 
+{{-- Las clases extra (p. ej. "hidden md:inline-flex") se fusionan con "gnav" en un único atributo class --}}
 <nav
-    class="gnav"
     aria-label="{{ $attributes->get('aria-label', 'Principal') }}"
-    {{-- Propagamos atributos adicionales (ej. class="hidden md:inline-flex") --}}
-    {{ $attributes->except('aria-label') }}
+    {{ $attributes->except('aria-label')->merge(['class' => 'gnav']) }}
 >
     {{-- Indicador elástico — el JS escribe --ind-move e --ind-size sobre el .gnav --}}
     <span class="gnav-ind" data-phase="idle" aria-hidden="true"></span>

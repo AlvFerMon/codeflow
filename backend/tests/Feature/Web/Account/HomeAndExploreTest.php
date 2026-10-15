@@ -23,20 +23,20 @@ class HomeAndExploreTest extends TestCase
             ->assertSee('data-search-shortcut', false);
     }
 
-    public function test_dashboard_shows_only_my_projects_activity_and_notifications(): void
+    public function test_dashboard_shows_only_my_projects_and_header_accesses(): void
     {
         $this->setUpTeam();
-        $this->makeProject($this->outsider, 'Proyecto secreto');
+        $this->makeRepository($this->project, $this->owner, 'api', 'private');
+        $this->makeRepository($this->makeProject($this->outsider, 'Proyecto secreto'), $this->outsider, 'repo-secreto');
 
+        // El panel es un resumen (métricas y repositorios); actividad y notificaciones están en la cabecera
         $this->as($this->collaborator)->get('/')->assertOk()
             ->assertSee('Mis proyectos')
-            ->assertSee('Proyecto DAM')
+            ->assertSee('Proyecto DAM / api')
             ->assertDontSee('Proyecto secreto')
-            ->assertSee('Colaborador')
-            // Notificación de alta y actividad del proyecto
-            ->assertSee('te ha dado acceso al proyecto Proyecto DAM')
-            ->assertSee('creó el proyecto', false)
-            ->assertSee('Ver todas');
+            ->assertDontSee('repo-secreto')
+            ->assertSee(route('activity.index'), false)
+            ->assertSee(route('notifications.index'), false);
     }
 
     public function test_dashboard_for_user_without_projects_shows_empty_state(): void
@@ -63,7 +63,7 @@ class HomeAndExploreTest extends TestCase
         $this->get('/explore?q=nada-que-coincida')->assertOk()->assertSee('No hay repositorios públicos que coincidan');
     }
 
-    public function test_dashboard_shows_real_metrics_repositories_and_pending_pull_requests(): void
+    public function test_dashboard_shows_real_metrics_and_recent_repositories(): void
     {
         $this->setUpTeam();
         $repo = $this->makeRepository($this->project, $this->owner, 'api-backend', 'private', 'API del proyecto');
@@ -90,9 +90,6 @@ class HomeAndExploreTest extends TestCase
             ->assertSee('Proyecto DAM / api-backend')
             ->assertSee('Proyecto DAM / web-publica')
             ->assertDontSee('repo-ajeno')
-            ->assertSee('Login de usuarios')
-            ->assertDontSee('PR ya fusionada')
-            ->assertSee('feature/login')
             ->assertSee('1 público', false)
             ->assertSee('1 esperan tu revisión', false)
             ->assertSee('1 de prioridad alta', false)

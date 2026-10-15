@@ -25,7 +25,7 @@
 >
     {{-- Botón de la lente SVG: permanece geométricamente centrado en el círculo en reposo --}}
     <button type="button" class="sek-lens" aria-label="Abrir buscador" tabindex="-1">
-        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
     </button>

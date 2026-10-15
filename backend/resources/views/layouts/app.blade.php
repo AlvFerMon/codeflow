@@ -50,7 +50,7 @@
             <div class="flex h-16 items-center justify-between gap-3">
                 <div class="flex items-center gap-6">
                     {{-- Menú hamburguesa — sólo visible en < md --}}
-                    <details class="relative md:hidden" data-dropdown>
+                    <details class="relative lg:hidden" data-dropdown>
                         <summary class="flex cursor-pointer list-none rounded-lg p-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800" aria-label="Abrir menú">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
                         </summary>
@@ -78,7 +78,7 @@
                     </a>
 
                     {{-- Barra de navegación con indicador elástico (Bencho Icon bar) — desktop --}}
-                    <x-icon-bar :items="$navItems" class="hidden md:inline-flex" />
+                    <x-icon-bar :items="$navItems" class="hidden lg:inline-flex" />
                 </div>
 
                 <div class="flex items-center gap-2 sm:gap-3">
