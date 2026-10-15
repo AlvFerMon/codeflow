@@ -40,6 +40,9 @@ echo "[codeflow] Ejecutando migraciones..."
 php artisan migrate --force
 if [ "${CODEFLOW_SEED_DEMO:-true}" = "true" ]; then
     php artisan db:seed --force
+else
+    # Producción: solo el administrador inicial (SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD)
+    php artisan db:seed --class=AdminSeeder --force
 fi
 
 # 6. Cachés de Laravel (configuración, rutas, eventos y vistas precompiladas)

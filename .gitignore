@@ -14,3 +14,5 @@ Thumbs.db
 /Claude outputs/
 # Salidas de herramientas de análisis (graphify): no forman parte del proyecto
 /graphify-out/
+# Copias de seguridad de producción (docker-compose.prod.yml)
+/backups/

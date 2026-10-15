@@ -125,6 +125,20 @@ Se crean automáticamente (`CODEFLOW_SEED_DEMO=true`) con las contraseñas de `.
 
 Los repositorios **públicos** se pueden consultar sin iniciar sesión.
 
+## Producción (servidor propio)
+
+CodeFlow se despliega en un PC con Windows y Docker Desktop, con HTTPS automático (Caddy + Let's Encrypt),
+subdominio de DuckDNS, IA en la GPU y copias de seguridad diarias. Resumen:
+
+```bat
+copy prod.env.example .env      &rem rellenar contraseñas, dominio y token de DuckDNS
+docker compose up -d --build
+docker compose run --rm assets
+docker compose exec ollama ollama pull qwen2.5-coder:7b
+```
+
+Para actualizar: `deploy.bat`. Guía completa (Windows, router, firewall, correo, copias): [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
+
 ## Tests
 
 ```powershell
@@ -136,4 +150,5 @@ Los tests usan siempre SQLite en memoria (forzado en `phpunit.xml`), nunca la ba
 ## Documentación
 
 - [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md): arquitectura, modelo de datos, motor VCS, cifrado, seguridad y plan.
+- [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md): despliegue en el servidor propio.
 - [android/README.md](android/README.md): app Android.

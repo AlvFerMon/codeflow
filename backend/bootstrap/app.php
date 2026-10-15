@@ -33,6 +33,12 @@ return Application::configure(basePath: dirname(__DIR__))
         // Sin email verificado, la web solo muestra la pantalla de verificación
         $middleware->web(append: [RedirectUnverifiedUsers::class, RequireLoginOnPhones::class]);
 
+        // Producción detrás de Caddy (HTTPS) → nginx: confiar en sus cabeceras X-Forwarded-*
+        // para que Laravel genere URLs https y vea la IP real. Solo si TRUSTED_PROXIES está definida.
+        if ($proxies = env('TRUSTED_PROXIES')) {
+            $middleware->trustProxies(at: $proxies === '*' ? '*' : array_map('trim', explode(',', $proxies)));
+        }
+
         // Métricas de rendimiento (solo con APP_DEBUG=true)
         $middleware->prepend(ServerTiming::class);
     })
