@@ -46,4 +46,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // En Vercel los logs largos se cortan y se pierde el mensaje: se escribe antes un resumen de una línea
+        $exceptions->report(function (Throwable $e) {
+            if (env('VERCEL') || env('LOG_CHANNEL') === 'stderr') {
+                error_log('[codeflow] '.$e::class.': '.$e->getMessage().' @ '.$e->getFile().':'.$e->getLine());
+            }
+        });
     })->create();
