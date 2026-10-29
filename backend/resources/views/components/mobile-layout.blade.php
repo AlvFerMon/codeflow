@@ -44,7 +44,7 @@
 
     {{-- Barra de navegación inferior con indicador elástico (Bencho Icon bar) --}}
     {{-- Siempre visible; no necesita md:hidden porque este layout es exclusivo móvil. --}}
-    <div class="gnav-mobile" role="navigation" aria-label="Navegación principal">
+    <div class="gnav-mobile gnav-mobile--always" role="navigation" aria-label="Navegación principal">
         <nav class="gnav" aria-label="Navegación principal">
             {{-- Indicador elástico — JS escribe --ind-move e --ind-size --}}
             <span class="gnav-ind" data-phase="idle" aria-hidden="true"></span>

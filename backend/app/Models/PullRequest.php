@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PullRequest extends Model
@@ -64,5 +65,16 @@ class PullRequest extends Model
     public function activity(): MorphMany
     {
         return $this->morphMany(ActivityLog::class, 'subject');
+    }
+
+    /** Revisiones con IA (opcional), de la más reciente a la más antigua. */
+    public function aiAnalyses(): HasMany
+    {
+        return $this->hasMany(AiAnalysis::class)->latest('id');
+    }
+
+    public function latestAiAnalysis(): HasOne
+    {
+        return $this->hasOne(AiAnalysis::class)->latestOfMany();
     }
 }

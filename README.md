@@ -76,6 +76,33 @@ Al crear una cuenta (en la web o desde la app con `POST /api/auth/register`) se 
 - Las cuentas que ya existían se dan por verificadas (migración `2026_10_09_000001`).
 - Para enviar correos reales, cambia en `.env` las variables `MAIL_*` (por ejemplo, SMTP de Gmail con una contraseña de aplicación).
 
+### Revisión de pull requests con IA (opcional)
+
+Un modelo de IA **local** (Ollama, por defecto `qwen2.5-coder:3b`) revisa los cambios de un pull request y señala
+posibles errores, problemas de seguridad, de rendimiento y de estilo, con archivo, línea, gravedad y sugerencia.
+Está **desactivada por defecto** y el resto de CodeFlow funciona igual sin ella.
+
+1. En el `.env` de la raíz: `CODEFLOW_AI_ENABLED=true` y `COMPOSE_PROFILES=ia`. Con el perfil `ia` activo,
+   `docker compose` arranca también Ollama y el procesador de la cola de análisis (`queue`). Sin esa línea
+   hay que añadir `--profile ia` a cada comando, por ejemplo `docker compose --profile ia exec ollama ...`.
+2. Arranca los servicios:
+   ```
+   docker compose up -d --build
+   docker compose restart app
+   ```
+3. Descarga el modelo (solo la primera vez, unos 2 GB):
+   ```
+   docker compose exec ollama ollama pull qwen2.5-coder:3b
+   ```
+4. En un pull request, pestaña **Conversación** › **Analizar con IA**. Los resultados aparecen solos en unos minutos.
+
+- **Quién puede:** propietario y colaboradores lanzan el análisis; los observadores ven los resultados.
+- **Privacidad:** el código se descifra solo en memoria durante el análisis y nunca sale del servidor de Ollama.
+  En la base de datos (`ai_analyses`, `ai_findings`) se guardan el resumen y los comentarios, nunca el código.
+- **Otro modelo u otro servidor:** `OLLAMA_MODEL` (p. ej. `qwen2.5-coder:1.5b` en equipos con poca RAM,
+  `qwen2.5-coder:7b` con GPU) y `OLLAMA_URL` (p. ej. un servidor de IA compartido: `http://ia.midominio:11434`).
+- Cada análisis revisa hasta 40 archivos de texto; binarios, borrados o enormes se omiten.
+
 ### Usuarios de prueba
 
 Se crean automáticamente (`CODEFLOW_SEED_DEMO=true`) con las contraseñas de `.env`:
@@ -98,6 +125,20 @@ Se crean automáticamente (`CODEFLOW_SEED_DEMO=true`) con las contraseñas de `.
 
 Los repositorios **públicos** se pueden consultar sin iniciar sesión.
 
+## Producción (servidor propio)
+
+CodeFlow se despliega en un PC con Windows y Docker Desktop, con HTTPS automático (Caddy + Let's Encrypt),
+subdominio de DuckDNS, IA en la GPU y copias de seguridad diarias. Resumen:
+
+```bat
+copy prod.env.example .env      &rem rellenar contraseñas, dominio y token de DuckDNS
+docker compose up -d --build
+docker compose run --rm assets
+docker compose exec ollama ollama pull qwen2.5-coder:7b
+```
+
+Para actualizar: `deploy.bat`. Guía completa (Windows, router, firewall, correo, copias): [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md).
+
 ## Tests
 
 ```powershell
@@ -109,4 +150,5 @@ Los tests usan siempre SQLite en memoria (forzado en `phpunit.xml`), nunca la ba
 ## Documentación
 
 - [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md): arquitectura, modelo de datos, motor VCS, cifrado, seguridad y plan.
+- [docs/DESPLIEGUE.md](docs/DESPLIEGUE.md): despliegue en el servidor propio.
 - [android/README.md](android/README.md): app Android.

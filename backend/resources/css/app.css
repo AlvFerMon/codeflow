@@ -9,13 +9,13 @@
 @import '@fontsource/instrument-sans/latin-ext-600.css';
 
 /* Bencho Icon bar — tokens + fases CSS + dark mode + responsive */
-@import './icon-bar.css';
+@import './icon-bar.css' layer(components);
 /* Bencho Search / Seek — elástico con resorte y efecto magnético */
-@import './search-seek.css';
+@import './search-seek.css' layer(components);
 /* Bencho One-time code (OTP) — filtro líquido Goo y resorte MERGE */
-@import './one-time-code.css';
+@import './one-time-code.css' layer(components);
 /* UI Arc Password Strength — medidor y reglas de fortaleza */
-@import './password-strength.css';
+@import './password-strength.css' layer(components);
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

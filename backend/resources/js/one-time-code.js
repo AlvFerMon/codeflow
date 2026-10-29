@@ -251,6 +251,11 @@ export function initOneTimeCode(otpContainer) {
   measureGeometry();
   syncDisplay(false);
 
+  // Con autofocus el campo ya tiene el foco antes de registrar los eventos: marcarlo a mano
+  if (document.activeElement === nativeInput) {
+    otpContainer.dataset.focused = 'true';
+  }
+
   // Check if loaded with error phase (e.g. backend validation failure)
   if (otpContainer.dataset.phase === 'no') {
     triggerReject();

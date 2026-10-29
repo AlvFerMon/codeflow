@@ -3,12 +3,9 @@
 namespace App\Http\Controllers\Web\Account;
 
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\Web\Account\Presenters\ActivityPresenter;
 use App\Http\Controllers\Web\Mobile\MobileController;
-use App\Models\ActivityLog;
 use App\Models\Commit;
 use App\Models\Issue;
-use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\PullRequest;
 use App\Models\Repository;
@@ -17,20 +14,15 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 /**
- * Portada: página de bienvenida para invitados y panel personal ("Flujo de trabajo") para usuarios con sesión.
- * Todo se limita a los proyectos de los que el usuario es miembro y cada listado lleva un tope fijo.
+ * Portada: página de bienvenida para invitados y panel personal ("Flujo de trabajo") para usuarios con sesión:
+ * métricas y repositorios recientes de los proyectos de los que el usuario es miembro. La actividad y las
+ * notificaciones se consultan desde la cabecera.
  */
 class HomeController extends Controller
 {
     private const RECENT_REPOSITORIES = 5;
 
-    private const PENDING_PULLS = 5;
-
-    private const ACTIVITY_ITEMS = 8;
-
-    private const PROJECTS_SHOWN = 6;
-
-    public function __invoke(Request $request, ActivityPresenter $presenter): View|RedirectResponse
+    public function __invoke(Request $request): View|RedirectResponse
     {
         $user = $request->user();
 
@@ -54,39 +46,13 @@ class HomeController extends Controller
         }
 
         // "Mis proyectos": solo aquellos de los que soy miembro (también para el admin)
-        $roles = ProjectMember::where('user_id', $user->id)->pluck('role', 'project_id');
-        $projectIds = $roles->keys();
+        $projectIds = ProjectMember::where('user_id', $user->id)->pluck('project_id');
         $repositoryIds = Repository::select('id')->whereIn('project_id', $projectIds);
-
-        $projects = Project::query()
-            ->whereIn('id', $projectIds)
-            ->withCount('repositories')
-            ->latest('updated_at')
-            ->limit(self::PROJECTS_SHOWN)
-            ->get()
-            ->each(fn (Project $project) => $project->setAttribute('my_role', $roles[$project->id] ?? null));
-
-        $activity = ActivityPresenter::eagerLoad(ActivityLog::query())
-            ->whereIn('project_id', $projectIds)
-            ->latest('id')
-            ->limit(self::ACTIVITY_ITEMS)
-            ->get();
 
         return view('home.dashboard', [
             'stats' => $this->stats($user->id, $projectIds->all(), $repositoryIds),
-            'projects' => $projects,
             'projectsTotal' => $projectIds->count(),
             'repositories' => $this->recentRepositories($projectIds->all()),
-            'pulls' => PullRequest::query()
-                ->with(['repository:id,name,project_id', 'author:id,name'])
-                ->whereIn('repository_id', $repositoryIds)
-                ->whereIn('status', PullRequest::OPEN_STATES)
-                ->latest('updated_at')
-                ->limit(self::PENDING_PULLS)
-                ->get(),
-            'notifications' => $user->notifications()->limit(5)->get(),
-            'activity' => $presenter->presentMany($activity),
-            'projectNames' => Project::whereIn('id', $activity->pluck('project_id')->unique())->pluck('name', 'id'),
         ]);
     }
 

@@ -1,0 +1,26 @@
+# CodeFlow — proxy HTTPS de producción (ver docker-compose.prod.yml)
+# Con un dominio público (p. ej. codeflow-tfg.duckdns.org) Caddy pide el certificado a Let's Encrypt.
+# Con CODEFLOW_DOMAIN=localhost usa un certificado local, útil para probar antes de abrir puertos.
+{$CODEFLOW_DOMAIN} {
+	encode zstd gzip
+
+	# Cabeceras de seguridad básicas
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	# Subidas de hasta 500 MB (igual que nginx)
+	request_body {
+		max_size 520MB
+	}
+
+	reverse_proxy web:80 {
+		transport http {
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+}

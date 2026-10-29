@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Ai\AiReviewer;
+use App\Ai\NullReviewer;
+use App\Ai\OllamaReviewer;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -17,7 +20,15 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        // Revisión con IA (opcional): Ollama si está activada; si no, un revisor nulo
+        $this->app->bind(AiReviewer::class, fn () => config('codeflow.ai.enabled')
+            ? new OllamaReviewer(
+                url: (string) config('codeflow.ai.url'),
+                model: (string) config('codeflow.ai.model'),
+                timeout: (int) config('codeflow.ai.timeout'),
+                context: (int) config('codeflow.ai.context'),
+            )
+            : new NullReviewer);
     }
 
     public function boot(): void

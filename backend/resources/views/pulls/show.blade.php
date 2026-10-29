@@ -51,6 +51,11 @@
                     </div>
                 </article>
 
+                {{-- Revisión con IA (opcional: solo si está activada) --}}
+                @if (\App\Services\PullRequestAnalysisService::enabled())
+                    @include('pulls._ai', ['analysis' => $pr->latestAiAnalysis()->with(['findings', 'requester:id,name'])->first()])
+                @endif
+
                 @if ($pr->isOpen())
                     @can('update', $pr)
                         <details class="rounded-lg border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900" @if ($errors->hasAny(['title', 'description'])) open @endif>

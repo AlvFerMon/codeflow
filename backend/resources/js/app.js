@@ -6,3 +6,4 @@ import './icon-bar';
 import './search-seek';
 import './one-time-code';
 import './password-strength';
+import './ai-review';

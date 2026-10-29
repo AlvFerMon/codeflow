@@ -263,9 +263,10 @@
   justify-content: space-around;  /* slots spread evenly                        */
 }
 
-/* Ocultar forzosamente en resoluciones de escritorio (>= 1024px) */
+/* Ocultar forzosamente en resoluciones de escritorio (>= 1024px).
+   La versión móvil (/m) usa .gnav-mobile--always: allí la barra es la única navegación. */
 @media (min-width: 1024px) {
-  .gnav-mobile {
+  .gnav-mobile:not(.gnav-mobile--always) {
     display: none !important;
   }
 }
