@@ -47,10 +47,19 @@ return Application::configure(basePath: dirname(__DIR__))
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
 
-        // En Vercel los logs largos se cortan y se pierde el mensaje: se escribe antes un resumen de una línea
+        // En Vercel el log de cada petición se recorta y se pierde el mensaje del error: allí se escribe
+        // solo un resumen corto (sin la traza completa). Devolver false evita el log normal.
         $exceptions->report(function (Throwable $e) {
-            if (env('VERCEL') || env('LOG_CHANNEL') === 'stderr') {
-                error_log('[codeflow] '.$e::class.': '.$e->getMessage().' @ '.$e->getFile().':'.$e->getLine());
+            if (! env('VERCEL') && env('LOG_CHANNEL') !== 'stderr') {
+                return;
             }
+            $where = fn (Throwable $t) => str_replace(base_path().'/', '', $t->getFile()).':'.$t->getLine();
+            $line = '[codeflow] '.$e::class.': '.$e->getMessage().' @ '.$where($e);
+            if ($previous = $e->getPrevious()) {
+                $line .= ' | causa: '.$previous::class.': '.$previous->getMessage();
+            }
+            error_log(mb_substr($line, 0, 1500));
+
+            return false;
         });
     })->create();
