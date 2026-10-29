@@ -56,12 +56,17 @@ return [
         'model' => env('OLLAMA_MODEL', 'qwen2.5-coder:3b'),
         // Segundos máximos por petición al modelo
         'timeout' => (int) env('CODEFLOW_AI_TIMEOUT', 300),
-        // Ventana de contexto del modelo (tokens)
-        'context' => (int) env('CODEFLOW_AI_CONTEXT', 8192),
-        // Tamaño de cada lote de diff enviado al modelo (caracteres) y límites del análisis
-        'batch_chars' => 12000,
-        'max_files' => 40,
-        'max_chars' => 60000,
+        // Ventana de contexto del modelo (tokens): tiene que caber un lote + instrucciones + respuesta
+        'context' => (int) env('CODEFLOW_AI_CONTEXT', 12288),
+        // Máximo de tokens que puede escribir el modelo por lote (evita respuestas interminables)
+        'max_output' => (int) env('CODEFLOW_AI_MAX_OUTPUT', 1024),
+        // Tiempo que Ollama mantiene el modelo cargado en memoria entre peticiones
+        'keep_alive' => env('CODEFLOW_AI_KEEP_ALIVE', '30m'),
+        // Tamaño de cada lote (caracteres, ~3,5 por token): menos lotes = menos peticiones = más rápido.
+        // max_chars se reparte entre todos los archivos; los grandes se recortan en vez de omitirse.
+        'batch_chars' => (int) env('CODEFLOW_AI_BATCH_CHARS', 20000),
+        'max_files' => (int) env('CODEFLOW_AI_MAX_FILES', 60),
+        'max_chars' => (int) env('CODEFLOW_AI_MAX_CHARS', 60000),
         // Cola donde se procesan los análisis (en Docker: servicio "queue", perfil "ia")
         'queue_connection' => env('CODEFLOW_AI_QUEUE_CONNECTION', 'database'),
         'queue' => 'ai',

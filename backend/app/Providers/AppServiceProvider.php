@@ -27,6 +27,8 @@ class AppServiceProvider extends ServiceProvider
                 model: (string) config('codeflow.ai.model'),
                 timeout: (int) config('codeflow.ai.timeout'),
                 context: (int) config('codeflow.ai.context'),
+                maxOutput: (int) config('codeflow.ai.max_output'),
+                keepAlive: (string) config('codeflow.ai.keep_alive'),
             )
             : new NullReviewer);
     }

@@ -18,7 +18,9 @@ class OllamaReviewer implements AiReviewer
         private readonly string $url,
         private readonly string $model,
         private readonly int $timeout = 300,
-        private readonly int $context = 8192,
+        private readonly int $context = 12288,
+        private readonly int $maxOutput = 1024,
+        private readonly string $keepAlive = '30m',
     ) {}
 
     public function model(): string
@@ -36,7 +38,14 @@ class OllamaReviewer implements AiReviewer
                     'model' => $this->model,
                     'stream' => false,
                     'format' => self::schema(),
-                    'options' => ['temperature' => 0.1, 'num_ctx' => $this->context],
+                    // El modelo se queda cargado entre lotes y análisis (cargarlo cuesta segundos)
+                    'keep_alive' => $this->keepAlive,
+                    'options' => [
+                        'temperature' => 0.1,
+                        'num_ctx' => $this->context,
+                        // Tope de la respuesta: los modelos pequeños a veces no paran de escribir
+                        'num_predict' => $this->maxOutput,
+                    ],
                     'messages' => [
                         ['role' => 'system', 'content' => self::SYSTEM_PROMPT],
                         ['role' => 'user', 'content' => "Revisa este diff de un pull request:\n\n".$diff],
@@ -55,8 +64,11 @@ class OllamaReviewer implements AiReviewer
 
         $content = (string) data_get($response->json(), 'message.content', '');
         $data = json_decode($content, true);
+        if (! is_array($data) && data_get($response->json(), 'done_reason') === 'length') {
+            throw new InvalidAiResponseException('La respuesta de la IA era demasiado larga y se cortó. Prueba de nuevo o sube CODEFLOW_AI_MAX_OUTPUT.');
+        }
         if (! is_array($data)) {
-            throw new AiUnavailableException('La IA no devolvió una respuesta válida. Prueba de nuevo.');
+            throw new InvalidAiResponseException('La IA no devolvió una respuesta válida. Prueba de nuevo.');
         }
 
         return new ReviewResult(
@@ -151,6 +163,8 @@ Formato del diff:
 - "### archivo: ruta (estado)" empieza cada archivo.
 - Cada línea lleva el número de línea del archivo nuevo, una marca y el texto:
   "+" línea añadida, "-" línea borrada (sin número), " " línea de contexto sin cambios.
+- "… (N líneas más de este archivo sin revisar)" indica que el resto del archivo no se muestra:
+  no comentes nada sobre esa parte.
 
 Qué debes hacer:
 - Busca solo problemas reales en las líneas añadidas o modificadas: errores (bug), fallos de
@@ -160,6 +174,7 @@ Qué debes hacer:
 - "severity": "high" si rompe algo o es un riesgo de seguridad, "medium" si conviene arreglarlo, "low" si es menor.
 - "title": una frase corta. "explanation": por qué es un problema. "suggestion": cómo arreglarlo, en palabras.
 - No copies código en las respuestas: descríbelo con palabras.
-- "summary": 2 o 3 frases sobre qué hace el cambio y su calidad general.
+- Como máximo 6 hallazgos, los más importantes. Sé breve: explicaciones de 1 o 2 frases.
+- "summary": 1 o 2 frases sobre qué hace el cambio y su calidad general.
 TXT;
 }

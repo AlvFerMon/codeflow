@@ -1,0 +1,13 @@
+# CodeFlow — Ollama en la gráfica NVIDIA (opcional, también en desarrollo).
+# Requisitos: driver NVIDIA actualizado y Docker Desktop con WSL2.
+# Activar en .env:  COMPOSE_FILE=docker-compose.yml;docker-compose.gpu.yml   (Linux/macOS: separar con ":")
+# Comprobar después de un análisis: docker compose exec ollama ollama ps   → "100% GPU"
+services:
+  ollama:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

@@ -101,7 +101,12 @@ Está **desactivada por defecto** y el resto de CodeFlow funciona igual sin ella
   En la base de datos (`ai_analyses`, `ai_findings`) se guardan el resumen y los comentarios, nunca el código.
 - **Otro modelo u otro servidor:** `OLLAMA_MODEL` (p. ej. `qwen2.5-coder:1.5b` en equipos con poca RAM,
   `qwen2.5-coder:7b` con GPU) y `OLLAMA_URL` (p. ej. un servidor de IA compartido: `http://ia.midominio:11434`).
-- Cada análisis revisa hasta 40 archivos de texto; binarios, borrados o enormes se omiten.
+- **Qué revisa:** todos los archivos de código del PR (hasta 60). Solo se omiten binarios, borrados y generados
+  (dependencias, lockfiles, minificados, `build/`...), y la web lista cuáles y por qué. El presupuesto de texto
+  (`CODEFLOW_AI_MAX_CHARS`, 60 000 caracteres) se reparte entre todos: los archivos grandes se revisan solo en parte.
+- **Velocidad:** el análisis va por partes de ~20 000 caracteres y la web muestra el progreso. En CPU cada parte
+  tarda de uno a varios minutos; con gráfica NVIDIA, segundos: añade `docker-compose.gpu.yml` con
+  `COMPOSE_FILE=docker-compose.yml;docker-compose.gpu.yml` en el `.env` y `docker compose up -d`.
 
 ### Usuarios de prueba
 

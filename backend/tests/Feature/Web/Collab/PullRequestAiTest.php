@@ -144,26 +144,96 @@ class PullRequestAiTest extends TestCase
         $this->assertSame(2, AiAnalysis::count());
     }
 
-    public function test_diff_batcher_skips_unreviewable_files_and_splits_batches(): void
+    private static function fileDiff(string $path, int $lines, array $extra = []): array
     {
-        $file = fn (string $path, int $lines, array $extra = []) => $extra + [
+        return $extra + [
             'path' => $path, 'status' => 'modified', 'binary' => false, 'too_large' => false,
             'hunks' => [['lines' => array_map(fn ($i) => ['type' => 'add', 'old' => null, 'new' => $i, 'text' => str_repeat('x', 50)], range(1, $lines))]],
         ];
+    }
 
+    public function test_diff_batcher_skips_only_unreviewable_files_with_their_reason(): void
+    {
         $result = (new DiffBatcher(batchChars: 2000, maxFiles: 3, maxChars: 100000))->batch([
-            $file('a.php', 20),
-            $file('b.php', 20),
-            $file('img.png', 1, ['binary' => true]),
-            $file('old.php', 1, ['status' => 'deleted']),
-            $file('c.php', 20),
-            $file('d.php', 20), // pasa del máximo de archivos
+            self::fileDiff('a.php', 20),
+            self::fileDiff('b.php', 20),
+            self::fileDiff('img.png', 1, ['binary' => true]),
+            self::fileDiff('old.php', 1, ['status' => 'deleted']),
+            self::fileDiff('package-lock.json', 30),
+            self::fileDiff('node_modules/x/index.js', 30),
+            self::fileDiff('public/build/app.min.js', 30),
+            self::fileDiff('c.php', 20),
+            self::fileDiff('d.php', 20), // pasa del máximo de archivos
         ]);
 
         $this->assertSame(3, $result['analyzed']);
-        $this->assertSame(3, $result['skipped']);
+        $this->assertSame(0, $result['truncated']);
+        $this->assertSame([
+            ['path' => 'img.png', 'reason' => 'binary'],
+            ['path' => 'old.php', 'reason' => 'deleted'],
+            ['path' => 'package-lock.json', 'reason' => 'generated'],
+            ['path' => 'node_modules/x/index.js', 'reason' => 'generated'],
+            ['path' => 'public/build/app.min.js', 'reason' => 'generated'],
+            ['path' => 'd.php', 'reason' => 'limit'],
+        ], $result['skipped']);
         $this->assertSame([['a.php'], ['b.php'], ['c.php']], array_column($result['batches'], 'paths'));
         $this->assertStringContainsString('### archivo: a.php (modified)', $result['batches'][0]['text']);
         $this->assertStringContainsString('    1 + ', $result['batches'][0]['text']);
+    }
+
+    public function test_diff_batcher_trims_big_files_instead_of_skipping_them(): void
+    {
+        // Antes: los archivos que no cabían en el presupuesto total se omitían (22 de 24 en un PR real)
+        $files = [self::fileDiff('pequeno.php', 5)];
+        foreach (range(1, 23) as $i) {
+            $files[] = self::fileDiff("src/Grande{$i}.php", 800); // ~48 KB cada uno
+        }
+
+        $result = (new DiffBatcher(batchChars: 20000, maxFiles: 60, maxChars: 60000))->batch($files);
+
+        $this->assertSame(24, $result['analyzed']);
+        $this->assertSame([], $result['skipped']);
+        $this->assertSame(23, $result['truncated']);
+
+        $texts = implode('', array_column($result['batches'], 'text'));
+        $this->assertLessThanOrEqual(60000, strlen($texts));
+        // El pequeño entra entero; los grandes, recortados en un salto de línea y con aviso
+        $this->assertStringContainsString("    5 + ", $texts);
+        $this->assertStringContainsString('líneas más de este archivo sin revisar', $texts);
+        foreach ($result['batches'] as $batch) {
+            $this->assertLessThanOrEqual(20000, strlen($batch['text']));
+        }
+        $this->assertCount(24, array_merge(...array_column($result['batches'], 'paths')));
+        $this->assertLessThanOrEqual(4, count($result['batches']));
+    }
+
+    public function test_progress_and_skipped_files_are_stored_and_a_bad_batch_does_not_fail_everything(): void
+    {
+        $this->enableAi();
+        config(['codeflow.ai.batch_chars' => 300, 'codeflow.ai.max_chars' => 600]);
+        Http::fakeSequence('ollama.test:11434/api/chat')
+            ->push(['message' => ['content' => '{"summary": "corta', 'role' => 'assistant'], 'done_reason' => 'length'])
+            ->push(['message' => ['role' => 'assistant', 'content' => json_encode(['summary' => 'Bien.', 'findings' => []])]]);
+
+        $this->buildCollabProject();
+        $branch = $this->makeBranch('feature/varios', 'src/A.php', "<?php\n".str_repeat("echo 1;\n", 30));
+        app(\App\Services\RepositoryService::class)->commitChanges($branch->fresh(), $this->dev->fresh(), 'Más archivos', [
+            ['path' => 'src/B.php', 'content' => "<?php\n".str_repeat("echo 2;\n", 30)],
+            ['path' => 'composer.lock', 'content' => '{}'],
+        ]);
+        $pr = $this->makePullRequest($branch->fresh());
+
+        $this->actAs($this->dev)->post(route('pulls.ai.store', [$this->repo, $pr->number]));
+
+        $analysis = AiAnalysis::sole();
+        $this->assertSame(AiAnalysis::DONE, $analysis->status);
+        $this->assertSame([2, 2], [$analysis->batches_total, $analysis->batches_done]);
+        $this->assertSame(2, $analysis->files_analyzed);
+        $this->assertSame([['path' => 'composer.lock', 'reason' => 'generated']], $analysis->skipped_files);
+        $this->assertStringContainsString('1 de 2 partes', $analysis->summary);
+        Http::assertSent(fn (Request $r) => $r['keep_alive'] === '30m' && $r['options']['num_predict'] === 1024);
+
+        $this->get(route('pulls.show', [$this->repo, $pr->number]))->assertOk()
+            ->assertSee('Ver archivos omitidos')->assertSee('composer.lock')->assertSee('generado o dependencia');
     }
 }

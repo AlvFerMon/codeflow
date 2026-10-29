@@ -19,7 +19,7 @@ class AiAnalysis extends Model
 
     protected $guarded = [];
 
-    protected $casts = ['started_at' => 'datetime', 'finished_at' => 'datetime'];
+    protected $casts = ['started_at' => 'datetime', 'finished_at' => 'datetime', 'skipped_files' => 'array'];
 
     public function pullRequest(): BelongsTo
     {

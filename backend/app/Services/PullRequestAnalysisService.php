@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Ai\AiReviewer;
 use App\Ai\AiUnavailableException;
 use App\Ai\DiffBatcher;
+use App\Ai\InvalidAiResponseException;
 use App\Jobs\RunPullRequestAnalysis;
 use App\Models\AiAnalysis;
 use App\Models\PullRequest;
@@ -87,25 +88,51 @@ class PullRequestAnalysisService
                 maxFiles: (int) config('codeflow.ai.max_files'),
                 maxChars: (int) config('codeflow.ai.max_chars'),
             );
-            ['batches' => $batches, 'analyzed' => $analyzed, 'skipped' => $skipped] = $batcher->batch($files);
+            ['batches' => $batches, 'analyzed' => $analyzed, 'truncated' => $truncated, 'skipped' => $skipped] = $batcher->batch($files);
             unset($files);
 
+            // Solo rutas y motivo (nunca código), para explicar en la web qué no se ha revisado
+            $analysis->update([
+                'batches_total' => count($batches),
+                'batches_done' => 0,
+                'files_analyzed' => $analyzed,
+                'files_truncated' => $truncated,
+                'files_skipped' => count($skipped),
+                'skipped_files' => array_slice($skipped, 0, 300) ?: null,
+            ]);
+
             if ($batches === []) {
-                throw new AiUnavailableException('No hay archivos de texto que analizar (binarios, borrados o demasiado grandes).');
+                throw new AiUnavailableException('No hay archivos de código que analizar (todos son binarios, borrados o generados).');
             }
 
             $summaries = [];
             $findings = [];
-            foreach ($batches as $batch) {
-                $result = $this->reviewer->review($batch['text'], $batch['paths']);
-                if ($result->summary !== '') {
-                    $summaries[] = $result->summary;
+            $failedBatches = 0;
+            $lastError = '';
+            foreach ($batches as $i => $batch) {
+                try {
+                    $result = $this->reviewer->review($batch['text'], $batch['paths']);
+                    if ($result->summary !== '') {
+                        $summaries[] = $result->summary;
+                    }
+                    array_push($findings, ...$result->findings);
+                } catch (InvalidAiResponseException $e) {
+                    // Un lote con respuesta inválida no tira el análisis entero
+                    $failedBatches++;
+                    $lastError = $e->getMessage();
                 }
-                array_push($findings, ...$result->findings);
+                $analysis->update(['batches_done' => $i + 1]);
             }
             unset($batches);
 
-            DB::transaction(function () use ($analysis, $findings, $summaries, $analyzed, $skipped) {
+            if ($failedBatches === $analysis->batches_total) {
+                throw new AiUnavailableException($lastError);
+            }
+            if ($failedBatches > 0) {
+                $summaries[] = "({$failedBatches} de {$analysis->batches_total} partes del análisis no dieron una respuesta válida y no tienen comentarios.)";
+            }
+
+            DB::transaction(function () use ($analysis, $findings, $summaries) {
                 $analysis->findings()->delete();
                 foreach ($findings as $finding) {
                     $analysis->findings()->create($finding);
@@ -113,8 +140,6 @@ class PullRequestAnalysisService
                 $analysis->update([
                     'status' => AiAnalysis::DONE,
                     'summary' => mb_substr(implode("\n\n", $summaries), 0, 4000) ?: null,
-                    'files_analyzed' => $analyzed,
-                    'files_skipped' => $skipped,
                     'findings_count' => count($findings),
                     'finished_at' => now(),
                 ]);

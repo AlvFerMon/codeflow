@@ -44,8 +44,26 @@
         @elseif ($inProgress)
             <div class="flex items-center gap-3 text-zinc-700 dark:text-zinc-300" role="status">
                 <svg class="h-5 w-5 animate-spin text-[#9448BC]" width="20" height="20" fill="none" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="3" class="opacity-25"/><path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-                <span>{{ $analysis->status === 'running' ? 'Analizando los cambios…' : 'En cola…' }} Puede tardar unos minutos; esta sección se actualiza sola.</span>
+                <span>
+                    @if ($analysis->status !== 'running')
+                        En cola…
+                    @elseif ($analysis->batches_total > 0)
+                        Analizando: parte {{ min($analysis->batches_done + 1, $analysis->batches_total) }} de {{ $analysis->batches_total }}
+                        ({{ $analysis->files_analyzed }} {{ $analysis->files_analyzed === 1 ? 'archivo' : 'archivos' }})…
+                    @else
+                        Preparando los cambios…
+                    @endif
+                    Esta sección se actualiza sola.
+                </span>
             </div>
+            @if ($analysis->status === 'running' && $analysis->batches_total > 0)
+                @php
+                    $pct = (int) round(100 * $analysis->batches_done / $analysis->batches_total);
+                @endphp
+                <div class="h-1.5 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $pct }}" aria-label="Progreso del análisis">
+                    <div class="h-full rounded-full bg-[#9448BC] transition-all duration-500" style="width: {{ max(4, $pct) }}%"></div>
+                </div>
+            @endif
             @if ($analysis->status === 'pending' && $analysis->created_at->lt(now()->subMinutes(2)))
                 <p class="rounded-md bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-300">
                     Lleva un rato en cola. Comprueba que el procesador de análisis está arrancado: <code class="font-mono">docker compose --profile ia up -d</code>
@@ -101,11 +119,28 @@
                 Modelo {{ $analysis->model }}
                 @if ($analysis->status === 'done')
                     · {{ $analysis->files_analyzed }} {{ $analysis->files_analyzed === 1 ? 'archivo revisado' : 'archivos revisados' }}
-                    @if ($analysis->files_skipped) · {{ $analysis->files_skipped }} omitidos (binarios, borrados o demasiado grandes) @endif
+                    @if ($analysis->files_truncated) ({{ $analysis->files_truncated }} solo en parte por su tamaño) @endif
+                    @if ($analysis->files_skipped) · {{ $analysis->files_skipped }} {{ $analysis->files_skipped === 1 ? 'omitido' : 'omitidos' }} @endif
+                    @if ($analysis->started_at && $analysis->finished_at)
+                        · tardó {{ $analysis->started_at->diffForHumans($analysis->finished_at, ['syntax' => \Carbon\CarbonInterface::DIFF_ABSOLUTE, 'parts' => 2]) }}
+                    @endif
                 @endif
                 · <time datetime="{{ ($analysis->finished_at ?? $analysis->created_at)->toIso8601String() }}">{{ ($analysis->finished_at ?? $analysis->created_at)->diffForHumans() }}</time>
                 @if ($analysis->requester) · pedido por {{ $analysis->requester->name }} @endif
             </p>
+            @if ($analysis->status === 'done' && ! empty($analysis->skipped_files))
+                <details class="text-xs text-zinc-500 dark:text-zinc-400">
+                    <summary class="cursor-pointer select-none hover:text-zinc-700 dark:hover:text-zinc-200">Ver archivos omitidos</summary>
+                    <ul class="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-md border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+                        @foreach ($analysis->skipped_files as $item)
+                            <li class="flex flex-wrap justify-between gap-x-3">
+                                <span class="break-all font-mono">{{ $item['path'] ?? '' }}</span>
+                                <span>{{ \App\Ai\DiffBatcher::SKIP_REASONS[$item['reason'] ?? ''] ?? ($item['reason'] ?? '') }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </details>
+            @endif
             <p class="text-xs text-zinc-500 dark:text-zinc-400">Son sugerencias automáticas y pueden equivocarse: revísalas antes de aplicarlas.</p>
         @endif
     </div>
