@@ -116,4 +116,15 @@ class CliApiTest extends TestCase
         $this->getJson("/api/branches/{$ctx['main']}/manifest")->assertNotFound();
         $this->postJson("/api/branches/{$ctx['main']}/files/batch", ['paths' => ['README.md']])->assertNotFound();
     }
+
+    public function test_file_content_is_stored_exactly_without_trimming(): void
+    {
+        $ctx = $this->buildProject(User::factory()->create());
+        $content = "  sangría inicial\n\tcon tabulador\n\n";
+        $this->postJson("/api/branches/{$ctx['main']}/commits", [
+            'message' => 'Exacto', 'changes' => [['path' => 'exacto.txt', 'content' => $content]],
+        ])->assertCreated();
+
+        $this->assertSame($content, $this->getJson("/api/branches/{$ctx['main']}/file?path=exacto.txt")->json('content'));
+    }
 }

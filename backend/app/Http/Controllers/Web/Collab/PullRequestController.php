@@ -318,7 +318,7 @@ class PullRequestController extends Controller
         // Se comprueba antes para mostrar la lista de conflictos sin depender del 409 del motor
         $check = $this->pullRequests->mergeability($pr);
         if ($check['mergeable'] === false) {
-            return $this->failed('No se puede fusionar: hay conflictos en '.implode(', ', $check['conflicts']).'. Resuélvelos en la rama origen.');
+            return $this->failed('No se puede fusionar: hay conflictos en '.implode(', ', $check['conflicts']).'. Pulsa «Resolver conflictos».');
         }
 
         return $this->attempt(
@@ -349,6 +349,71 @@ class PullRequestController extends Controller
             fn () => $this->pullRequests->reopen($pr, $request->user()),
             fn () => redirect()->route('pulls.show', [$repository, $pr->number])->with('status', 'Pull request reabierto.'),
         );
+    }
+
+    /** Pantalla para resolver los conflictos a mano (solo quien puede subir cambios). */
+    public function conflicts(Repository $repository, int $number): View|RedirectResponse
+    {
+        $pr = $this->findPullRequest($repository, $number);
+        Gate::authorize('push', $repository);
+
+        $files = $this->pullRequests->conflicts($pr);
+        if (! $files) {
+            return redirect()->route('pulls.show', [$repository, $pr->number])->with('status', 'No hay conflictos que resolver.');
+        }
+
+        return view('pulls.conflicts', [
+            'repository' => $repository,
+            'pr' => $pr,
+            'files' => $files,
+            'sourceHead' => $pr->sourceBranch?->head_commit_id,
+            'targetHead' => $pr->targetBranch?->head_commit_id,
+        ]);
+    }
+
+    public function resolve(Request $request, Repository $repository, int $number): RedirectResponse
+    {
+        $pr = $this->findPullRequest($repository, $number);
+        Gate::authorize('push', $repository);
+
+        $data = $request->validate([
+            'files' => 'required|array',
+            'files.*.path' => 'required|string',
+            'files.*.action' => 'required|in:edit,delete,ours,theirs',
+            'files.*.content' => 'nullable|string',
+            'files.*.eol' => 'nullable|in:lf,crlf',
+            'source_head' => 'nullable|integer',
+            'target_head' => 'nullable|integer',
+        ]);
+        $resolutions = $this->resolutions($data['files']);
+
+        return $this->attempt(
+            fn () => $this->pullRequests->resolveConflicts($pr, $request->user(), $resolutions, array_filter([
+                'source_head' => $data['source_head'] ?? null, 'target_head' => $data['target_head'] ?? null,
+            ])),
+            fn (Commit $commit) => redirect()->route('pulls.show', [$repository, $pr->number])
+                ->with('status', 'Conflictos resueltos en '.$pr->source_branch_name.' (commit '.substr($commit->sha, 0, 7).'). Ya se puede fusionar.'),
+        );
+    }
+
+    /** @return array<string,array{content?:string,delete?:bool,side?:string}> */
+    public static function resolutions(array $files): array
+    {
+        $out = [];
+        foreach ($files as $file) {
+            $content = (string) ($file['content'] ?? '');
+            // Los navegadores envían los <textarea> con \r\n: se vuelve al fin de línea del archivo
+            if (($file['eol'] ?? 'lf') === 'lf') {
+                $content = str_replace("\r\n", "\n", $content);
+            }
+            $out[(string) $file['path']] = match ($file['action'] ?? 'edit') {
+                'delete' => ['delete' => true],
+                'ours', 'theirs' => ['side' => $file['action']], // la versión entera de una rama (sirve para binarios)
+                default => ['content' => $content],
+            };
+        }
+
+        return $out;
     }
 
     private function findPullRequest(Repository $repository, int $number): PullRequest

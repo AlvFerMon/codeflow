@@ -26,9 +26,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Invitados que entran en una página con sesión obligatoria: a la pantalla de login
         $middleware->redirectGuestsTo(fn () => route('login'));
 
-        // El contenido de los archivos editados en la web se guarda tal cual
-        // (sin recortar espacios iniciales ni el salto de línea final).
-        $middleware->trimStrings(except: ['file_content']);
+        // El contenido de los archivos se guarda tal cual (sin recortar espacios iniciales ni el salto
+        // de línea final): editor web, commits de la API/CLI y resolución de conflictos.
+        $middleware->trimStrings(except: ['file_content', 'changes.*.content', 'files.*.content']);
 
         // Sin email verificado, la web solo muestra la pantalla de verificación
         $middleware->web(append: [RedirectUnverifiedUsers::class, RequireLoginOnPhones::class]);

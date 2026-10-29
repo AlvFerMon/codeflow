@@ -138,6 +138,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('pull-requests/{pullRequest}/comments', [PullRequestController::class, 'storeComment']);
     Route::post('pull-requests/{pullRequest}/reviews', [PullRequestController::class, 'storeReview']);
     Route::post('pull-requests/{pullRequest}/merge', [PullRequestController::class, 'merge']);
+    Route::get('pull-requests/{pullRequest}/conflicts', [PullRequestController::class, 'conflicts']);
+    Route::post('pull-requests/{pullRequest}/resolve', [PullRequestController::class, 'resolve']);
     Route::post('pull-requests/{pullRequest}/close', [PullRequestController::class, 'close']);
     Route::post('pull-requests/{pullRequest}/reopen', [PullRequestController::class, 'reopen']);
 });

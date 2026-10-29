@@ -29,6 +29,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('repositories/{repository}/pulls/{number}', [PullRequestController::class, 'update'])->whereNumber('number')->name('pulls.update');
     Route::post('repositories/{repository}/pulls/{number}/reviews', [PullRequestController::class, 'review'])->whereNumber('number')->name('pulls.review');
     Route::post('repositories/{repository}/pulls/{number}/merge', [PullRequestController::class, 'merge'])->whereNumber('number')->name('pulls.merge');
+    Route::get('repositories/{repository}/pulls/{number}/conflicts', [PullRequestController::class, 'conflicts'])->whereNumber('number')->name('pulls.conflicts');
+    Route::post('repositories/{repository}/pulls/{number}/conflicts', [PullRequestController::class, 'resolve'])->whereNumber('number')->name('pulls.resolve');
     Route::post('repositories/{repository}/pulls/{number}/close', [PullRequestController::class, 'close'])->whereNumber('number')->name('pulls.close');
     Route::post('repositories/{repository}/pulls/{number}/reopen', [PullRequestController::class, 'reopen'])->whereNumber('number')->name('pulls.reopen');
     // Revisión con IA (opcional): se lanza en segundo plano

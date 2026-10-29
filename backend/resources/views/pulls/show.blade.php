@@ -177,16 +177,29 @@
                                     <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-rose-500"></span>
                                     <div>
                                         <p class="font-medium text-rose-800 dark:text-rose-300">Hay conflictos que impiden la fusión automática.</p>
-                                        <p class="mt-1 text-zinc-600 dark:text-zinc-400">Resuélvelos en la rama <span class="{{ $branchChip }}">{{ $pr->source_branch_name }}</span>. Archivos en conflicto:</p>
+                                        <p class="mt-1 text-zinc-600 dark:text-zinc-400">Las dos ramas cambiaron las mismas líneas de {{ count($conflicts) === 1 ? 'este archivo' : 'estos archivos' }}:</p>
                                         <ul class="mt-2 space-y-1">
                                             @foreach ($conflicts as $path)
                                                 <li class="font-mono text-xs text-rose-800 dark:text-rose-300">{{ $path }}</li>
                                             @endforeach
                                         </ul>
+                                        @can('push', $repository)
+                                            <x-button variant="secondary" size="sm" class="mt-3" :href="route('pulls.conflicts', [$repository, $pr->number])">Resolver conflictos</x-button>
+                                        @else
+                                            <p class="mt-2 text-zinc-600 dark:text-zinc-400">Un colaborador puede resolverlos desde aquí.</p>
+                                        @endcan
                                     </div>
                                 @elseif ($mergeable === true)
                                     <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500"></span>
-                                    <p>No hay conflictos con <span class="{{ $branchChip }}">{{ $pr->target_branch_name }}</span>.</p>
+                                    <div>
+                                        <p>No hay conflictos con <span class="{{ $branchChip }}">{{ $pr->target_branch_name }}</span>.</p>
+                                        @if (! empty($mergeability['auto_merged']))
+                                            <p class="mt-1 text-zinc-600 dark:text-zinc-400">
+                                                {{ count($mergeability['auto_merged']) === 1 ? 'Un archivo cambió' : count($mergeability['auto_merged']).' archivos cambiaron' }} en las dos ramas, pero en líneas distintas: se combinarán solos
+                                                (<span class="font-mono text-xs">{{ implode(', ', array_slice($mergeability['auto_merged'], 0, 5)) }}{{ count($mergeability['auto_merged']) > 5 ? '…' : '' }}</span>).
+                                            </p>
+                                        @endif
+                                    </div>
                                 @else
                                     <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-zinc-400"></span>
                                     <p class="text-zinc-600 dark:text-zinc-400">No se puede comprobar la fusión (alguna rama ya no existe o no tiene commits).</p>

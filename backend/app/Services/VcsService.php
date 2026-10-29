@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Vcs\CommitHasher;
 use App\Vcs\Diff\HunkBuilder;
 use App\Vcs\Diff\MyersDiff;
+use App\Vcs\Merge\ThreeWayMerge;
 use App\Vcs\ObjectStore;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -597,7 +598,12 @@ class VcsService
     /**
      * Calcula (sin escribir nada) el resultado de fusionar sourceHead en targetHead.
      *
-     * @return array{tree:array<string,int>,conflicts:array<int,string>}
+     * Primero por archivo: si solo un lado cambió un archivo, se toma ese. Si los dos lo cambiaron
+     * y es de texto, se intenta una fusión de 3 vías por líneas (ThreeWayMerge): si los cambios están
+     * en sitios distintos se combinan solos ('merged': ruta → contenido nuevo, aún sin guardar).
+     * Solo queda en 'conflicts' lo que no se puede combinar.
+     *
+     * @return array{tree:array<string,?int>,conflicts:array<int,string>,merged:array<string,string>}
      */
     public function planMerge(Collection $graph, ?int $targetHead, int $sourceHead): array
     {
@@ -605,17 +611,19 @@ class VcsService
 
         // Fast-forward: el destino está contenido en el origen (o está vacío)
         if (! $targetHead || isset($ancestorsOfSource[$targetHead])) {
-            return ['tree' => $this->tree($sourceHead), 'conflicts' => []];
+            return ['tree' => $this->tree($sourceHead), 'conflicts' => [], 'merged' => []];
         }
 
         $baseId = $this->mergeBase($graph, $targetHead, $sourceHead);
         $base = $this->tree($baseId);
         $ours = $this->tree($targetHead);
         $theirs = $this->tree($sourceHead);
+        $repositoryId = null; // se averigua solo si hace falta leer algún archivo
 
         $paths = array_unique(array_merge(array_keys($base), array_keys($ours), array_keys($theirs)));
-        $merged = [];
+        $tree = [];
         $conflicts = [];
+        $textMerged = [];
 
         foreach ($paths as $path) {
             $b = $base[$path] ?? null;
@@ -628,6 +636,12 @@ class VcsService
                 $result = $t;
             } elseif ($b === $t) {
                 $result = $o;
+            } elseif ($o !== null && $t !== null
+                && ($content = $this->mergeText($repositoryId ??= (int) Commit::whereKey($sourceHead)->value('repository_id'), $b, $o, $t)) !== null) {
+                $textMerged[$path] = $content;
+                $tree[$path] = null; // se guarda al fusionar de verdad
+
+                continue;
             } else {
                 $conflicts[] = $path;
 
@@ -635,13 +649,173 @@ class VcsService
             }
 
             if ($result !== null) {
-                $merged[$path] = $result;
+                $tree[$path] = $result;
             }
         }
 
         sort($conflicts);
+        ksort($textMerged);
 
-        return ['tree' => $merged, 'conflicts' => $conflicts];
+        return ['tree' => $tree, 'conflicts' => $conflicts, 'merged' => $textMerged];
+    }
+
+    /** Guarda los archivos combinados por líneas y devuelve el árbol definitivo. @return array<string,int> */
+    public function materialize(int $repositoryId, array $plan): array
+    {
+        $tree = $plan['tree'];
+        foreach ($plan['merged'] as $path => $content) {
+            $tree[$path] = $this->objects->put($repositoryId, $content, $path)->id;
+        }
+
+        return $tree;
+    }
+
+    /**
+     * Detalle de cada conflicto para resolverlo a mano: tipo, versiones de cada lado y, si es texto,
+     * el contenido con marcadores <<<<<<< / ======= / >>>>>>>.
+     *
+     * @return list<array{path:string,kind:string,binary:bool,ours:?string,theirs:?string,marked:?string}>
+     */
+    public function conflictDetails(Collection $graph, int $oursHead, int $theirsHead, string $oursLabel, string $theirsLabel): array
+    {
+        $plan = $this->planMerge($graph, $oursHead, $theirsHead);
+        if (! $plan['conflicts']) {
+            return [];
+        }
+
+        $repositoryId = (int) Commit::whereKey($theirsHead)->value('repository_id');
+        $base = $this->tree($this->mergeBase($graph, $oursHead, $theirsHead));
+        $ours = $this->tree($oursHead);
+        $theirs = $this->tree($theirsHead);
+        $merger = new ThreeWayMerge;
+        $out = [];
+
+        foreach ($plan['conflicts'] as $path) {
+            $b = $base[$path] ?? null;
+            $o = $ours[$path] ?? null;
+            $t = $theirs[$path] ?? null;
+            $read = fn (?int $id) => $id ? $this->objects->read($repositoryId, $id) : null;
+            [$ob, $tb, $bb] = [$read($o), $read($t), $read($b)];
+            $binary = (bool) (($ob['binary'] ?? false) || ($tb['binary'] ?? false) || ($bb['binary'] ?? false));
+
+            $kind = match (true) {
+                $o === null => 'deleted_ours',
+                $t === null => 'deleted_theirs',
+                $b === null => 'added_both',
+                default => 'modified_both',
+            };
+
+            $marked = null;
+            if (! $binary && $o !== null && $t !== null) {
+                $eol = $this->eol($ob['content']);
+                $result = $merger->merge($this->lines($bb['content'] ?? ''), $this->lines($ob['content']), $this->lines($tb['content']));
+                $marked = implode($eol, $merger->withMarkers($result, $oursLabel, $theirsLabel)).$eol;
+            }
+
+            $out[] = [
+                'path' => $path,
+                'kind' => $kind,
+                'binary' => $binary,
+                'ours' => $binary ? null : ($ob['content'] ?? null),
+                'theirs' => $binary ? null : ($tb['content'] ?? null),
+                'marked' => $marked,
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Resuelve los conflictos de un PR: crea en la rama origen un commit de fusión con la rama destino
+     * usando lo que el usuario ha decidido para cada archivo en conflicto. Después el PR se puede fusionar.
+     *
+     * @param  array<string,array{content?:string,delete?:bool,side?:string}>  $resolutions  ruta → contenido final, borrar o versión de una rama (ours = origen, theirs = destino)
+     * @param  array{source_head?:int,target_head?:int}  $expected  cabezas que vio el usuario (si cambian → 409)
+     */
+    public function resolveConflicts(PullRequest $pr, ?User $author, array $resolutions, array $expected = []): Commit
+    {
+        return DB::transaction(function () use ($pr, $author, $resolutions, $expected) {
+            $source = Branch::whereKey($pr->source_branch_id)->lockForUpdate()->first();
+            $target = Branch::find($pr->target_branch_id);
+            abort_unless($source && $target && $source->head_commit_id && $target->head_commit_id, 422, 'Alguna de las ramas del Pull Request ya no existe o está vacía.');
+
+            if ((isset($expected['source_head']) && (int) $expected['source_head'] !== (int) $source->head_commit_id)
+                || (isset($expected['target_head']) && (int) $expected['target_head'] !== (int) $target->head_commit_id)) {
+                abort(409, 'Las ramas han cambiado mientras resolvías los conflictos. Vuelve a cargar la página.');
+            }
+
+            $graph = $this->graph($pr->repository_id);
+            $plan = $this->planMerge($graph, $source->head_commit_id, $target->head_commit_id);
+            abort_unless($plan['conflicts'], 422, 'Ya no hay conflictos: el Pull Request se puede fusionar.');
+
+            $missing = array_values(array_diff($plan['conflicts'], array_keys($resolutions)));
+            abort_if($missing, 422, 'Falta decidir qué hacer con: '.implode(', ', $missing).'.');
+
+            $tree = $this->materialize($pr->repository_id, $plan);
+            $sides = ['ours' => $this->tree($source->head_commit_id), 'theirs' => $this->tree($target->head_commit_id)];
+            $withMarkers = [];
+            foreach ($plan['conflicts'] as $path) {
+                $r = $resolutions[$path];
+                // Versión entera de una rama: ours = origen, theirs = destino (si allí no existe, se borra)
+                if (isset($r['side'], $sides[$r['side']])) {
+                    $blob = $sides[$r['side']][$path] ?? null;
+                    if ($blob === null) {
+                        unset($tree[$path]);
+                    } else {
+                        $tree[$path] = $blob;
+                    }
+
+                    continue;
+                }
+                if (! empty($r['delete'])) {
+                    unset($tree[$path]);
+
+                    continue;
+                }
+                $content = (string) ($r['content'] ?? '');
+                if (preg_match('/^(<{7} |={7}$|>{7} )/m', $content)) {
+                    $withMarkers[] = $path;
+                }
+                $tree[$path] = $this->objects->put($pr->repository_id, $content, $path)->id;
+            }
+            abort_if($withMarkers, 422, 'Aún quedan marcas de conflicto (<<<<<<<, =======, >>>>>>>) en: '.implode(', ', $withMarkers).'.');
+
+            $message = "Merge branch '{$target->name}' into {$source->name}\n\nConflictos resueltos: ".implode(', ', $plan['conflicts']);
+            $commit = $this->createCommit($pr->repository_id, [$source->head_commit_id, $target->head_commit_id], $tree, $author, $message);
+            $source->update(['head_commit_id' => $commit->id]);
+
+            return $commit;
+        });
+    }
+
+    /** Fusión por líneas de un archivo de texto; null si es binario o hay conflicto. */
+    private function mergeText(int $repositoryId, ?int $baseBlob, int $oursBlob, int $theirsBlob): ?string
+    {
+        $o = $this->objects->read($repositoryId, $oursBlob);
+        $t = $this->objects->read($repositoryId, $theirsBlob);
+        $b = $baseBlob ? $this->objects->read($repositoryId, $baseBlob) : ['content' => '', 'binary' => false];
+
+        if ($o['binary'] || $t['binary'] || $b['binary']) {
+            return null;
+        }
+
+        $merger = new ThreeWayMerge;
+        $lines = $merger->mergedLines($merger->merge($this->lines($b['content']), $this->lines($o['content']), $this->lines($t['content'])));
+        if ($lines === null) {
+            return null;
+        }
+
+        // Fin de línea y salto final: los del lado que los cambió (si ninguno, los de "ours")
+        $eol = $this->eol($o['content']);
+        $endsWith = fn (string $c) => $c !== '' && str_ends_with($c, "\n");
+        $final = $endsWith($o['content']) === $endsWith($b['content']) ? $endsWith($t['content']) : $endsWith($o['content']);
+
+        return $lines === [] ? '' : implode($eol, $lines).($final ? $eol : '');
+    }
+
+    private function eol(string $content): string
+    {
+        return str_contains($content, "\r\n") ? "\r\n" : "\n";
     }
 
     /** Fusiona un Pull Request creando un commit de fusión en la rama destino. */
@@ -681,7 +855,7 @@ class VcsService
             $commit = $this->createCommit(
                 $pr->repository_id,
                 array_values(array_filter([$t, $s])),
-                $plan['tree'],
+                $this->materialize($pr->repository_id, $plan),
                 $user,
                 $message
             );

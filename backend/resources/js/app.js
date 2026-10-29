@@ -8,3 +8,4 @@ import './one-time-code';
 import './password-strength';
 import './ai-review';
 import './onboarding';
+import './conflicts';

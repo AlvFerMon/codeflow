@@ -298,12 +298,17 @@ class PullRequestService
         $target = $pullRequest->targetBranch;
 
         if (! $pullRequest->isOpen() || ! $source?->head_commit_id || ! $target) {
-            return ['mergeable' => null, 'conflicts' => []];
+            return ['mergeable' => null, 'conflicts' => [], 'auto_merged' => []];
         }
 
         $plan = $this->vcs->planMerge($this->vcs->graph($pullRequest->repository_id), $target->head_commit_id, $source->head_commit_id);
 
-        return ['mergeable' => $plan['conflicts'] === [], 'conflicts' => $plan['conflicts']];
+        return [
+            'mergeable' => $plan['conflicts'] === [],
+            'conflicts' => $plan['conflicts'],
+            // Archivos tocados por las dos ramas pero en líneas distintas: se combinan solos al fusionar
+            'auto_merged' => array_keys($plan['merged'] ?? []),
+        ];
     }
 
     /** Estado derivado de la última revisión decisiva de cada revisor. */
@@ -353,5 +358,38 @@ class PullRequestService
         $repository = $pullRequest->repository;
 
         $this->notifications->notifyProject($repository->project, $actor, $event, $message, $pullRequest, $alert, repository: $repository);
+    }
+
+    /** Conflictos con detalle para resolverlos a mano (vacío si no hay). */
+    public function conflicts(PullRequest $pullRequest): array
+    {
+        $source = $pullRequest->sourceBranch;
+        $target = $pullRequest->targetBranch;
+        if (! $pullRequest->isOpen() || ! $source?->head_commit_id || ! $target?->head_commit_id) {
+            return [];
+        }
+
+        return $this->vcs->conflictDetails(
+            $this->vcs->graph($pullRequest->repository_id),
+            $source->head_commit_id, $target->head_commit_id,
+            $source->name.' (origen)', $target->name.' (destino)',
+        );
+    }
+
+    /** Resuelve los conflictos con un commit de fusión en la rama origen (ver VcsService::resolveConflicts). */
+    public function resolveConflicts(PullRequest $pullRequest, User $user, array $resolutions, array $expected = []): Commit
+    {
+        abort_unless($pullRequest->isOpen(), 422, 'El Pull Request no está abierto.');
+
+        $commit = $this->vcs->resolveConflicts($pullRequest, $user, $resolutions, $expected);
+        $repository = $pullRequest->repository;
+        $sha = substr($commit->sha, 0, 7);
+
+        Activity::log($repository->project, $user, 'commit.created', $commit, ['branch' => $pullRequest->source_branch_name, 'sha' => $sha]);
+        $pullRequest->touch();
+        $this->notify($pullRequest, $user, 'pull_request.updated',
+            "{$user->name} resolvió los conflictos del Pull Request #{$pullRequest->number} «{$pullRequest->title}»");
+
+        return $commit;
     }
 }

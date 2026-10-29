@@ -179,4 +179,40 @@ class PullRequestController extends Controller
             'activity' => fn ($q) => $q->with('user:id,name')->latest('id')->limit(50),
         ])->loadCount('comments');
     }
+
+    /** Conflictos con detalle (versiones de cada lado y texto con marcadores). */
+    public function conflicts(PullRequest $pullRequest): JsonResponse
+    {
+        Gate::authorize('push', $pullRequest->repository);
+
+        return response()->json([
+            'source_head' => $pullRequest->sourceBranch?->head_commit_id,
+            'target_head' => $pullRequest->targetBranch?->head_commit_id,
+            'files' => $this->pullRequests->conflicts($pullRequest),
+        ]);
+    }
+
+    /** Resuelve: files = [{path, action: edit|delete, content}] → commit de fusión en la rama origen. */
+    public function resolve(Request $request, PullRequest $pullRequest): JsonResponse
+    {
+        Gate::authorize('push', $pullRequest->repository);
+
+        $data = $request->validate([
+            'files' => 'required|array',
+            'files.*.path' => 'required|string',
+            'files.*.action' => 'required|in:edit,delete,ours,theirs',
+            'files.*.content' => 'nullable|string',
+            'files.*.eol' => 'nullable|in:lf,crlf',
+            'source_head' => 'nullable|integer',
+            'target_head' => 'nullable|integer',
+        ]);
+
+        $commit = $this->pullRequests->resolveConflicts(
+            $pullRequest, $request->user(),
+            \App\Http\Controllers\Web\Collab\PullRequestController::resolutions($data['files']),
+            array_filter(['source_head' => $data['source_head'] ?? null, 'target_head' => $data['target_head'] ?? null]),
+        );
+
+        return response()->json($commit->load('author:id,name'), 201);
+    }
 }
