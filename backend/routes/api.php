@@ -40,6 +40,9 @@ Route::middleware(['optional.sanctum', 'throttle:120,1'])->group(function () {
 
     Route::get('branches/{branch}/files', [FileController::class, 'index']);
     Route::get('branches/{branch}/file', [FileController::class, 'show']);
+    // CLI: manifiesto de la rama y descarga de varios archivos a la vez
+    Route::get('branches/{branch}/manifest', [FileController::class, 'manifest']);
+    Route::post('branches/{branch}/files/batch', [FileController::class, 'batch']);
 
     Route::get('repositories/{repository}/commits', [CommitController::class, 'index']);
     Route::get('branches/{branch}/commits', [CommitController::class, 'branchHistory']);

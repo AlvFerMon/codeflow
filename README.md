@@ -130,6 +130,18 @@ Se crean automáticamente (`CODEFLOW_SEED_DEMO=true`) con las contraseñas de `.
 
 Los repositorios **públicos** se pueden consultar sin iniciar sesión.
 
+## CLI (`codeflow` desde la terminal)
+
+`clone`, `status`, `commit`, `push`, `pull`, ramas… desde cmd o PowerShell, con un único ejecutable:
+
+```
+codeflow login https://codeflow-backend-wheat.vercel.app
+codeflow clone https://codeflow-backend-wheat.vercel.app/repositories/1
+codeflow commit -m "Arreglo el login"  &&  codeflow push
+```
+
+Instalación, comandos y funcionamiento: [cli/README.md](cli/README.md).
+
 ## Producción (servidor propio)
 
 CodeFlow se despliega en un PC con Windows y Docker Desktop, con HTTPS automático (Caddy + Let's Encrypt),

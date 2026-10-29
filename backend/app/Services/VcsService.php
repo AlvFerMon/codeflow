@@ -311,16 +311,22 @@ class VcsService
      * Crea un commit en una rama aplicando cambios.
      *
      * @param  array<int,array{path:string,content?:?string,delete?:bool}>  $changes
+     * @param  array{expected_head?:?int}  $options  expected_head: el commit sobre el que el cliente hizo sus
+     *                                               cambios (CLI). Si la rama ha avanzado desde entonces → 409.
      */
-    public function commit(Branch $branch, ?User $author, string $message, array $changes): Commit
+    public function commit(Branch $branch, ?User $author, string $message, array $changes, array $options = []): Commit
     {
         $maxFiles = (int) config('codeflow.limits.max_files_per_commit');
         if ($maxFiles > 0 && count($changes) > $maxFiles) {
             abort(422, "Un commit no puede incluir más de {$maxFiles} archivos.");
         }
 
-        return DB::transaction(function () use ($branch, $author, $message, $changes) {
+        return DB::transaction(function () use ($branch, $author, $message, $changes, $options) {
             $locked = Branch::whereKey($branch->id)->lockForUpdate()->firstOrFail();
+            if (array_key_exists('expected_head', $options)
+                && (int) ($options['expected_head'] ?? 0) !== (int) ($locked->head_commit_id ?? 0)) {
+                abort(409, "La rama {$locked->name} tiene cambios nuevos que no tienes. Haz pull antes de subir.");
+            }
             $oldTree = $this->tree($locked->head_commit_id);
             $tree = $oldTree;
 

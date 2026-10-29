@@ -44,15 +44,32 @@ class CommitController extends Controller
     {
         Gate::authorize('push', $branch->repository);
 
+        $maxBytes = (int) config('codeflow.limits.max_file_bytes');
         $data = $request->validate([
             'message' => 'required|string|max:500',
             'changes' => 'required|array|min:1|max:'.(int) config('codeflow.limits.max_files_per_commit'),
             'changes.*.path' => 'required|string|max:255',
-            'changes.*.content' => 'nullable|string|max:'.(int) config('codeflow.limits.max_file_bytes'),
+            // En base64 el texto ocupa ~4/3 del archivo; el tamaño real se comprueba al guardarlo
+            'changes.*.content' => 'nullable|string|max:'.(int) ceil($maxBytes * 4 / 3 + 8),
+            'changes.*.encoding' => 'nullable|in:utf8,base64',
             'changes.*.delete' => 'boolean',
+            // Commit sobre el que el cliente (CLI) hizo los cambios: si la rama ha avanzado → 409
+            'base_commit_id' => 'nullable|integer',
         ]);
 
-        $commit = $repositories->commitChanges($branch, $request->user(), $data['message'], $data['changes']);
+        $changes = array_map(function (array $change) {
+            if (($change['encoding'] ?? 'utf8') === 'base64' && isset($change['content'])) {
+                $decoded = base64_decode($change['content'], true);
+                abort_if($decoded === false, 422, "El contenido de {$change['path']} no es base64 válido.");
+                $change['content'] = $decoded;
+            }
+            unset($change['encoding']);
+
+            return $change;
+        }, $data['changes']);
+
+        $options = $request->exists('base_commit_id') ? ['expected_head' => $data['base_commit_id'] ?? null] : [];
+        $commit = $repositories->commitChanges($branch, $request->user(), $data['message'], $changes, $options);
 
         return response()->json($commit->load('author:id,name'), 201);
     }

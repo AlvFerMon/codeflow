@@ -172,12 +172,12 @@ class RepositoryService
      *
      * @param  array<int,array{path:string,content?:?string,delete?:bool}>  $changes
      */
-    public function commitChanges(Branch $branch, User $user, string $message, array $changes): Commit
+    public function commitChanges(Branch $branch, User $user, string $message, array $changes, array $options = []): Commit
     {
         $repository = $branch->repository;
         $project = $repository->project;
 
-        $commit = $this->vcs->commit($branch, $user, $message, $changes);
+        $commit = $this->vcs->commit($branch, $user, $message, $changes, $options);
 
         // El mensaje del commit se guarda cifrado: en la actividad solo rama y sha corto
         $sha = substr($commit->sha, 0, 7);
