@@ -40,7 +40,7 @@ class MemberPagesTest extends TestCase
 
         $this->assertSame('observer', $this->outsider->fresh()->roleIn($this->project));
         $this->as($this->outsider)->get(route('projects.show', $this->project))->assertOk();
-        $this->assertSame(1, $this->outsider->notifications()->where('data->event', 'member.added')->count());
+        $this->assertSame(1, $this->outsider->notifications()->get()->where('data.event', 'member.added')->count());
     }
 
     public function test_non_owners_cannot_manage_members(): void

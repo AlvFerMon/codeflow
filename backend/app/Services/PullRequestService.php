@@ -52,7 +52,10 @@ class PullRequestService
             ->pluck('id')->all();
 
         $pr = DB::transaction(function () use ($repository, $data, $source, $target, $user, $project, $reviewerIds, $issueIds) {
-            $number = (int) PullRequest::where('repository_id', $repository->id)->lockForUpdate()->max('number') + 1;
+            // Se bloquea la fila del repositorio (no el MAX: PostgreSQL no admite FOR UPDATE con agregados)
+            // para que dos peticiones a la vez no saquen el mismo número
+            Repository::whereKey($repository->id)->lockForUpdate()->first();
+            $number = (int) PullRequest::where('repository_id', $repository->id)->max('number') + 1;
 
             $pr = PullRequest::create([
                 'repository_id' => $repository->id,
