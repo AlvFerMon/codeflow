@@ -136,6 +136,9 @@ final class ActivityPresenter
             'branch.deleted' => 'eliminó la rama '.$this->code($p['name'] ?? '?')
                 .$this->inRepo(isset($p['repository_id']) ? Repository::find($p['repository_id']) : null),
 
+            'commit.reverted' => 'deshizo el commit '.$this->code($p['reverted'] ?? '?').' con '.$this->commitLink($subject, $p['sha'] ?? null)
+                .(! empty($p['branch']) ? ' en la rama '.$this->code($p['branch']) : '')
+                .$this->inRepo($subject?->repository ?? null),
             'commit.created' => 'subió el commit '.$this->commitLink($subject, $p['sha'] ?? null)
                 .(! empty($p['branch']) ? ' a la rama '.$this->code($p['branch']) : '')
                 .$this->inRepo($subject?->repository ?? null),

@@ -120,6 +120,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('repositories/{repository}/branches', [BranchController::class, 'store']);
     Route::delete('branches/{branch}', [BranchController::class, 'destroy']);
     Route::post('branches/{branch}/commits', [CommitController::class, 'store']);
+    Route::post('commits/{commit}/revert', [CommitController::class, 'revert'])->middleware('throttle:20,1');
 
     // Issues
     Route::post('repositories/{repository}/issues', [IssueController::class, 'store']);

@@ -365,6 +365,79 @@ class VcsService
     }
 
     /**
+     * Deshace un commit en una rama («revert»): crea un commit nuevo que devuelve cada archivo que tocó
+     * a como estaba antes de ese commit. Si alguno ha vuelto a cambiar después, no se toca nada (409)
+     * y se indica cuáles. En un commit de fusión se deshace respecto a su primer padre.
+     */
+    public function revert(Branch $branch, Commit $commit, ?User $author): Commit
+    {
+        abort_unless($commit->repository_id === $branch->repository_id, 404);
+
+        return DB::transaction(function () use ($branch, $commit, $author) {
+            $locked = Branch::whereKey($branch->id)->lockForUpdate()->firstOrFail();
+            abort_unless($locked->head_commit_id, 422, 'La rama no tiene commits.');
+
+            $graph = $this->graph($locked->repository_id);
+            abort_unless(
+                isset($this->ancestors($graph, $locked->head_commit_id)[$commit->id]),
+                422, "El commit no está en la rama {$locked->name}."
+            );
+
+            $before = $this->tree($commit->parent_id);
+            $after = $this->tree($commit->id);
+            $head = $this->tree($locked->head_commit_id);
+            $tree = $head;
+            $conflicts = [];
+
+            foreach (array_unique(array_merge(array_keys($before), array_keys($after))) as $path) {
+                $old = $before[$path] ?? null;
+                $new = $after[$path] ?? null;
+                if ($old === $new) {
+                    continue; // el commit no tocó este archivo
+                }
+                $current = $head[$path] ?? null;
+                if ($current === $old) {
+                    continue; // ya está como antes
+                }
+                if ($current !== $new) {
+                    $conflicts[] = $path; // ha vuelto a cambiar después: no se pisa
+                    continue;
+                }
+                if ($old === null) {
+                    unset($tree[$path]);
+                } else {
+                    $tree[$path] = $old;
+                }
+            }
+
+            if ($conflicts) {
+                sort($conflicts);
+                abort(409, 'No se puede deshacer automáticamente: estos archivos han cambiado después del commit: '.implode(', ', $conflicts).'.');
+            }
+            abort_if($tree == $head, 422, 'Los cambios de ese commit ya están deshechos en esta rama.');
+
+            $summary = \Illuminate\Support\Str::of((string) $commit->message)->before("\n")->limit(120);
+            $message = "Deshace «{$summary}»\n\nDeshace el commit ".substr($commit->sha, 0, 7).'.';
+
+            $revert = $this->createCommit($locked->repository_id, [$locked->head_commit_id], $tree, $author, $message);
+            $locked->update(['head_commit_id' => $revert->id]);
+            $branch->head_commit_id = $revert->id;
+
+            return $revert;
+        });
+    }
+
+    /** Ramas que contienen el commit (para ofrecer dónde deshacerlo). */
+    public function branchesContaining(Commit $commit): \Illuminate\Support\Collection
+    {
+        $graph = $this->graph($commit->repository_id);
+
+        return Branch::where('repository_id', $commit->repository_id)->whereNotNull('head_commit_id')->orderBy('name')->get()
+            ->filter(fn (Branch $b) => isset($this->ancestors($graph, $b->head_commit_id)[$commit->id]))
+            ->values();
+    }
+
+    /**
      * Diferencias entre dos commits, con recuento real de líneas (Myers).
      *
      * Cada elemento: path, status (added|deleted|modified), additions, deletions,

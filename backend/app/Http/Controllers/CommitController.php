@@ -82,4 +82,16 @@ class CommitController extends Controller
             'files' => $vcs->diff($commit->parent_id, $commit->id),
         ]));
     }
+
+    /** Deshace el commit en la rama indicada (branch_id) creando un commit nuevo. */
+    public function revert(Request $request, Commit $commit, RepositoryService $repositories): JsonResponse
+    {
+        $data = $request->validate(['branch_id' => 'required|integer']);
+        $branch = Branch::where('repository_id', $commit->repository_id)->findOrFail($data['branch_id']);
+        Gate::authorize('push', $branch->repository);
+
+        $revert = $repositories->revertCommit($branch, $commit, $request->user());
+
+        return response()->json($revert->load('author:id,name'), 201);
+    }
 }

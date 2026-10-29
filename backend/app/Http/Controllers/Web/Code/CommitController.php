@@ -99,16 +99,36 @@ class CommitController extends Controller
             ->values();
 
         $branchesAtCommit = $repository->branches()->where('head_commit_id', $commit->id)->orderBy('name')->pluck('name');
+        // Ramas donde se puede deshacer (las que contienen el commit), solo para quien puede subir cambios
+        $revertBranches = Gate::allows('push', $repository) ? $this->vcs->branchesContaining($commit)->pluck('name') : collect();
 
         return view('commits.show', [
             'repository' => $repository,
             'commit' => $commit,
             'parents' => $parents,
             'branchesAtCommit' => $branchesAtCommit,
+            'revertBranches' => $revertBranches,
             'files' => DiffSelection::merge(
                 $summary = $this->vcs->diff($commit->parent_id, $commit->id),
                 $this->vcs->diff($commit->parent_id, $commit->id, true, DiffSelection::eagerPaths($summary)),
             ),
         ]);
+    }
+
+    /** Deshace el commit en una rama (formulario de la página del commit). */
+    public function revert(Request $request, Repository $repository, string $sha, \App\Services\RepositoryService $repositories)
+    {
+        Gate::authorize('push', $repository);
+        $commit = $this->findCommit($repository, $sha);
+        $branch = $repository->branches()->where('name', (string) $request->input('branch'))->firstOrFail();
+
+        try {
+            $revert = $repositories->revertCommit($branch, $commit, $request->user());
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return redirect()->route('commits.show', [$repository, $revert->sha])
+            ->with('status', 'Hecho: este commit deshace '.substr($commit->sha, 0, 7)." en la rama {$branch->name}.");
     }
 }

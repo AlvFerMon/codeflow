@@ -19,6 +19,26 @@
                     <x-code-icon name="code" /> Ver el código en este commit
                 </x-button>
             </div>
+            @if ($revertBranches->isNotEmpty())
+                {{-- Deshacer: crea un commit nuevo que devuelve los archivos a como estaban (no borra historial) --}}
+                <details class="mt-3 text-sm">
+                    <summary class="cursor-pointer font-semibold text-zinc-700 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-white">Deshacer este commit…</summary>
+                    <form method="POST" action="{{ route('commits.revert', [$repository, $commit->sha]) }}" class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-end"
+                        data-confirm-title="Deshacer el commit" data-confirm-button="Deshacer"
+                        data-confirm="Se creará un commit nuevo que devuelve los archivos de este commit a como estaban antes. El historial no se borra.">
+                        @csrf
+                        <label class="text-xs font-medium text-zinc-600 dark:text-zinc-400">En la rama
+                            <select name="branch" class="mt-1 block rounded-md border border-zinc-300 bg-white px-2 py-1.5 font-mono text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                                @foreach ($revertBranches as $name)
+                                    <option value="{{ $name }}" @selected($name === $repository->default_branch)>{{ $name }}</option>
+                                @endforeach
+                            </select>
+                        </label>
+                        <x-button variant="secondary" size="sm">Deshacer con un commit nuevo</x-button>
+                    </form>
+                    <p class="mt-2 text-xs text-zinc-500 dark:text-zinc-400">Si algún archivo ha vuelto a cambiar después, no se toca nada y te diremos cuáles.</p>
+                </details>
+            @endif
             @if ($body !== '')
                 <div class="mt-3 whitespace-pre-wrap break-words text-sm text-zinc-700 dark:text-zinc-300">{{ $body }}</div>
             @endif

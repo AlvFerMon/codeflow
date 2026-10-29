@@ -31,4 +31,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::post('repositories/{repository}/branches', [BranchController::class, 'store'])->name('branches.store');
     Route::delete('branches/{branch}', [BranchController::class, 'destroy'])->name('branches.destroy');
+    Route::post('repositories/{repository}/commits/{sha}/revert', [CommitController::class, 'revert'])->middleware('throttle:20,1')->name('commits.revert');
 });

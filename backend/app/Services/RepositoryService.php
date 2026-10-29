@@ -197,4 +197,23 @@ class RepositoryService
 
         return $commit;
     }
+
+    /** Deshace un commit en una rama con un commit nuevo (ver VcsService::revert). */
+    public function revertCommit(Branch $branch, Commit $commit, User $user): Commit
+    {
+        $repository = $branch->repository;
+        $revert = $this->vcs->revert($branch, $commit, $user);
+
+        $sha = substr($revert->sha, 0, 7);
+        Activity::log($repository->project, $user, 'commit.reverted', $revert, [
+            'branch' => $branch->name, 'sha' => $sha, 'reverted' => substr($commit->sha, 0, 7),
+        ]);
+        $this->notifications->notifyProject(
+            $repository->project, $user, 'commit.created',
+            "{$user->name} deshizo el commit ".substr($commit->sha, 0, 7)." en la rama {$branch->name} del repositorio {$repository->name} ({$sha})",
+            $revert, repository: $repository,
+        );
+
+        return $revert;
+    }
 }
