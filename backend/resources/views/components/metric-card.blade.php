@@ -8,22 +8,22 @@
 ])
 @php
     $accentBorder = match ($accent) {
-        'green', 'emerald', 'teal' => 'hover:border-[#2EC4B6]/50',
-        'purple', 'amethyst' => 'hover:border-[#9448BC]/50',
-        'amber', 'chartreuse', 'yellow' => 'hover:border-[#CAFE48]/60',
-        'fuchsia', 'hot-fuchsia', 'rose', 'pink' => 'hover:border-[#FF3366]/50',
-        default => 'hover:border-[#2EC4B6]/50',
+        'green', 'emerald', 'teal' => 'hover:border-emerald-500',
+        'purple', 'amethyst' => 'hover:border-purple-500',
+        'amber', 'chartreuse', 'yellow' => 'hover:border-[#9BC22E]',
+        'fuchsia', 'hot-fuchsia', 'rose', 'pink' => 'hover:border-rose-500',
+        default => 'hover:border-emerald-500',
     };
     $iconBg = match ($accent) {
         'green', 'emerald', 'teal' => 'bg-[#2EC4B6]/15 text-[#0E8377] dark:bg-[#2EC4B6]/20 dark:text-[#4DE3D6]',
         'purple', 'amethyst' => 'bg-[#9448BC]/15 text-[#9448BC] dark:bg-[#9448BC]/25 dark:text-[#C687EB]',
         'amber', 'chartreuse', 'yellow' => 'bg-[#CAFE48]/20 text-[#486000] dark:bg-[#CAFE48]/25 dark:text-[#CAFE48]',
-        'fuchsia', 'hot-fuchsia', 'rose', 'pink' => 'bg-[#FF3366]/15 text-[#FF3366] dark:bg-[#FF3366]/25 dark:text-[#FF4D79]',
+        'fuchsia', 'hot-fuchsia', 'rose', 'pink' => 'bg-[#FF3366]/15 text-rose-600 dark:bg-[#FF3366]/25 dark:text-[#FF4D79]',
         default => 'bg-[#2EC4B6]/15 text-[#0E8377] dark:bg-[#2EC4B6]/20 dark:text-[#4DE3D6]',
     };
     $tag = $href ? 'a' : 'div';
 @endphp
-<{{ $tag }} @if ($href) href="{{ $href }}" @endif {{ $attributes->merge(['class' => "group relative block overflow-hidden rounded-xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 {$accentBorder}"]) }}>
+<{{ $tag }} @if ($href) href="{{ $href }}" @endif {{ $attributes->merge(['class' => "group relative block overflow-hidden ficha rounded-lg p-5 transition-colors duration-200 {$accentBorder}"]) }}>
     <div class="flex items-center justify-between">
         <p class="text-xs font-medium uppercase tracking-wider text-zinc-500 dark:text-zinc-400">{{ $title }}</p>
         @isset($icon)

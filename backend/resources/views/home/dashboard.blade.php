@@ -1,122 +1,163 @@
 <x-app-layout title="Inicio">
     @php
-        $linkClass = 'text-sm font-semibold text-zinc-900 transition-colors hover:text-purple-600 dark:text-white dark:hover:text-purple-400';
+        $firstName = \Illuminate\Support\Str::of(auth()->user()->name)->before(' ')->limit(24);
+        // Fecha del sello: como el tampón de la biblioteca, corta y en mayúsculas
+        $stampDate = function ($date) {
+            if (! $date) {
+                return '—';
+            }
+            if ($date->isToday()) {
+                return 'Hoy '.$date->format('H:i');
+            }
+            if ($date->isYesterday()) {
+                return 'Ayer '.$date->format('H:i');
+            }
+
+            return $date->translatedFormat('j M');
+        };
+        $plural = fn (int $n, string $one, string $many) => $n.' '.($n === 1 ? $one : $many);
     @endphp
 
-    <div class="space-y-8">
-        {{-- Cabecera --}}
-        <div class="flex flex-col justify-between gap-4 border-b border-zinc-200/80 pb-6 md:flex-row md:items-center dark:border-zinc-800">
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="text-2xl font-bold tracking-tight text-zinc-950 dark:text-white">Flujo de trabajo</h1>
-                    <x-badge variant="purple" size="xs">Hola, {{ \Illuminate\Support\Str::limit(auth()->user()->name, 24) }}</x-badge>
-                </div>
-                <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">Tus repositorios, pull requests e issues de un vistazo.</p>
-            </div>
-            <div class="flex flex-wrap items-center gap-2.5">
-                <x-button variant="secondary" size="sm" :href="route('projects.index')">
-                    <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"/></svg>
-                    <span>Mis proyectos</span>
-                </x-button>
-                @unless (\App\Http\Controllers\Web\Mobile\MobileController::isPhone(request()))
-                <x-button variant="secondary" size="sm" :href="route('explore')">
-                    <svg class="h-3.5 w-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
-                    <span>Explorar</span>
-                </x-button>
-                @endunless
-                @can('create', \App\Models\Project::class)
-                    <x-button size="sm" :href="route('projects.create')">
-                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-                        <span>Nuevo proyecto</span>
-                    </x-button>
-                @endcan
-            </div>
-        </div>
-
-        {{-- Métricas --}}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <x-metric-card title="Repositorios" :value="$stats['repositories']" :change="$projectsTotal.' '.($projectsTotal === 1 ? 'proyecto' : 'proyectos')" accent="teal" :href="route('projects.index')">
-                <x-slot:icon>
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg>
-                </x-slot:icon>
-                <x-slot:footer>
-                    <span class="font-medium text-[#0E8377] dark:text-[#4DE3D6]">● {{ $stats['public'] }} {{ $stats['public'] === 1 ? 'público' : 'públicos' }}</span> · {{ $stats['private'] }} {{ $stats['private'] === 1 ? 'privado' : 'privados' }}
-                </x-slot:footer>
-            </x-metric-card>
-
-            <x-metric-card title="Pull requests" :value="$stats['pulls']" change="abiertas" accent="fuchsia">
-                <x-slot:icon>
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
-                </x-slot:icon>
-                <x-slot:footer>{{ $stats['pulls_approved'] }} {{ $stats['pulls_approved'] === 1 ? 'lista' : 'listas' }} para fusionar · {{ $stats['pulls_to_review'] }} esperan tu revisión</x-slot:footer>
-            </x-metric-card>
-
-            <x-metric-card title="Issues abiertas" :value="$stats['issues']" :change="$stats['issues_urgent'].' de prioridad alta'" accent="chartreuse">
-                <x-slot:icon>
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"/></svg>
-                </x-slot:icon>
-                <x-slot:footer>{{ $stats['issues_resolved_week'] }} resueltas o cerradas en los últimos 7 días</x-slot:footer>
-            </x-metric-card>
-
-            <x-metric-card title="Commits" :value="$stats['commits_week']" change="últimos 7 días" accent="amethyst">
-                <x-slot:icon>
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="3.25"/><path stroke-linecap="round" d="M2.25 12h6.5m6.5 0h6.5"/></svg>
-                </x-slot:icon>
-                <x-slot:footer><span class="font-mono text-[#9448BC] dark:text-[#C687EB]">{{ $stats['commits_today'] }} hoy</span> · motor VcsService</x-slot:footer>
-            </x-metric-card>
-        </div>
-
-        {{-- Repositorios recientes --}}
-        <section id="repositorios" class="rounded-xl border border-zinc-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div class="flex flex-col justify-between gap-3 border-b border-zinc-100 pb-5 sm:flex-row sm:items-center dark:border-zinc-800">
+    {{-- En móvil: saludo, «Te toca» y después las fichas; en escritorio «Te toca» va en su columna --}}
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_23.75rem] lg:gap-x-10">
+            <div class="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between lg:col-start-1 lg:row-start-1">
                 <div>
-                    <h2 class="text-base font-semibold text-zinc-900 dark:text-white">Repositorios recientes</h2>
-                    <p class="text-xs text-zinc-500 dark:text-zinc-400">Ordenados por su último commit</p>
-                </div>
-                <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300">Ver proyectos ({{ $projectsTotal }}) →</a>
-            </div>
-            @forelse ($repositories as $repository)
-                <div @class(['-mx-2 flex flex-col justify-between gap-3 rounded-lg px-2 py-4 transition-colors hover:bg-zinc-50/50 sm:flex-row sm:items-center dark:hover:bg-zinc-800/20', 'border-t border-zinc-100 dark:border-zinc-800' => ! $loop->first])>
-                    <div class="min-w-0 space-y-1.5">
-                        <div class="flex flex-wrap items-center gap-2">
-                            <a href="{{ route('repositories.show', $repository) }}" class="{{ $linkClass }} break-all">
-                                {{ $repository->project?->name }} / {{ $repository->name }}
-                            </a>
-                            @if ($repository->isPublic())
-                                <x-badge variant="success" size="xs">Público</x-badge>
-                            @else
-                                <x-badge size="xs">Privado</x-badge>
-                            @endif
-                            <x-badge variant="purple" size="xs">
-                                <x-code-icon name="branch" class="h-3 w-3" /> {{ $repository->default_branch }}
-                            </x-badge>
-                        </div>
-                        @if ($repository->description)
-                            <p class="line-clamp-2 text-xs text-zinc-500 dark:text-zinc-400">{{ $repository->description }}</p>
+                    <h1 class="text-3xl font-extrabold tracking-tight text-zinc-950 dark:text-white">Hola, {{ $firstName }}</h1>
+                    <p class="mt-2 max-w-2xl text-base text-zinc-600 dark:text-zinc-400" data-tour="resumen">
+                        En tus proyectos hay
+                        <a href="{{ route('projects.index') }}" class="font-bold text-zinc-950 underline decoration-zinc-300 hover:decoration-purple-500 dark:text-white dark:decoration-zinc-600">{{ $plural($stats['repositories'], 'repositorio', 'repositorios') }}</a>,
+                        <strong class="text-zinc-950 dark:text-white">{{ $plural($stats['pulls'], 'pull request abierta', 'pull requests abiertas') }}</strong>
+                        y <strong class="text-zinc-950 dark:text-white">{{ $plural($stats['issues'], 'issue abierta', 'issues abiertas') }}</strong>.
+                        @if ($stats['commits_today'] > 0)
+                            Hoy se han sellado <strong class="text-zinc-950 dark:text-white">{{ $plural($stats['commits_today'], 'cambio', 'cambios') }}</strong>.
+                        @else
+                            Hoy todavía no hay cambios.
                         @endif
-                        <p class="pt-1 text-xs text-zinc-500 dark:text-zinc-400">
-                            @if ($repository->last_commit_sha)
-                                Último commit:
-                                <a href="{{ route('commits.show', [$repository, $repository->last_commit_sha]) }}" class="font-mono text-zinc-700 hover:text-purple-600 dark:text-zinc-300 dark:hover:text-purple-400">{{ substr($repository->last_commit_sha, 0, 7) }}</a>
-                                <time datetime="{{ $repository->last_commit_at?->toIso8601String() }}" title="{{ $repository->last_commit_at?->format('d/m/Y H:i') }}">{{ $repository->last_commit_at?->diffForHumans() }}</time>
-                            @else
-                                Sin commits todavía
-                            @endif
-                        </p>
-                    </div>
-                    <div class="shrink-0">
-                        <x-button variant="secondary" size="sm" :href="route('repositories.show', $repository)">Explorar</x-button>
-                    </div>
+                    </p>
                 </div>
-            @empty
-                <x-empty :title="$projectsTotal === 0 ? 'Todavía no participas en ningún proyecto' : 'Todavía no hay repositorios en tus proyectos'">
-                    @if ($projectsTotal === 0)
-                        Crea un proyecto desde el menú «Mis proyectos» o pide al propietario de uno que te dé acceso.
+                <div class="flex shrink-0 flex-wrap gap-2">
+                    <x-button variant="secondary" size="sm" :href="route('projects.index')">Mis proyectos</x-button>
+                    @unless (\App\Http\Controllers\Web\Mobile\MobileController::isPhone(request()))
+                        <x-button variant="secondary" size="sm" :href="route('explore')">Explorar</x-button>
+                    @endunless
+                </div>
+            </div>
+
+            {{-- Lo que te toca hacer --}}
+            <aside class="ficha min-w-0 self-start rounded-lg p-5 lg:col-start-2 lg:row-span-2 lg:row-start-1" aria-labelledby="te-toca" data-tour="te-toca">
+                <h2 id="te-toca" class="border-b border-zinc-300 pb-2 text-sm font-extrabold uppercase tracking-wider text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">Te toca</h2>
+                <ul>
+                    @foreach ($todo as $item)
+                        @php
+                            $model = $item['model'];
+                            $href = $item['kind'] === 'pr' ? route('pulls.show', [$model->repository, $model->number]) : route('issues.show', [$model->repository, $model->number]);
+                        @endphp
+                        <li class="border-b border-zinc-200 dark:border-zinc-800">
+                            <a href="{{ $href }}" class="group grid grid-cols-[2.5rem_minmax(0,1fr)] gap-3 py-3.5">
+                                <span @class(['sello-estado', 'sello-hecho' => $item['state'] === 'done'])>
+                                    <x-collab-status-icon :type="$item['kind'] === 'pr' ? 'pull' : 'issue'" :status="$model->status" class="h-4 w-4 text-current!" />
+                                    <span class="sr-only">{{ $item['kind'] === 'pr' ? 'Pull request' : 'Issue' }}</span>
+                                </span>
+                                <span class="min-w-0">
+                                    <span class="block truncate font-bold text-zinc-900 group-hover:text-purple-600 dark:text-zinc-100 dark:group-hover:text-purple-300"><span class="font-mono text-zinc-500 dark:text-zinc-400">#{{ $model->number }}</span> {{ $model->title }}</span>
+                                    <span class="block truncate text-sm text-zinc-600 dark:text-zinc-400">{{ $item['note'] }} · {{ $model->repository?->name }}</span>
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+                <p class="pt-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    @if ($todo->isEmpty())
+                        No tienes nada pendiente. Cuando alguien te pida revisar una pull request o te asigne una issue, aparecerá aquí.
                     @else
-                        Abre uno de tus proyectos y crea su primer repositorio.
+                        Aquí aparecen las revisiones que te piden, tus issues y lo urgente de tus proyectos.
                     @endif
-                </x-empty>
-            @endforelse
-        </section>
+                </p>
+            </aside>
+
+            <div class="min-w-0 space-y-5 lg:col-start-1 lg:row-start-2">
+                @forelse ($repositories as $repository)
+                    @php
+                        $commits = $stamps->get($repository->id, collect());
+                    @endphp
+                    <article class="ficha grid rounded-lg md:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]" @if ($loop->first) data-tour="ficha-repositorio" @endif>
+                        <div class="min-w-0 p-5">
+                            <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                <h2 class="min-w-0 text-lg font-extrabold leading-tight text-zinc-950 dark:text-white">
+                                    <a href="{{ route('repositories.show', $repository) }}" class="break-words hover:text-purple-600 dark:hover:text-purple-300">
+                                        <span class="font-semibold text-zinc-500 dark:text-zinc-400">{{ $repository->project?->name }} /</span> {{ $repository->name }}
+                                    </a>
+                                </h2>
+                                @if ($repository->isPublic())
+                                    <x-badge variant="success" size="xs">Público</x-badge>
+                                @else
+                                    <x-badge variant="purple" size="xs">Privado</x-badge>
+                                @endif
+                            </div>
+                            @if ($repository->description)
+                                <p class="mt-1.5 line-clamp-2 text-sm text-zinc-600 dark:text-zinc-400">{{ $repository->description }}</p>
+                            @endif
+                            <dl class="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+                                <div class="flex items-center gap-1.5">
+                                    <dt class="sr-only">Rama principal</dt>
+                                    <x-code-icon name="branch" class="h-4 w-4 text-zinc-400" />
+                                    <dd class="font-bold text-zinc-800 dark:text-zinc-200">{{ $repository->default_branch }}</dd>
+                                </div>
+                                @if ($repository->last_commit_sha)
+                                    <div class="flex items-center gap-1.5">
+                                        <dt class="sr-only">Último commit</dt>
+                                        <x-code-icon name="commit" class="h-4 w-4 text-zinc-400" />
+                                        <dd><a href="{{ route('commits.show', [$repository, $repository->last_commit_sha]) }}" class="font-mono text-zinc-800 hover:text-purple-600 dark:text-zinc-200 dark:hover:text-purple-300">{{ substr($repository->last_commit_sha, 0, 7) }}</a></dd>
+                                    </div>
+                                @endif
+                            </dl>
+                            <div class="mt-5 flex flex-wrap gap-2">
+                                <x-button variant="secondary" size="sm" :href="route('repositories.show', $repository)">Abrir el código</x-button>
+                                <x-button variant="ghost" size="sm" :href="route('commits.index', $repository)">Ver todos los cambios</x-button>
+                            </div>
+                        </div>
+
+                        {{-- Columna rayada de sellos: quién cambió qué y cuándo --}}
+                        <div @if ($loop->first) data-tour="sellos" @endif class="rayado min-w-0 border-t border-zinc-300 md:border-l md:border-t-0 dark:border-zinc-800">
+                            <div class="grid h-9 grid-cols-[minmax(0,1fr)_auto] items-end gap-3 px-4 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                                <span>Cambio · quién</span><span>Sellado</span>
+                            </div>
+                            @forelse ($commits as $commit)
+                                <a href="{{ route('commits.show', [$repository, $commit->sha]) }}"
+                                   class="group grid h-9 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 text-sm hover:bg-purple-50/60 dark:hover:bg-purple-950/30"
+                                   title="{{ $commit->author?->name ?? 'Autor desconocido' }} · {{ $commit->created_at->format('d/m/Y H:i') }}">
+                                    <span class="flex min-w-0 gap-1">
+                                        <span class="truncate text-zinc-800 group-hover:text-zinc-950 dark:text-zinc-300 dark:group-hover:text-white">{{ \Illuminate\Support\Str::of($commit->message)->before("\n") }}</span>
+                                        {{-- Quién: fuera del recorte para que no desaparezca con mensajes largos --}}
+                                        <span class="shrink-0 text-zinc-500 dark:text-zinc-400">· {{ \Illuminate\Support\Str::of($commit->author?->name ?? 'Usuario eliminado')->before(' ') }}</span>
+                                    </span>
+                                    <time datetime="{{ $commit->created_at->toIso8601String() }}" @class(['sello sello-entra', 'sello-nuevo' => $loop->first && $commit->created_at->isToday()]) style="animation-delay: {{ $loop->index * 70 }}ms">{{ $stampDate($commit->created_at) }}</time>
+                                </a>
+                            @empty
+                                <p class="flex h-9 items-center px-4 text-sm text-zinc-500 dark:text-zinc-400">Sin cambios todavía: sube el primer archivo.</p>
+                            @endforelse
+                        </div>
+                    </article>
+                @empty
+                    <div class="ficha rounded-lg" data-tour="ficha-repositorio">
+                        <x-empty :title="$projectsTotal === 0 ? 'Todavía no participas en ningún proyecto' : 'Todavía no hay repositorios en tus proyectos'"
+                                 :action="$projectsTotal === 0 ? 'Crear un proyecto' : null" :href="$projectsTotal === 0 ? route('projects.create') : null">
+                            @if ($projectsTotal === 0)
+                                Crea un proyecto o pide a quien tenga uno que te invite. Cuando haya cambios, aparecerán aquí sellados con su fecha.
+                            @else
+                                Abre uno de tus proyectos y crea su primer repositorio.
+                            @endif
+                        </x-empty>
+                    </div>
+                @endforelse
+
+                @if ($projectsTotal > 0 && $repositories->isNotEmpty())
+                    <a href="{{ route('projects.index') }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-purple-600 hover:text-purple-700 dark:text-purple-300 dark:hover:text-purple-200">
+                        {{ $projectsTotal === 1 ? 'Ver tu proyecto' : 'Ver tus '.$projectsTotal.' proyectos' }}
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                    </a>
+                @endif
+            </div>
+
     </div>
 </x-app-layout>

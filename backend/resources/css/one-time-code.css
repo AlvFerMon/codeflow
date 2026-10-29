@@ -40,10 +40,10 @@
 /* ── 3. OTP Component & 5 Design Tokens ────────────────────────────────────── */
 .otp {
   /* 5 Design Tokens locales mapeados a Zinc */
-  --card:      var(--color-zinc-100, #f4f4f5);   /* Superficie base de tarjeta   */
-  --fill-slab: var(--color-zinc-100, #f4f4f5);   /* Relleno de celda inactiva    */
-  --fill-on:   var(--color-zinc-900, #18181b);   /* Relleno activo / cursor      */
-  --ink:       var(--color-zinc-900, #18181b);   /* Color tipográfico del dígito */
+  --card:      var(--color-zinc-100, #EEF0FB);   /* Superficie base de tarjeta   */
+  --fill-slab: var(--color-zinc-100, #EEF0FB);   /* Relleno de celda inactiva    */
+  --fill-on:   var(--color-zinc-900, #101323);   /* Relleno activo / cursor      */
+  --ink:       var(--color-zinc-900, #101323);   /* Color tipográfico del dígito */
   --font-ui:   var(--font-sans, system-ui);      /* Tipografía de la interfaz    */
 
   /* Tokens de feedback de error */
@@ -77,10 +77,10 @@
 
 /* ── Dark Mode Token Overrides ─────────────────────────────────────────────── */
 :where(.dark, .dark *) .otp {
-  --card:      var(--color-zinc-800, #27272a);
-  --fill-slab: var(--color-zinc-800, #27272a);
-  --fill-on:   var(--color-zinc-100, #f4f4f5);
-  --ink:       var(--color-zinc-100, #f4f4f5);
+  --card:      var(--color-zinc-800, #232842);
+  --fill-slab: var(--color-zinc-800, #232842);
+  --fill-on:   var(--color-zinc-100, #EEF0FB);
+  --ink:       var(--color-zinc-100, #EEF0FB);
 }
 
 /* ── 4. Input Nativo Invisible (Accesibilidad y Teclados Móviles) ─────────── */
@@ -128,7 +128,7 @@
   z-index: 1;
   border-radius: var(--slot-radius);
   background: var(--fill-slab);
-  border: 1.5px solid rgba(var(--ink-rgb, 24, 24, 27), 0.08);
+  border: 1.5px solid rgba(var(--ink-rgb, 16, 19, 35), 0.08);
   transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
   box-sizing: border-box;
 }
@@ -249,13 +249,13 @@
 
 /* ── 7b. Estado de Éxito / Validación Completa (data-phase="ok") ──────────── */
 .otp[data-phase="ok"] .otp-char {
-  color: #10b981; /* emerald-500 */
+  color: #0E7A70; /* emerald-500 */
 }
 
 .otp[data-phase="ok"] .otp-slab {
-  border-color: #10b981 !important;
-  background-color: rgba(16, 185, 129, 0.12);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  border-color: #0E7A70 !important;
+  background-color: rgba(46, 196, 182, 0.12);
+  box-shadow: 0 0 0 2px rgba(46, 196, 182, 0.25);
 }
 
 @keyframes otp-success-pulse {

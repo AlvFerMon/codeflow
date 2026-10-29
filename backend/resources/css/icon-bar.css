@@ -41,13 +41,13 @@
     0 2px 8px     rgba(var(--shadow-rgb), var(--g-lift, 0));
 
   /* ── Ink (text / icon colour) ────────────────────────────────────────────── */
-  --ink:     #18181b;         /* zinc-900 in light mode                         */
-  --ink-rgb: 24, 24, 27;      /* same as above, split for rgba() use            */
+  --ink:     #101323;         /* zinc-900 in light mode                         */
+  --ink-rgb: 16, 19, 35;      /* same as above, split for rgba() use            */
 
   /* ── Pane (bar surface) ─────────────────────────────────────────────────── */
   --pane:       rgba(255, 255, 255, 0.75); /* white frosted glass               */
-  --pane-edge:  rgba(228, 228, 231, 0.8);  /* zinc-200 @ 80%                    */
-  --pane-thumb: rgba(244, 244, 245, 1);    /* zinc-100 solid — the indicator bg  */
+  --pane-edge:  rgba(196, 201, 224, 0.8);  /* zinc-200 @ 80%                    */
+  --pane-thumb: rgba(238, 240, 251, 1);    /* zinc-100 solid — the indicator bg  */
 }
 
 /* ── Dark-mode token overrides ─────────────────────────────────────────────── */
@@ -58,12 +58,12 @@
   --g-lift:     0.25;   /* stronger shadow in dark so the bar lifts off the bg  */
   --g-spec:     0.04;
 
-  --ink:     #f4f4f5;         /* zinc-100 in dark mode                          */
-  --ink-rgb: 244, 244, 245;
+  --ink:     #EEF0FB;         /* zinc-100 in dark mode                          */
+  --ink-rgb: 238, 240, 251;
 
-  --pane:       rgba(24, 24, 27, 0.75); /* zinc-900 @ 75%                        */
-  --pane-edge:  rgba(39, 39, 42, 1);    /* zinc-800                               */
-  --pane-thumb: rgba(39, 39, 42, 1);    /* zinc-800 — indicator background        */
+  --pane:       rgba(16, 19, 35, 0.75); /* zinc-900 @ 75%                        */
+  --pane-edge:  rgba(35, 40, 66, 1);    /* zinc-800                               */
+  --pane-thumb: rgba(35, 40, 66, 1);    /* zinc-800 — indicator background        */
 }
 
 /* =============================================================================

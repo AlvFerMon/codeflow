@@ -42,10 +42,10 @@
     $navIdle   = 'font-medium text-zinc-600 hover:bg-zinc-100/80 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100';
     $menuItem  = 'flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-zinc-700 hover:bg-zinc-50 dark:text-zinc-300 dark:hover:bg-zinc-800';
 @endphp
-<body class="flex min-h-full flex-col bg-[#F2F4FF] font-sans text-zinc-900 antialiased selection:bg-[#FF3366] selection:text-white dark:bg-[#000501] dark:text-zinc-100{{ $verified ? ' has-mobile-nav' : '' }}">
+<body class="flex min-h-full flex-col bg-[#F2F4FF] font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100{{ $verified ? ' has-mobile-nav' : '' }}">
     <a href="#contenido" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-white focus:px-3 focus:py-2 focus:text-sm focus:shadow-lg dark:focus:bg-zinc-900">Saltar al contenido</a>
 
-    <header class="sticky top-0 z-40 w-full border-b border-zinc-200/80 bg-white/85 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/85">
+    <header class="sticky top-0 z-40 w-full border-b border-zinc-300 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between gap-3">
                 <div class="flex items-center gap-6">
@@ -84,7 +84,7 @@
                 <div class="flex items-center gap-2 sm:gap-3">
                     {{-- Buscador elástico Bencho "Search / Seek" (Ctrl/⌘ + K) --}}
                     @unless ($isPhone)
-                    <div class="hidden sm:block">
+                    <div class="hidden sm:block" data-tour="buscar">
                         <x-search-seek :value="request()->routeIs('explore') ? request('q') : ''" placeholder="Buscar repositorios…" />
                     </div>
                     @endunless
@@ -92,13 +92,13 @@
                     @auth
                         @if ($verified)
                         @can('create', \App\Models\Project::class)
-                            <span class="hidden sm:inline"><x-button variant="purple" size="sm" :href="route('projects.create')" title="Crear un proyecto nuevo">
+                            <span class="hidden sm:inline"><x-button variant="purple" size="sm" :href="route('projects.create')" title="Crear un proyecto nuevo" data-tour="nuevo-proyecto">
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                                 <span>Nuevo</span>
                             </x-button></span>
                         @endcan
 
-                        <a href="{{ route('notifications.index') }}" class="relative rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        <a href="{{ route('notifications.index') }}" data-tour="avisos" class="relative rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                             title="{{ $unread > 0 ? $unread.' notificaciones sin leer' : 'Notificaciones' }}">
                             <span class="sr-only">Notificaciones{{ $unread > 0 ? ' ('.$unread.' sin leer)' : '' }}</span>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
@@ -109,7 +109,7 @@
                         @endif
 
                         <details class="relative border-l border-zinc-200 pl-1 dark:border-zinc-800" data-dropdown>
-                            <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Menú de usuario">
+                            <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Menú de usuario" data-tour="menu-usuario">
                                 <x-user-avatar :user="$user" />
                                 <span class="hidden text-xs font-semibold text-zinc-800 lg:block dark:text-zinc-200">{{ $user->name }}</span>
                                 @if ($user->isAdmin())
@@ -151,7 +151,7 @@
         {{ $slot }}
     </main>
 
-    <footer class="mt-16 border-t border-zinc-200/80 bg-white py-8 text-xs text-zinc-500 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-400">
+    <footer class="mt-16 border-t border-zinc-300 bg-white py-8 text-xs text-zinc-500 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-400">
         <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
             <div class="flex items-center gap-3">
                 <span class="inline-flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
