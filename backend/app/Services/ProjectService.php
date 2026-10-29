@@ -44,9 +44,9 @@ class ProjectService
         return $project;
     }
 
-    /** Elimina el proyecto con todo su contenido (repositorios, issues, PRs, actividad). */
+    /** Mueve el proyecto (con sus repositorios) a la papelera; se borra del todo a los 30 días. */
     public function delete(Project $project, User $user): void
     {
-        $project->delete();
+        app(TrashService::class)->trashProject($project, $user);
     }
 }

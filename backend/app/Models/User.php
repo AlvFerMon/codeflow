@@ -19,7 +19,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     protected $fillable = ['name', 'email', 'password'];
 
-    protected $hidden = ['password', 'remember_token', 'email_verification_code', 'email_verification_expires_at', 'email_verification_attempts'];
+    protected $hidden = ['password', 'remember_token', 'email_verification_code', 'email_verification_expires_at', 'email_verification_attempts', 'onboarding', 'preferences'];
 
     /** Caché por instancia (y, por tanto, por petición) del rol en cada proyecto. */
     private array $projectRoles = [];
@@ -33,6 +33,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_active' => 'boolean',
+            'onboarding' => 'array',
+            'preferences' => 'array',
         ];
     }
 

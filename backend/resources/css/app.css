@@ -16,6 +16,10 @@
 @import './one-time-code.css' layer(components);
 /* UI Arc Password Strength — medidor y reglas de fortaleza */
 @import './password-strength.css' layer(components);
+/* Tutorial de bienvenida (visita guiada) */
+@import './onboarding.css' layer(components);
+/* Preferencias de accesibilidad de la cuenta (tamaño de letra, contraste…) */
+@import './preferences.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';

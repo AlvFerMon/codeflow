@@ -70,11 +70,31 @@
                 <x-card title="Añadir miembro">
                     <form method="POST" action="{{ route('members.store', $project) }}" class="space-y-4 p-4">
                         @csrf
-                        <x-input label="Correo del usuario" name="email" type="email" required placeholder="usuario@ejemplo.com" help="Debe tener ya una cuenta en CodeFlow." />
+                        <x-input label="Correo" name="email" type="email" required placeholder="usuario@ejemplo.com" help="Si aún no tiene cuenta, le enviaremos una invitación por correo." />
                         <x-select label="Rol" name="role" :options="$roleOptions" value="collaborator" />
-                        <x-button class="w-full">Añadir al proyecto</x-button>
+                        <x-button class="w-full">Añadir o invitar</x-button>
                     </form>
                 </x-card>
+
+                @if ($invitations->isNotEmpty())
+                    <x-card title="Invitaciones pendientes" class="mt-6">
+                        <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            @foreach ($invitations as $invitation)
+                                <li class="flex items-center justify-between gap-3 px-4 py-3">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ $invitation->email }}</p>
+                                        <p class="text-xs text-zinc-500 dark:text-zinc-400">{{ ucfirst(\App\Support\Roles::label($invitation->role)) }} · caduca {{ $invitation->expires_at->diffForHumans() }}</p>
+                                    </div>
+                                    <form method="POST" action="{{ route('invitations.destroy', [$project, $invitation]) }}">
+                                        @csrf
+                                        @method('DELETE')
+                                        <x-button variant="ghost" size="sm" title="Cancelar la invitación a {{ $invitation->email }}">Cancelar</x-button>
+                                    </form>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </x-card>
+                @endif
             @else
                 <x-card>
                     <div class="p-4 text-sm text-zinc-600 dark:text-zinc-400">

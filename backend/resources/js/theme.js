@@ -10,6 +10,19 @@ function storedTheme() {
     }
 }
 
+// Con sesión iniciada, el tema también se guarda en la cuenta (se aplica en cualquier navegador)
+function saveToAccount(theme) {
+    const url = document.documentElement.dataset.preferencesUrl;
+    if (!url) return;
+    const token = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+    fetch(url, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json', 'X-CSRF-TOKEN': token },
+        body: JSON.stringify({ theme }),
+        credentials: 'same-origin',
+    }).catch(() => {});
+}
+
 function applyTheme(theme) {
     const dark = theme === 'dark' || (theme === 'system' && media.matches);
     document.documentElement.classList.toggle('dark', dark);
@@ -29,6 +42,7 @@ document.addEventListener('click', (event) => {
             // sin almacenamiento: se aplica solo en esta página
         }
         applyTheme(theme);
+        saveToAccount(theme);
         return;
     }
 

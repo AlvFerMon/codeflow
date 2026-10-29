@@ -83,14 +83,14 @@ return [
     | Los instaladores pesan demasiado para guardarlos en el repositorio o en
     | Vercel, así que se publican como Release en un repositorio público de
     | GitHub con nombre fijo. Con "latest/download" el enlace siempre apunta a
-    | la última versión. Si una URL está vacía, la página muestra "Próximamente".
+    | la última versión. Si una URL se deja vacía en el .env, la página muestra "Próximamente".
     |
     */
 
     'downloads' => [
         'releases' => $downloads,
         'windows' => env('CODEFLOW_DOWNLOAD_WINDOWS', $downloads.'/latest/download/CodeFlow-Setup.exe'),
-        'android' => env('CODEFLOW_DOWNLOAD_ANDROID'),
+        'android' => env('CODEFLOW_DOWNLOAD_ANDROID', $downloads.'/latest/download/CodeFlow.apk'),
         'cli' => env('CODEFLOW_DOWNLOAD_CLI', $downloads.'/latest/download/codeflow.exe'),
         'version' => env('CODEFLOW_DOWNLOADS_VERSION', '1.0.0'),
     ],

@@ -22,6 +22,7 @@ class NotificationService
     /** Títulos de cada tipo de evento. */
     private const TITLES = [
         'member.added' => 'Nuevo acceso a un proyecto',
+        'member.joined' => 'Invitación aceptada',
         'member.role_changed' => 'Tu rol ha cambiado',
         'repository.created' => 'Nuevo repositorio',
         'branch.created' => 'Nueva rama',

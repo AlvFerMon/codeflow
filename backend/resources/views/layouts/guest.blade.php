@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es" class="h-full" {!! \App\Support\Preferences::htmlAttributeString(auth()->user()) !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ isset($title) ? $title.' · ' : '' }}CodeFlow</title>
     @include('layouts._icons')
     @include('layouts._theme')

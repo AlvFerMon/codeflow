@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Issue extends Model
 {
+    use \App\Models\Concerns\BelongsToActiveRepository;
+
     public const STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
     public const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 

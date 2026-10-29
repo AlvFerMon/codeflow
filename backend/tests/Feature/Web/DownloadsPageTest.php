@@ -12,6 +12,8 @@ class DownloadsPageTest extends TestCase
 
     public function test_visitors_see_the_download_links(): void
     {
+        config(['codeflow.downloads.android' => null]);
+
         $this->get('/descargas')
             ->assertOk()
             ->assertSee('Descargar para Windows')

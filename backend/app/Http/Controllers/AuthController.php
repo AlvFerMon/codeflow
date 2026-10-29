@@ -55,6 +55,9 @@ class AuthController extends Controller
             throw ValidationException::withMessages(['email' => ['Credenciales incorrectas.']]);
         }
 
+        // Invitaciones pendientes a su correo (si alguien le invitó antes de tener cuenta)
+        app(\App\Services\InvitationService::class)->acceptPendingFor($user);
+
         return response()->json([
             'user' => $user,
             'token' => $user->createToken($data['device_name'] ?? 'web')->plainTextToken,
@@ -94,7 +97,10 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user());
+        $user = $request->user();
+
+        // Las preferencias solo se devuelven aquí (no en los listados donde aparecen otros usuarios)
+        return response()->json([...$user->toArray(), 'preferences' => \App\Support\Preferences::for($user)]);
     }
 
     public function updateProfile(Request $request): JsonResponse

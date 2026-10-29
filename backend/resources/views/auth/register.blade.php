@@ -4,7 +4,7 @@
     <form method="POST" action="{{ route('register.store') }}" class="space-y-4">
         @csrf
         <x-input label="Nombre" name="name" required autofocus autocomplete="name" maxlength="100" />
-        <x-input label="Correo electrónico" name="email" type="email" required autocomplete="username" />
+        <x-input label="Correo electrónico" name="email" type="email" :value="is_string(request('email')) ? request('email') : null" required autocomplete="username" />
         <x-password-strength label="Contraseña" name="password" required autocomplete="new-password" minlength="8" />
         <x-input label="Repite la contraseña" name="password_confirmation" type="password" required autocomplete="new-password" minlength="8" />
         <x-button variant="purple" size="lg" class="w-full">Crear cuenta</x-button>

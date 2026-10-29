@@ -1,0 +1,35 @@
+/* Preferencias de accesibilidad de la cuenta (App\Support\Preferences → atributos en <html>) */
+
+/* Tamaño de letra: Tailwind usa rem, así que todo escala con la raíz */
+html[data-font-size='large'] { font-size: 112.5%; }
+html[data-font-size='larger'] { font-size: 125%; }
+
+/* Alto contraste: textos secundarios y bordes más oscuros (claro) o más claros (oscuro) */
+html[data-contrast='high'] {
+    --color-zinc-200: oklch(80% .006 286);
+    --color-zinc-400: oklch(44.2% .017 285.786);
+    --color-zinc-500: oklch(37% .013 285.805);
+}
+html.dark[data-contrast='high'] {
+    --color-zinc-400: oklch(92% .004 286.32);
+    --color-zinc-500: oklch(87.1% .006 286.286);
+}
+html.dark[data-contrast='high'] [class*='dark:border-zinc-8'] { border-color: oklch(55.2% .016 285.938); }
+html[data-contrast='high'] :focus-visible { outline: 3px solid #9448BC !important; outline-offset: 2px !important; }
+
+/* Reducir movimiento aunque el sistema no lo pida */
+html[data-motion='reduce'] *,
+html[data-motion='reduce'] *::before,
+html[data-motion='reduce'] *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* Enlaces de texto siempre subrayados (no los que tienen forma de botón) */
+html[data-links='underline'] main a:not(.inline-flex):not(.flex):not(.block) { text-decoration: underline; text-underline-offset: 2px; }
+
+/* Código largo: salta de línea en lugar de obligar a desplazarse en horizontal */
+html[data-wrap-code='true'] td.whitespace-pre,
+html[data-wrap-code='true'] pre { white-space: pre-wrap; overflow-wrap: anywhere; }

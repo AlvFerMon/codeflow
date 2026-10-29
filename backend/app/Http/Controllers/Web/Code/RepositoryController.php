@@ -232,7 +232,7 @@ class RepositoryController extends Controller
         $name = $repository->name;
         $this->repositories->delete($repository, $request->user());
 
-        return redirect()->route('projects.show', $project)->with('status', "Repositorio {$name} eliminado.");
+        return redirect()->route('projects.show', $project)->with('status', "Repositorio {$name} movido a la papelera. Puedes restaurarlo durante 30 días.");
     }
 
     /**

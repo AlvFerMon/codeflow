@@ -8,9 +8,12 @@ use App\Http\Controllers\FileController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\MemberController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PullRequestController;
 use App\Http\Controllers\RepositoryController;
+use App\Http\Controllers\TrashController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -66,6 +69,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::put('me', [AuthController::class, 'updateProfile']);
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
+    Route::get('me/preferences', [PreferencesController::class, 'show']);
+    Route::patch('me/preferences', [PreferencesController::class, 'update']);
 });
 
 // Todo lo demás exige email verificado (403 con code=email_not_verified)
@@ -73,6 +78,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     // Notificaciones
     Route::get('me/activity', [ActivityController::class, 'mine']);
+
+    // Tutorial de bienvenida
+    Route::get('me/onboarding', [OnboardingController::class, 'show']);
+    Route::post('me/onboarding/tour/progress', [OnboardingController::class, 'progress']);
+    Route::post('me/onboarding/tour/complete', [OnboardingController::class, 'complete']);
+    Route::post('me/onboarding/tour/skip', [OnboardingController::class, 'skip']);
+    Route::post('me/onboarding/restart', [OnboardingController::class, 'restart']);
+    Route::post('me/onboarding/checklist/hide', [OnboardingController::class, 'hideChecklist']);
+    Route::post('me/onboarding/checklist/show', [OnboardingController::class, 'showChecklist']);
+    Route::post('me/onboarding/sample-project', [OnboardingController::class, 'sampleProject'])->middleware('throttle:5,1');
     Route::get('me/notifications', [NotificationController::class, 'index']);
     Route::get('me/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('me/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
@@ -86,6 +101,15 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::post('projects/{project}/members', [MemberController::class, 'store']);
     Route::put('projects/{project}/members/{user}', [MemberController::class, 'update']);
     Route::delete('projects/{project}/members/{user}', [MemberController::class, 'destroy']);
+    Route::get('projects/{project}/invitations', [MemberController::class, 'invitations']);
+    Route::delete('invitations/{invitation}', [MemberController::class, 'cancelInvitation']);
+
+    // Papelera (proyectos y repositorios borrados, 30 días)
+    Route::get('trash', [TrashController::class, 'index']);
+    Route::post('trash/projects/{id}/restore', [TrashController::class, 'restoreProject'])->whereNumber('id');
+    Route::delete('trash/projects/{id}', [TrashController::class, 'destroyProject'])->whereNumber('id');
+    Route::post('trash/repositories/{id}/restore', [TrashController::class, 'restoreRepository'])->whereNumber('id');
+    Route::delete('trash/repositories/{id}', [TrashController::class, 'destroyRepository'])->whereNumber('id');
 
     // Repositorios
     Route::post('projects/{project}/repositories', [RepositoryController::class, 'store']);

@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PullRequest extends Model
 {
+    use \App\Models\Concerns\BelongsToActiveRepository;
+
     public const OPEN_STATES = ['open', 'in_review', 'approved', 'changes_requested'];
 
     protected $guarded = [];

@@ -1,0 +1,47 @@
+/* Tutorial de bienvenida (resources/js/onboarding.js) */
+.cf-tour { position: fixed; inset: 0; z-index: 100; }
+.cf-tour-backdrop { position: absolute; inset: 0; background: rgb(0 5 1 / .55); }
+/* Si hay elemento resaltado, la sombra del recorte hace de fondo oscuro */
+.cf-tour:has(.cf-tour-spot:not([hidden])) .cf-tour-backdrop { background: transparent; }
+.cf-tour-spot {
+    position: fixed; border-radius: 12px; pointer-events: none;
+    box-shadow: 0 0 0 3px #FF3366, 0 0 0 9999px rgb(0 5 1 / .55);
+    transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease;
+}
+.cf-tour-pop {
+    position: fixed; width: min(360px, calc(100vw - 24px));
+    background: #fff; color: #18181b; border: 1px solid #e4e4e7; border-radius: 14px;
+    padding: 18px 18px 14px; box-shadow: 0 20px 50px rgb(0 0 0 / .3);
+    font-size: 14px; line-height: 1.5;
+    transition: top .25s ease, left .25s ease;
+}
+.cf-tour-pop.cf-tour-center { top: 50% !important; left: 50% !important; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 24px)); }
+.cf-tour-count { margin: 0; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: #9448BC; }
+.cf-tour-title { margin: 4px 0 6px; font-size: 17px; font-weight: 700; }
+.cf-tour-text { margin: 0; white-space: pre-line; color: #3f3f46; }
+.cf-tour-confirm p { margin: 12px 0 0; color: #3f3f46; }
+.cf-tour-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; align-items: center; }
+.cf-tour-spacer { flex: 1; }
+.cf-tour-btn {
+    border: 1px solid #d4d4d8; background: #fff; color: #18181b; border-radius: 8px;
+    padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.cf-tour-btn:hover { background: #f4f4f5; }
+.cf-tour-btn:focus-visible { outline: 2px solid #9448BC; outline-offset: 2px; }
+.cf-tour-btn[hidden] { display: none; }
+.cf-tour-btn-primary { background: #FF3366; border-color: #FF3366; color: #fff; }
+.cf-tour-btn-primary:hover { background: #e62052; }
+.cf-tour-btn-ghost { border-color: transparent; color: #52525b; }
+.cf-tour-btn-danger { background: #e11d48; border-color: #e11d48; color: #fff; }
+.cf-tour-btn-danger:hover { background: #be123c; }
+
+.dark .cf-tour-pop { background: #18181b; color: #f4f4f5; border-color: #3f3f46; }
+.dark .cf-tour-text, .dark .cf-tour-confirm p { color: #d4d4d8; }
+.dark .cf-tour-btn { background: #27272a; border-color: #3f3f46; color: #f4f4f5; }
+.dark .cf-tour-btn:hover { background: #3f3f46; }
+.dark .cf-tour-btn-primary { background: #FF3366; border-color: #FF3366; }
+.dark .cf-tour-btn-ghost { background: transparent; border-color: transparent; color: #a1a1aa; }
+.dark .cf-tour-count { color: #C687EB; }
+
+.cf-tour-still .cf-tour-spot, .cf-tour-still .cf-tour-pop { transition: none; }
+@media (prefers-reduced-motion: reduce) { .cf-tour-spot, .cf-tour-pop { transition: none; } }

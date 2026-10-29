@@ -18,10 +18,10 @@
                 <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div>
                         <h2 class="font-semibold text-rose-700 dark:text-rose-300">Eliminar el proyecto</h2>
-                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Se borrarán sus repositorios, issues, pull requests y actividad. No se puede deshacer.</p>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">Irá a la papelera con sus repositorios. Podrás restaurarlo durante 30 días; después se borrará del todo.</p>
                     </div>
                     <form method="POST" action="{{ route('projects.destroy', $project) }}"
-                        data-confirm-title="Eliminar el proyecto" data-confirm-button="Eliminar proyecto" data-confirm="Se borrarán el proyecto «{{ $project->name }}», todos sus repositorios, su historial, issues y pull requests. Esta acción no se puede deshacer.">
+                        data-confirm-title="Eliminar el proyecto" data-confirm-button="Eliminar proyecto" data-confirm="El proyecto «{{ $project->name }}» y sus repositorios irán a la papelera. Podrás restaurarlos durante 30 días desde tu menú › Papelera.">
                         @csrf
                         @method('DELETE')
                         <x-button variant="danger" class="w-full sm:w-auto">Eliminar proyecto</x-button>

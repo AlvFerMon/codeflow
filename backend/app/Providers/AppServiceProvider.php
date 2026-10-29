@@ -20,6 +20,9 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // Tutorial: una instancia por petición (cachea el estado entre la cabecera y el inicio)
+        $this->app->scoped(\App\Services\OnboardingService::class);
+
         // Revisión con IA (opcional): Ollama si está activada; si no, un revisor nulo
         $this->app->bind(AiReviewer::class, fn () => config('codeflow.ai.enabled')
             ? new OllamaReviewer(
@@ -40,6 +43,12 @@ class AppServiceProvider extends ServiceProvider
         // Explorar: límite solo para visitantes (los usuarios con sesión ya están identificados)
         RateLimiter::for('explore', fn (Request $request) => $request->user() ? Limit::none() : Limit::perMinute(120)->by('explore:'.$request->ip()));
         RateLimiter::for('verification-send', fn (Request $request) => Limit::perMinute(3)->by('verify-send:'.($request->user()?->id ?? $request->ip())));
+
+        // Al verificar el correo o iniciar sesión en la web se aceptan las invitaciones pendientes a ese correo
+        \Illuminate\Support\Facades\Event::listen(
+            [\Illuminate\Auth\Events\Verified::class, \Illuminate\Auth\Events\Login::class],
+            fn ($event) => $event->user instanceof User ? app(\App\Services\InvitationService::class)->acceptPendingFor($event->user) : null,
+        );
 
         // El administrador global puede hacerlo todo (las reglas de negocio de los servicios siguen aplicando)
         Gate::before(fn (?User $user) => $user?->isAdmin() && $user->hasVerifiedEmail() ? true : null);

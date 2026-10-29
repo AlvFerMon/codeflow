@@ -1,7 +1,7 @@
 <x-app-layout title="Mi perfil">
     <div class="mb-6">
         <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">Mi perfil</h1>
-        <p class="text-sm text-zinc-500 dark:text-zinc-400">Gestiona tus datos personales y tu contraseña.</p>
+        <p class="text-sm text-zinc-500 dark:text-zinc-400">Gestiona tus datos personales, tu contraseña y la accesibilidad.</p>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-3">
@@ -13,6 +13,49 @@
                     <x-input label="Nombre" name="name" :value="$user->name" required maxlength="100" autocomplete="name" />
                     <x-input label="Correo electrónico" name="email" type="email" :value="$user->email" required autocomplete="email" />
                     <div class="flex justify-end"><x-button>Guardar datos</x-button></div>
+                </form>
+            </x-card>
+
+            <x-card title="Accesibilidad y apariencia" subtitle="Se guardan en tu cuenta: se aplican en cualquier navegador y en las apps.">
+                @php($prefs = \App\Support\Preferences::for($user))
+                <form method="POST" action="{{ route('profile.preferences') }}" class="space-y-5 p-4 sm:p-6">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="_form" value="1">
+
+                    <fieldset>
+                        <legend class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Tema</legend>
+                        <div class="mt-2 flex flex-wrap gap-4 text-sm">
+                            @foreach (['system' => 'Como el sistema', 'light' => 'Claro', 'dark' => 'Oscuro'] as $value => $label)
+                                <label class="inline-flex items-center gap-2"><input type="radio" name="theme" value="{{ $value }}" @checked($prefs['theme'] === $value) class="accent-[#FF3366]"> {{ $label }}</label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Tamaño de letra</legend>
+                        <div class="mt-2 flex flex-wrap gap-4">
+                            @foreach (['normal' => ['Normal', 'text-sm'], 'large' => ['Grande', 'text-base'], 'larger' => ['Muy grande', 'text-lg']] as $value => [$label, $size])
+                                <label class="inline-flex items-center gap-2 {{ $size }}"><input type="radio" name="font_size" value="{{ $value }}" @checked($prefs['font_size'] === $value) class="accent-[#FF3366]"> {{ $label }}</label>
+                            @endforeach
+                        </div>
+                    </fieldset>
+
+                    <div class="space-y-3 text-sm">
+                        @foreach ([
+                            'high_contrast' => ['Alto contraste', 'Textos secundarios y bordes más marcados.'],
+                            'reduce_motion' => ['Reducir animaciones', 'Quita transiciones y movimientos de la interfaz.'],
+                            'underline_links' => ['Subrayar los enlaces', 'Distingue los enlaces sin depender del color.'],
+                            'wrap_code' => ['Ajustar líneas largas de código', 'El código y los cambios saltan de línea en vez de desplazarse en horizontal.'],
+                        ] as $key => [$label, $help])
+                            <label class="flex items-start gap-3">
+                                <input type="checkbox" name="{{ $key }}" value="1" @checked($prefs[$key]) class="mt-1 h-4 w-4 accent-[#FF3366]">
+                                <span><span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $label }}</span><span class="block text-xs text-zinc-500 dark:text-zinc-400">{{ $help }}</span></span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="flex justify-end"><x-button>Guardar preferencias</x-button></div>
                 </form>
             </x-card>
 

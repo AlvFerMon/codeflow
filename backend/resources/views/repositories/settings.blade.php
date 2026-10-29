@@ -52,7 +52,7 @@
                 @method('DELETE')
                 <div>
                     <p class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Eliminar este repositorio</p>
-                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Se borrarán definitivamente el código, todas las ramas, los commits, las issues y los pull requests. Su clave de cifrado se destruye, así que las copias de seguridad antiguas tampoco podrán leerse. <strong>No se puede deshacer.</strong></p>
+                    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Irá a la papelera: podrás restaurarlo durante 30 días desde tu menú › Papelera. Después se borrarán definitivamente el código, las ramas, los commits, las issues y los pull requests, y su clave de cifrado se destruye.</p>
                 </div>
                 <x-input name="confirm_name" autocomplete="off" class="font-mono">
                     <x-slot:label>Escribe <span class="font-mono font-semibold">{{ $repository->name }}</span> para confirmar</x-slot:label>

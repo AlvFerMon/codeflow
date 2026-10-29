@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Commit extends Model
 {
+    use \App\Models\Concerns\BelongsToActiveRepository;
+
     use OrdersRepositoryAttributes;
 
     protected $guarded = [];

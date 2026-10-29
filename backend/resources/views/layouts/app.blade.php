@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es" class="h-full" {!! \App\Support\Preferences::htmlAttributeString(auth()->user()) !!}>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,11 +21,11 @@
     // "Explorar" se excluye en teléfonos porque la versión móvil no lo tiene.
     $navItems = array_filter([
         ['label' => 'Inicio',         'route' => 'home',               'active' => request()->routeIs('home')],
-        $verified ? ['label' => 'Proyectos',    'route' => 'projects.index',     'active' => request()->routeIs('projects.*', 'repositories.*', 'files.*', 'branches.*', 'commits.*', 'issues.*', 'pulls.*', 'members.*')] : null,
+        $verified ? ['label' => 'Proyectos',    'route' => 'projects.index',     'tour' => 'nav-projects', 'active' => request()->routeIs('projects.*', 'repositories.*', 'files.*', 'branches.*', 'commits.*', 'issues.*', 'pulls.*', 'members.*')] : null,
         $isPhone  ? null : ['label' => 'Explorar',     'route' => 'explore',           'active' => request()->routeIs('explore')],
         $verified ? ['label' => 'Actividad',    'route' => 'activity.index',     'active' => request()->routeIs('activity.index')] : null,
         $verified ? ['label' => 'Notificaciones', 'route' => 'notifications.index', 'active' => request()->routeIs('notifications.*'), 'count' => $unread] : null,
-        ['label' => 'Descargas', 'route' => 'downloads', 'active' => request()->routeIs('downloads')],
+        ['label' => 'Descargas', 'route' => 'downloads', 'tour' => 'nav-downloads', 'active' => request()->routeIs('downloads')],
     ]);
 
     // ── Items de navegación — barra inferior móvil ────────────────────────────
@@ -93,13 +93,13 @@
                     @auth
                         @if ($verified)
                         @can('create', \App\Models\Project::class)
-                            <span class="hidden sm:inline"><x-button variant="purple" size="sm" :href="route('projects.create')" title="Crear un proyecto nuevo">
+                            <span class="hidden sm:inline" data-tour="new-project"><x-button variant="purple" size="sm" :href="route('projects.create')" title="Crear un proyecto nuevo">
                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                                 <span>Nuevo</span>
                             </x-button></span>
                         @endcan
 
-                        <a href="{{ route('notifications.index') }}" class="relative rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                        <a href="{{ route('notifications.index') }}" data-tour="notifications" class="relative rounded-lg p-2 text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
                             title="{{ $unread > 0 ? $unread.' notificaciones sin leer' : 'Notificaciones' }}">
                             <span class="sr-only">Notificaciones{{ $unread > 0 ? ' ('.$unread.' sin leer)' : '' }}</span>
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/></svg>
@@ -110,7 +110,7 @@
                         @endif
 
                         <details class="relative border-l border-zinc-200 pl-1 dark:border-zinc-800" data-dropdown>
-                            <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Menú de usuario">
+                            <summary data-tour="user-menu" class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800" aria-label="Menú de usuario">
                                 <x-user-avatar :user="$user" />
                                 <span class="hidden text-xs font-semibold text-zinc-800 lg:block dark:text-zinc-200">{{ $user->name }}</span>
                                 @if ($user->isAdmin())
@@ -125,6 +125,15 @@
                                 </div>
                                 <a href="{{ route('profile.edit') }}" class="{{ $menuItem }}">Mi perfil y configuración</a>
                                 <a href="{{ route('projects.index') }}" class="{{ $menuItem }}">Mis proyectos</a>
+                                @if ($verified)
+                                    <a href="{{ route('trash.index') }}" class="{{ $menuItem }}">Papelera</a>
+                                @endif
+                                @if ($verified)
+                                    <form method="POST" action="{{ route('onboarding.restart') }}">
+                                        @csrf
+                                        <button class="{{ $menuItem }}">Ver el tutorial otra vez</button>
+                                    </form>
+                                @endif
                                 @if ($verified)
                                     <a href="{{ route('mobile.enable') }}" class="{{ $menuItem }} md:hidden">Versión móvil (sencilla)</a>
                                 @endif
@@ -177,6 +186,11 @@
     </footer>
 
     @include('layouts._confirm-dialog')
+
+    {{-- Tutorial de bienvenida (visita guiada). Estado desde OnboardingService; lo pinta resources/js/onboarding.js --}}
+    @if ($verified)
+        @include('layouts._onboarding')
+    @endif
 
     {{-- Barra de navegación inferior con indicador elástico (Bencho Icon bar) — móvil --}}
     {{-- Se renderiza para usuarios verificados; se oculta en escritorio (≥ 1024px / lg) con CSS. --}}

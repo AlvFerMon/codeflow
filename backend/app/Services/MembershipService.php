@@ -17,7 +17,7 @@ class MembershipService
     {
         $this->ensureAssignable($role);
 
-        $user = User::where('email', $email)->first();
+        $user = User::whereRaw('LOWER(email) = ?', [mb_strtolower(trim($email))])->first();
         abort_unless($user, 422, 'No existe ningún usuario con ese correo.');
 
         if (ProjectMember::where('project_id', $project->id)->where('user_id', $user->id)->exists()) {

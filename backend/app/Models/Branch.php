@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Branch extends Model
 {
+    use \App\Models\Concerns\BelongsToActiveRepository;
+
     protected $guarded = [];
 
     public function repository(): BelongsTo

@@ -99,11 +99,11 @@ class ProjectPagesTest extends TestCase
         $this->assertNotNull($this->project->fresh());
 
         $this->as($this->owner)->delete($destroy)->assertRedirect(route('projects.index'))->assertSessionHas('status');
-        $this->assertNull($this->project->fresh());
+        $this->assertTrue($this->project->fresh()->trashed()); // a la papelera
 
         $other = $this->makeProject($this->outsider, 'Otro');
         $this->as($this->admin)->delete(route('projects.destroy', $other))->assertRedirect(route('projects.index'));
-        $this->assertNull($other->fresh());
+        $this->assertTrue($other->fresh()->trashed());
     }
 
     public function test_activity_page_shows_human_sentences_for_members_only(): void

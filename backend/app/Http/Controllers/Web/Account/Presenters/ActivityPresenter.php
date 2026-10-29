@@ -113,12 +113,18 @@ final class ActivityPresenter
 
         return match ($log->action) {
             'project.created' => 'creó el proyecto '.$this->projectLink($subject),
+            'project.trashed' => 'movió el proyecto a la papelera',
+            'project.restored' => 'restauró el proyecto desde la papelera',
+            'repository.restored' => 'restauró el repositorio '.$this->repoLink($subject, $p['name'] ?? null).' desde la papelera',
             'project.updated' => 'actualizó '.$this->fieldList($p['fields'] ?? []).' del proyecto',
 
             'member.added' => 'dio acceso a '.$this->strong($p['user'] ?? 'un usuario').' como '.e(Roles::label($p['role'] ?? null)),
             'member.role_changed' => 'cambió el rol de '.$this->strong($p['user'] ?? 'un usuario')
                 .' de '.e(Roles::label($p['from'] ?? null)).' a '.e(Roles::label($p['to'] ?? null)),
             'member.removed' => 'quitó a '.$this->strong($p['user'] ?? 'un usuario').' del proyecto',
+            'member.invited' => 'invitó a '.$this->strong($p['email'] ?? 'alguien').' como '.e(Roles::label($p['role'] ?? null)),
+            'member.invitation_cancelled' => 'canceló la invitación de '.$this->strong($p['email'] ?? 'alguien'),
+            'member.joined' => 'se unió al proyecto como '.e(Roles::label($p['role'] ?? null)),
 
             'repository.created' => 'creó el repositorio '.$this->repoLink($subject, $p['name'] ?? null),
             'repository.updated' => $this->describeRepositoryUpdate($subject, $p['changes'] ?? []),

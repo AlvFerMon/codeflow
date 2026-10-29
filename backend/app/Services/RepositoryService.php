@@ -40,6 +40,11 @@ class RepositoryService
                 $attributes['visibility'] = $data['visibility'];
             }
 
+            abort_if(
+                Repository::onlyTrashed()->where('project_id', $project->id)->where('name', $data['name'])->exists(),
+                422, 'Hay un repositorio con ese nombre en la papelera: restáuralo o bórralo definitivamente desde la papelera.'
+            );
+
             $repository = Repository::create($attributes);
 
             $branch = Branch::create(['repository_id' => $repository->id, 'name' => 'main', 'created_by' => $user->id]);
@@ -112,10 +117,11 @@ class RepositoryService
         return $repository;
     }
 
+    /** Mueve el repositorio a la papelera (SoftDeletes); se borra del todo a los 30 días. */
     public function delete(Repository $repository, User $user): void
     {
-        Activity::log($repository->project, $user, 'repository.deleted', null, ['name' => $repository->name]);
         $repository->delete();
+        Activity::log($repository->project, $user, 'repository.deleted', $repository, ['name' => $repository->name]);
     }
 
     /** Crea una rama a partir de otra (por defecto, la rama principal). */

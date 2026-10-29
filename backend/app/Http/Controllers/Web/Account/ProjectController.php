@@ -114,7 +114,7 @@ class ProjectController extends Controller
         $name = $project->name;
         $this->projects->delete($project, $request->user());
 
-        return redirect()->route('projects.index')->with('status', "Se ha eliminado el proyecto «{$name}».");
+        return redirect()->route('projects.index')->with('status', "El proyecto «{$name}» está en la papelera. Puedes restaurarlo durante 30 días.");
     }
 
     /** @return array{name:string,description:?string} */

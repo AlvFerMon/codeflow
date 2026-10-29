@@ -6,6 +6,7 @@
        route   string  — nombre de ruta Laravel (usado con route())
        active  bool    — si este slot está activo en la solicitud actual
        count   int?    — (opcional) badge de elementos sin leer
+       tour    string? — (opcional) ancla data-tour para el tutorial de bienvenida
 --}}
 @props(['items' => [], 'aria-label' => 'Principal'])
 
@@ -21,6 +22,7 @@
         <a
             href="{{ route($item['route']) }}"
             class="gnav-slot"
+            @if (! empty($item['tour'])) data-tour="{{ $item['tour'] }}" @endif
             @if ($item['active'])
                 aria-current="page"
                 data-active="true"

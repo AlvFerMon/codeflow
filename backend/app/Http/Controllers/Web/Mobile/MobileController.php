@@ -94,7 +94,7 @@ class MobileController extends Controller
     {
         return view('mobile.account', [
             'user' => $request->user(),
-            'projectsCount' => ProjectMember::where('user_id', $request->user()->id)->count(),
+            'projectsCount' => $this->myProjects($request)->count(),
         ]);
     }
 

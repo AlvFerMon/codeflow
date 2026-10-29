@@ -15,7 +15,7 @@
     ];
 @endphp
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es" class="h-full" {!! \App\Support\Preferences::htmlAttributeString(auth()->user()) !!}>
 <head>
     <meta charset="utf-8">
     {{-- viewport-fit=cover para que el contenido llegue al borde en iPhone con notch --}}

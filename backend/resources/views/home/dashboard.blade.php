@@ -33,6 +33,9 @@
             </div>
         </div>
 
+        {{-- Tutorial: lista «Primeros pasos» --}}
+        <x-onboarding-checklist />
+
         {{-- Métricas --}}
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <x-metric-card title="Repositorios" :value="$stats['repositories']" :change="$projectsTotal.' '.($projectsTotal === 1 ? 'proyecto' : 'proyectos')" accent="teal" :href="route('projects.index')">

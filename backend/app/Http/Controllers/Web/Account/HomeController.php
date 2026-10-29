@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Mobile\MobileController;
 use App\Models\Commit;
 use App\Models\Issue;
+use App\Models\Project;
 use App\Models\ProjectMember;
 use App\Models\PullRequest;
 use App\Models\Repository;
@@ -46,7 +47,7 @@ class HomeController extends Controller
         }
 
         // "Mis proyectos": solo aquellos de los que soy miembro (también para el admin)
-        $projectIds = ProjectMember::where('user_id', $user->id)->pluck('project_id');
+        $projectIds = Project::whereIn('id', ProjectMember::where('user_id', $user->id)->select('project_id'))->pluck('id'); // sin los de la papelera
         $repositoryIds = Repository::select('id')->whereIn('project_id', $projectIds);
 
         return view('home.dashboard', [

@@ -25,7 +25,7 @@ class MemberPagesTest extends TestCase
             ->assertSee('Propietario')->assertSee('Añadir miembro')->assertSee('Quitar');
 
         $this->as($this->collaborator)->get($url)->assertOk()
-            ->assertSee('Laura Propietaria')->assertDontSee('Añadir al proyecto')->assertDontSee('Quitar');
+            ->assertSee('Laura Propietaria')->assertDontSee('Añadir o invitar')->assertDontSee('Quitar');
 
         $this->as($this->outsider)->get($url)->assertNotFound();
     }
@@ -59,8 +59,6 @@ class MemberPagesTest extends TestCase
     {
         $this->as($this->owner)->from(route('members.index', $this->project));
 
-        $this->post(route('members.store', $this->project), ['email' => 'nadie@codeflow.test', 'role' => 'observer'])
-            ->assertSessionHasErrors(['email' => 'No existe ningún usuario con ese correo.']);
         $this->post(route('members.store', $this->project), ['email' => $this->collaborator->email, 'role' => 'observer'])
             ->assertSessionHasErrors(['email' => 'El usuario ya es miembro del proyecto.']);
         $this->post(route('members.store', $this->project), ['email' => $this->outsider->email, 'role' => 'owner'])
