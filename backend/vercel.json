@@ -27,6 +27,7 @@
     }
   ],
   "env": {
+    "DB_CONNECTION": "pgsql",
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "TRUSTED_PROXIES": "*",

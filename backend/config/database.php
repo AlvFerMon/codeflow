@@ -86,7 +86,8 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
-            'url' => env('DB_URL'),
+            // En Vercel, la integración con Supabase crea POSTGRES_URL_NON_POOLING (pooler en modo sesión)
+            'url' => env('DB_URL', env('POSTGRES_URL_NON_POOLING')),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'laravel'),
