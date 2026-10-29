@@ -1,0 +1,64 @@
+{
+  "name": "codeflow-desktop",
+  "productName": "CodeFlow Desktop",
+  "version": "1.0.0",
+  "description": "CodeFlow para escritorio: clona, confirma y sincroniza tus repositorios con un clic.",
+  "main": "src/main.js",
+  "author": "CodeFlow (TFG 2º DAM)",
+  "license": "MIT",
+  "repository": "github:AlvFerMon/codeflow",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis --x64",
+    "dist:linux": "electron-builder --linux AppImage"
+  },
+  "devDependencies": {
+    "electron": "38.8.6",
+    "electron-builder": "26.0.12"
+  },
+  "build": {
+    "appId": "app.codeflow.desktop",
+    "productName": "CodeFlow Desktop",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../cli/dist/codeflow.exe",
+        "to": "bin/codeflow.exe",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "CodeFlow",
+      "artifactName": "CodeFlow-Setup-${version}.exe"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "build/icon.png",
+      "extraResources": [
+        {
+          "from": "../cli/dist/codeflow-linux",
+          "to": "bin/codeflow"
+        }
+      ]
+    },
+    "publish": null
+  }
+}

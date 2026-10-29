@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'">
+  <title>CodeFlow</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Inicio de sesión -->
+  <main id="view-login" class="login" hidden>
+    <form id="login-form" class="login-card">
+      <img src="logo.svg" alt="" class="login-logo" width="56" height="56">
+      <h1>CodeFlow <span>Desktop</span></h1>
+      <p class="muted">Inicia sesión con tu cuenta de CodeFlow.</p>
+      <label>Servidor<input id="login-server" type="url" required value="https://codeflow-backend-wheat.vercel.app"></label>
+      <label>Correo<input id="login-email" type="email" required autocomplete="username"></label>
+      <label>Contraseña<input id="login-password" type="password" required autocomplete="current-password"></label>
+      <p id="login-error" class="error" role="alert" hidden></p>
+      <button class="btn primary" type="submit" id="login-submit">Entrar</button>
+    </form>
+  </main>
+
+  <!-- Aplicación -->
+  <div id="view-app" class="layout" hidden>
+    <aside class="sidebar">
+      <div class="brand"><img src="logo.svg" alt="" width="28" height="28"><strong>CodeFlow</strong></div>
+      <div class="sidebar-actions">
+        <button class="btn primary" id="btn-clone" type="button">+ Clonar repositorio</button>
+        <button class="btn ghost" id="btn-add" type="button">Abrir carpeta existente</button>
+      </div>
+      <h2 class="section-title">En este equipo</h2>
+      <nav id="repo-list" class="repo-list" aria-label="Repositorios locales"></nav>
+      <div class="account">
+        <div><span id="account-name" class="account-name"></span><span id="account-server" class="muted small"></span></div>
+        <button class="btn ghost small" id="btn-logout" type="button">Salir</button>
+      </div>
+    </aside>
+
+    <section class="content">
+      <div id="empty" class="empty">
+        <img src="logo.svg" alt="" width="64" height="64">
+        <h2>Tus repositorios de CodeFlow en el escritorio</h2>
+        <p class="muted">Clona un repositorio para trabajar en tu carpeta y subir los cambios con un clic.</p>
+        <button class="btn primary" id="btn-clone-empty" type="button">Clonar repositorio</button>
+      </div>
+
+      <div id="repo" hidden>
+        <header class="repo-header">
+          <div>
+            <p class="muted small" id="repo-project"></p>
+            <h1 id="repo-name"></h1>
+            <p class="muted small mono" id="repo-path"></p>
+          </div>
+          <div class="toolbar">
+            <label class="branch">Rama
+              <select id="branch-select"></select>
+            </label>
+            <button class="btn" id="btn-pull" type="button" title="Descargar los cambios de los demás">↓ Pull</button>
+            <button class="btn" id="btn-push" type="button" title="Subir tus commits">↑ Push <span id="push-count" class="badge" hidden></span></button>
+            <button class="btn ghost" id="btn-folder" type="button" title="Abrir la carpeta">Carpeta</button>
+            <button class="btn ghost" id="btn-web" type="button" title="Abrir en la web">Web</button>
+          </div>
+        </header>
+
+        <div class="tabs" role="tablist">
+          <button role="tab" class="tab active" data-tab="changes" type="button">Cambios <span id="changes-count" class="badge" hidden></span></button>
+          <button role="tab" class="tab" data-tab="history" type="button">Historial</button>
+        </div>
+
+        <div id="tab-changes" class="tab-panel">
+          <div class="changes-grid">
+            <div class="panel">
+              <div class="panel-head">
+                <strong>Cambios sin confirmar</strong>
+                <button class="btn ghost small" id="btn-refresh" type="button">Actualizar</button>
+              </div>
+              <ul id="changes" class="file-list"></ul>
+              <form id="commit-form" class="commit-form">
+                <textarea id="commit-message" rows="3" placeholder="Describe tus cambios (p. ej. «Arreglo el login»)" required></textarea>
+                <div class="commit-buttons">
+                  <button class="btn" type="submit" data-push="0">Commit</button>
+                  <button class="btn primary" type="submit" data-push="1">Commit y push</button>
+                </div>
+              </form>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><strong>Commits sin subir</strong></div>
+              <ul id="pending" class="pending-list"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-history" class="tab-panel" hidden>
+          <ul id="history" class="history"></ul>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Diálogo de clonar -->
+  <dialog id="clone-dialog" class="dialog">
+    <form method="dialog" id="clone-form">
+      <h2>Clonar repositorio</h2>
+      <input id="clone-search" type="search" placeholder="Buscar repositorio…" autocomplete="off">
+      <ul id="clone-list" class="clone-list"></ul>
+      <label>Carpeta donde guardarlo
+        <div class="row"><input id="clone-dest" readonly placeholder="Elige una carpeta"><button class="btn" id="clone-pick" type="button">Elegir…</button></div>
+      </label>
+      <p id="clone-error" class="error" role="alert" hidden></p>
+      <div class="dialog-buttons">
+        <button class="btn ghost" value="cancel" type="submit" formnovalidate>Cancelar</button>
+        <button class="btn primary" id="clone-submit" type="button" disabled>Clonar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+  <div id="busy" class="busy" hidden><div class="spinner"></div><span id="busy-text">Trabajando…</span></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -20,10 +20,19 @@ const maxPushBytes = 3 * 1024 * 1024
 // ── login / logout / whoami ─────────────────────────────────────────────────
 
 func cmdLogin(args []string) error {
+	flags, rest := parseFlags(args, "email")
+	passwordFromStdin := false
+	for i, a := range rest {
+		if a == "--password-stdin" {
+			passwordFromStdin = true
+			rest = append(rest[:i], rest[i+1:]...)
+			break
+		}
+	}
 	cfg := loadConfig()
 	server := cfg.DefaultServer
-	if len(args) > 0 {
-		server = args[0]
+	if len(rest) > 0 {
+		server = rest[0]
 	}
 	if server == "" {
 		server = prompt("Servidor (p. ej. https://codeflow-backend-wheat.vercel.app): ")
@@ -33,9 +42,15 @@ func cmdLogin(args []string) error {
 		return err
 	}
 
-	email := prompt("Correo: ")
-	password, err := readPassword("Contraseña: ")
-	if err != nil {
+	email := flags["email"]
+	if email == "" {
+		email = prompt("Correo: ")
+	}
+	var password string
+	if passwordFromStdin {
+		// La app de escritorio pasa la contraseña por la entrada estándar (nunca como argumento)
+		password = prompt("")
+	} else if password, err = readPassword("Contraseña: "); err != nil {
 		return err
 	}
 	host, _ := os.Hostname()
@@ -49,6 +64,9 @@ func cmdLogin(args []string) error {
 	cfg.DefaultServer = server
 	if err := cfg.save(); err != nil {
 		return err
+	}
+	if jsonMode {
+		return printJSON(map[string]any{"server": server, "user": user})
 	}
 	fmt.Printf("Sesión iniciada en %s como %s (%s).\n", server, user.Name, user.Email)
 	return nil
@@ -85,6 +103,9 @@ func cmdWhoami([]string) error {
 	user, err := apiFor(server).Me()
 	if err != nil {
 		return err
+	}
+	if jsonMode {
+		return printJSON(map[string]any{"server": server, "user": user})
 	}
 	fmt.Printf("%s (%s) en %s\n", user.Name, user.Email, server)
 	return nil
@@ -283,6 +304,9 @@ func cmdStatus([]string) error {
 	changes, err := localChanges(st)
 	if err != nil {
 		return err
+	}
+	if jsonMode {
+		return statusAsJSON(st, changes)
 	}
 
 	fmt.Printf("Repositorio %s · rama %s\n", fullName(st), st.Branch)
@@ -501,6 +525,10 @@ func cmdPull([]string) error {
 			conflicts = append(conflicts, p)
 		}
 	}
+	if len(conflicts) > 0 && jsonMode {
+		_ = printJSON(map[string]any{"conflicts": conflicts})
+		return errors.New("conflicto: hay archivos cambiados en el servidor y en tu carpeta")
+	}
 	if len(conflicts) > 0 {
 		fmt.Println("No se ha descargado nada: estos archivos han cambiado en el servidor y también en tu carpeta:")
 		for _, p := range conflicts {
@@ -628,12 +656,40 @@ func cmdLog(args []string) error {
 	if err != nil {
 		return err
 	}
-	for i := len(st.Pending) - 1; i >= 0; i-- {
-		fmt.Printf("(sin subir)  %s\n", st.Pending[i].Message)
-	}
 	commits, err := apiFor(st.Server).History(st.BranchID, 1)
 	if err != nil {
 		return err
+	}
+	if jsonMode {
+		type entry struct {
+			ID      int    `json:"id"`
+			Sha     string `json:"sha"`
+			Author  string `json:"author"`
+			Date    string `json:"date"`
+			Message string `json:"message"`
+			Current bool   `json:"current"`
+		}
+		out := map[string]any{"pending": []string{}, "commits": []entry{}}
+		var pending []string
+		for i := len(st.Pending) - 1; i >= 0; i-- {
+			pending = append(pending, st.Pending[i].Message)
+		}
+		if pending != nil {
+			out["pending"] = pending
+		}
+		list := []entry{}
+		for _, c := range commits {
+			author := ""
+			if c.Author != nil {
+				author = c.Author.Name
+			}
+			list = append(list, entry{c.ID, c.Sha, author, c.CreatedAt, c.Message, st.BaseCommitID != nil && c.ID == *st.BaseCommitID})
+		}
+		out["commits"] = list
+		return printJSON(out)
+	}
+	for i := len(st.Pending) - 1; i >= 0; i-- {
+		fmt.Printf("(sin subir)  %s\n", st.Pending[i].Message)
 	}
 	for _, c := range commits {
 		author := "?"
@@ -665,6 +721,18 @@ func cmdBranch(args []string) error {
 		branches, err := api.Branches(st.RepoID)
 		if err != nil {
 			return err
+		}
+		if jsonMode {
+			type entry struct {
+				Name    string `json:"name"`
+				Current bool   `json:"current"`
+				Default bool   `json:"default"`
+			}
+			list := []entry{}
+			for _, b := range branches {
+				list = append(list, entry{b.Name, b.ID == st.BranchID, b.IsDefault})
+			}
+			return printJSON(list)
 		}
 		for _, b := range branches {
 			mark := " "

@@ -31,8 +31,12 @@ codeflow restore archivo.php     deshace tus cambios en un archivo (o "." para t
 codeflow log                     historial de la rama
 codeflow branch                  lista las ramas · codeflow branch feature/x  crea una
 codeflow checkout feature/x      cambia de rama
+codeflow repos                   lista los repositorios que puedes clonar
 codeflow whoami · codeflow logout
 ```
+
+Con `--json`, `status`, `log`, `branch`, `repos`, `whoami` y `login` devuelven JSON (lo usa la app de
+escritorio). `login --email correo --password-stdin` lee la contraseña de la entrada estándar.
 
 La URL de `clone` es la de la página del repositorio en la web (`…/repositories/<número>`).
 
@@ -64,6 +68,7 @@ Requiere Go 1.22 o superior: `./build.sh 1.0.0` genera `dist/codeflow.exe`, `dis
 | Comando | Llamadas |
 |---|---|
 | login | `POST /api/auth/login` |
+| repos | `GET /api/projects`, `GET /api/projects/{id}/repositories` |
 | clone, checkout | `GET /api/repositories/{id}`, `GET /api/repositories/{id}/branches`, `GET /api/branches/{id}/manifest`, `POST /api/branches/{id}/files/batch` |
 | push | `POST /api/branches/{id}/commits` con `base_commit_id` y contenido en base64 |
 | pull | `GET /api/branches/{id}/manifest` + `POST /api/branches/{id}/files/batch` |

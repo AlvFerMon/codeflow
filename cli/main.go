@@ -28,7 +28,10 @@ Uso: codeflow <comando> [opciones]
   branch [nombre]               Lista las ramas o crea una nueva
   checkout <rama>               Cambia de rama
 
+  repos                         Lista tus repositorios (con su url para clonar)
   version                       Versión de la CLI
+
+Opción --json: status, log, branch, repos y whoami responden en JSON (lo usa la app de escritorio).
 
 Los archivos que no quieras subir se ponen en .codeflowignore (como .gitignore).
 `
@@ -42,9 +45,22 @@ func main() {
 		"login": cmdLogin, "logout": cmdLogout, "whoami": cmdWhoami,
 		"clone": cmdClone, "status": cmdStatus, "commit": cmdCommit,
 		"push": cmdPush, "pull": cmdPull, "restore": cmdRestore,
-		"log": cmdLog, "branch": cmdBranch, "checkout": cmdCheckout,
+		"log": cmdLog, "branch": cmdBranch, "checkout": cmdCheckout, "repos": cmdRepos,
 	}
-	name := os.Args[1]
+	// --json en cualquier posición
+	var args []string
+	for _, a := range os.Args[1:] {
+		if a == "--json" {
+			jsonMode = true
+			continue
+		}
+		args = append(args, a)
+	}
+	if len(args) == 0 {
+		fmt.Printf(usage, Version)
+		return
+	}
+	name := args[0]
 	switch name {
 	case "help", "-h", "--help":
 		fmt.Printf(usage, Version)
@@ -59,7 +75,7 @@ func main() {
 		fmt.Printf(usage, Version)
 		os.Exit(2)
 	}
-	if err := cmd(os.Args[2:]); err != nil {
+	if err := cmd(args[1:]); err != nil {
 		fmt.Fprintln(os.Stderr, "Error:", err)
 		os.Exit(1)
 	}

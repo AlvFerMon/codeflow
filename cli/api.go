@@ -117,6 +117,8 @@ type User struct {
 type Repository struct {
 	ID            int    `json:"id"`
 	Name          string `json:"name"`
+	Description   string `json:"description"`
+	Visibility    string `json:"visibility"`
 	DefaultBranch string `json:"default_branch"`
 	Project       *struct {
 		ID   int    `json:"id"`
@@ -190,6 +192,46 @@ func (a *API) Me() (User, error) {
 func (a *API) Repository(id int) (Repository, error) {
 	var r Repository
 	return r, a.do("GET", fmt.Sprintf("repositories/%d", id), nil, nil, &r)
+}
+
+type Project struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+// Projects: proyectos de los que el usuario es miembro (todas las páginas).
+func (a *API) Projects() ([]Project, error) {
+	var all []Project
+	for p := 1; ; p++ {
+		var page struct {
+			Data     []Project `json:"data"`
+			LastPage int       `json:"last_page"`
+		}
+		if err := a.do("GET", "projects", url.Values{"page": {fmt.Sprint(p)}}, nil, &page); err != nil {
+			return nil, err
+		}
+		all = append(all, page.Data...)
+		if p >= page.LastPage {
+			return all, nil
+		}
+	}
+}
+
+func (a *API) ProjectRepositories(projectID int) ([]Repository, error) {
+	var all []Repository
+	for p := 1; ; p++ {
+		var page struct {
+			Data     []Repository `json:"data"`
+			LastPage int          `json:"last_page"`
+		}
+		if err := a.do("GET", fmt.Sprintf("projects/%d/repositories", projectID), url.Values{"page": {fmt.Sprint(p)}}, nil, &page); err != nil {
+			return nil, err
+		}
+		all = append(all, page.Data...)
+		if p >= page.LastPage {
+			return all, nil
+		}
+	}
 }
 
 func (a *API) Branches(repoID int) ([]Branch, error) {

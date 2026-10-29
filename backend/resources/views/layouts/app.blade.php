@@ -25,6 +25,7 @@
         $isPhone  ? null : ['label' => 'Explorar',     'route' => 'explore',           'active' => request()->routeIs('explore')],
         $verified ? ['label' => 'Actividad',    'route' => 'activity.index',     'active' => request()->routeIs('activity.index')] : null,
         $verified ? ['label' => 'Notificaciones', 'route' => 'notifications.index', 'active' => request()->routeIs('notifications.*'), 'count' => $unread] : null,
+        ['label' => 'Descargas', 'route' => 'downloads', 'active' => request()->routeIs('downloads')],
     ]);
 
     // ── Items de navegación — barra inferior móvil ────────────────────────────
@@ -165,6 +166,7 @@
                 @unless ($isPhone)
                     <a href="{{ route('explore') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Explorar</a>
                 @endunless
+                <a href="{{ route('downloads') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Descargas</a>
                 <a href="https://github.com/AlvFerMon/codeflow" target="_blank" rel="noopener" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Repositorio en GitHub</a>
                 @guest
                     @include('layouts._theme-switch')

@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Route;
 // Portada, exploración, perfil, notificaciones, proyectos y miembros
 Route::get('/', HomeController::class)->name('home');
 Route::get('explore', ExploreController::class)->middleware('throttle:explore')->name('explore');
+Route::view('descargas', 'downloads.index')->name('downloads');
 
 // El perfil también está disponible sin verificar (p. ej. para corregir un email mal escrito)
 Route::middleware('auth')->group(function () {

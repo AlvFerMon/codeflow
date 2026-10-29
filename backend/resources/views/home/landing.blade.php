@@ -19,6 +19,9 @@
                 <x-button :href="route('register')" variant="purple" size="lg">Registrarse</x-button>
                 <x-button :href="route('explore')" variant="ghost" size="lg">Explorar repositorios públicos →</x-button>
             </div>
+            <p class="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
+                También para <a href="{{ route('downloads') }}" class="font-semibold text-[#FF3366] hover:underline">Windows, Android y la terminal</a>.
+            </p>
         </div>
     </section>
 
