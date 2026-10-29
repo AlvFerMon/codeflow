@@ -9,15 +9,13 @@
     @include('layouts._theme')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="relative flex min-h-full flex-col items-center justify-center bg-[#F2F4FF] px-4 py-12 font-sans text-zinc-900 antialiased selection:bg-[#FF3366] selection:text-white dark:bg-[#000501] dark:text-zinc-100">
-    {{-- Halo de color de fondo --}}
-    <div class="pointer-events-none absolute inset-x-0 top-0 -z-0 h-72 bg-gradient-to-b from-[#9448BC]/10 via-[#FF3366]/5 to-transparent dark:from-[#9448BC]/15" aria-hidden="true"></div>
+<body class="relative flex min-h-full flex-col items-center justify-center bg-[#F2F4FF] px-4 py-12 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
 
     <main class="relative w-full max-w-md">
         <a href="{{ route('home') }}" class="group mb-8 flex items-center justify-center gap-2.5" aria-label="CodeFlow, inicio">
             <x-logo size="h-10 w-10" text="text-xl" />
         </a>
-        <div class="rounded-xl border border-zinc-200/80 bg-white p-8 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+        <div class="ficha rounded-lg p-8">
             <x-flash />
             {{ $slot }}
         </div>

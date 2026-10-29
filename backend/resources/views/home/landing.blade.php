@@ -1,61 +1,96 @@
 <x-app-layout title="Inicio">
-    <section class="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white px-6 py-12 shadow-xs sm:px-12 sm:py-16 dark:border-zinc-800 dark:bg-zinc-900">
-        <div class="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-gradient-to-tr from-purple-600/20 via-indigo-600/10 to-sky-500/20 blur-3xl" aria-hidden="true"></div>
-        <div class="relative max-w-2xl">
-            <x-badge variant="purple" size="md">Control de versiones propio · cifrado en la base de datos</x-badge>
-            <h1 class="mt-5 text-3xl font-bold tracking-tight text-zinc-950 sm:text-4xl dark:text-white">Colabora en tu código con CodeFlow</h1>
-            <p class="mt-4 text-base leading-7 text-zinc-600 dark:text-zinc-400">
+    @php
+        $stampDate = fn ($date) => $date->isToday() ? 'Hoy '.$date->format('H:i') : ($date->isYesterday() ? 'Ayer '.$date->format('H:i') : $date->translatedFormat('j M'));
+    @endphp
+
+    <section class="grid items-center gap-10 py-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,30rem)] lg:py-12">
+        <div class="max-w-xl">
+            <h1 class="text-4xl font-extrabold leading-[1.1] tracking-tight text-zinc-950 sm:text-5xl dark:text-white">Colabora en tu código con CodeFlow</h1>
+            <p class="mt-5 text-lg leading-8 text-zinc-600 dark:text-zinc-400">
                 Organiza tu trabajo en proyectos, guarda el código en repositorios con ramas y commits,
-                y coordina al equipo con issues y pull requests. Cada repositorio se cifra con su propia clave.
+                y coordina al equipo con issues y pull requests. Todo desde el navegador, sin terminal.
+                Cada repositorio se cifra con su propia clave.
             </p>
-            <form action="{{ route('explore') }}" method="GET" role="search" class="mt-8 flex max-w-xl flex-col gap-2 sm:flex-row">
-                <label for="landing-q" class="sr-only">Buscar repositorios públicos</label>
-                <input id="landing-q" type="search" name="q" maxlength="100" placeholder="Busca código público: nombre, descripción o proyecto…"
-                    class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-sm shadow-xs focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-zinc-700 dark:bg-zinc-950">
-                <x-button size="lg">Buscar</x-button>
-            </form>
-            <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-                <x-button :href="route('login')" size="lg">Iniciar sesión</x-button>
-                <x-button :href="route('register')" variant="purple" size="lg">Registrarse</x-button>
-                <x-button :href="route('explore')" variant="ghost" size="lg">Explorar repositorios públicos →</x-button>
+            <div class="mt-8 flex flex-wrap gap-3">
+                <x-button :href="route('register')" size="lg">Crear una cuenta</x-button>
+                <x-button :href="route('login')" variant="secondary" size="lg">Iniciar sesión</x-button>
             </div>
+            <form action="{{ route('explore') }}" method="GET" role="search" class="mt-8 flex max-w-lg gap-2 border-t border-zinc-300 pt-6 dark:border-zinc-800">
+                <label for="landing-q" class="sr-only">Buscar repositorios públicos</label>
+                <input id="landing-q" type="search" name="q" maxlength="100" placeholder="Busca código público por nombre o proyecto…"
+                    class="block w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm placeholder-zinc-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:placeholder-zinc-400">
+                <x-button variant="secondary">Buscar</x-button>
+            </form>
+            <a href="{{ route('explore') }}" class="mt-3 inline-block text-sm font-bold text-purple-600 hover:text-purple-700 dark:text-purple-300">Explorar repositorios públicos</a>
             <p class="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
                 También para <a href="{{ route('downloads') }}" class="font-semibold text-[#FF3366] hover:underline">Windows, Android y la terminal</a>.
             </p>
         </div>
+
+        {{-- Una ficha real: así queda registrado cada cambio --}}
+        @if ($featured)
+            <figure class="min-w-0">
+                <div class="ficha rounded-lg">
+                    <div class="border-b border-zinc-300 p-5 dark:border-zinc-800">
+                        <p class="text-lg font-extrabold text-zinc-950 dark:text-white">
+                            <a href="{{ route('repositories.show', $featured) }}" class="hover:text-purple-600 dark:hover:text-purple-300"><span class="font-semibold text-zinc-500 dark:text-zinc-400">{{ $featured->project?->name }} /</span> {{ $featured->name }}</a>
+                        </p>
+                        @if ($featured->description)
+                            <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $featured->description }}</p>
+                        @endif
+                    </div>
+                    <div class="rayado">
+                        <div class="grid h-9 grid-cols-[minmax(0,1fr)_auto] items-end gap-3 px-5 pb-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                            <span>Cambio · quién</span><span>Sellado</span>
+                        </div>
+                        @forelse ($featuredStamps as $commit)
+                            <div class="grid h-9 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-5 text-sm">
+                                <span class="truncate text-zinc-800 dark:text-zinc-300">{{ \Illuminate\Support\Str::of($commit->message)->before("\n") }} <span class="text-zinc-500 dark:text-zinc-400">· {{ \Illuminate\Support\Str::of($commit->author?->name ?? '')->before(' ') }}</span></span>
+                                <time datetime="{{ $commit->created_at->toIso8601String() }}" @class(['sello sello-entra', 'sello-nuevo' => $loop->first]) style="animation-delay: {{ 200 + $loop->index * 90 }}ms">{{ $stampDate($commit->created_at) }}</time>
+                            </div>
+                        @empty
+                            <p class="flex h-9 items-center px-5 text-sm text-zinc-500 dark:text-zinc-400">Todavía sin cambios.</p>
+                        @endforelse
+                        <div class="h-9"></div>
+                    </div>
+                </div>
+                <figcaption class="mt-3 text-sm text-zinc-600 dark:text-zinc-400">Cada cambio queda sellado con quién lo hizo y cuándo, como en la ficha de un libro de la biblioteca.</figcaption>
+            </figure>
+        @endif
     </section>
 
-    <section class="mt-8" aria-labelledby="publicos">
+    {{-- Lo que se puede hacer: una ficha rayada en tres columnas --}}
+    <section aria-labelledby="que-puedes" class="mt-10">
+        <h2 id="que-puedes" class="border-b border-zinc-300 pb-2 text-sm font-extrabold uppercase tracking-wider text-zinc-700 dark:border-zinc-800 dark:text-zinc-300">Qué puedes hacer</h2>
+        <dl class="grid divide-y divide-zinc-300 md:grid-cols-3 md:divide-x md:divide-y-0 dark:divide-zinc-800">
+            @foreach ([
+                ['Proyectos y roles', 'Agrupa tus repositorios en proyectos y decide quién es colaborador u observador. Solo los miembros ven lo privado.'],
+                ['Ramas, commits y diferencias', 'Sube archivos o carpetas arrastrándolos, crea ramas y revisa el historial con un visor de diferencias línea a línea.'],
+                ['Issues y pull requests', 'Reporta tareas y errores, propone cambios, revisa el trabajo del equipo y fusiona cuando esté aprobado.'],
+            ] as [$title, $text])
+                <div class="py-5 md:px-6 md:first:pl-0 md:last:pr-0">
+                    <dt class="font-extrabold text-zinc-950 dark:text-white">{{ $title }}</dt>
+                    <dd class="mt-1.5 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{{ $text }}</dd>
+                </div>
+            @endforeach
+        </dl>
+    </section>
+
+    <section class="mt-12" aria-labelledby="publicos">
         <x-card>
             <x-slot:title><span id="publicos">Repositorios públicos recientes</span></x-slot:title>
             <x-slot:actions>
-                <a href="{{ route('explore') }}" class="text-xs font-semibold text-purple-600 hover:text-purple-700 dark:text-purple-400">Ver los {{ $publicTotal }} →</a>
+                <a href="{{ route('explore') }}" class="inline-flex items-center gap-1.5 text-sm font-bold text-purple-600 hover:text-purple-700 dark:text-purple-300">{{ $publicTotal === 1 ? 'Ver el repositorio' : 'Ver los '.$publicTotal }}<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg></a>
             </x-slot:actions>
             @if ($publicRepositories->isEmpty())
                 <x-empty title="Todavía no hay repositorios públicos">Cuando alguien comparta su código aparecerá aquí.</x-empty>
             @else
-                <ul class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <ul class="divide-y divide-zinc-200 dark:divide-zinc-800">
                     @foreach ($publicRepositories as $repository)
                         <x-public-repo-row :repository="$repository" />
                     @endforeach
                 </ul>
             @endif
         </x-card>
-    </section>
-
-    <section class="mt-8 grid gap-4 md:grid-cols-3">
-        @foreach ([
-            ['Proyectos y roles', 'Agrupa tus repositorios en proyectos y decide quién es colaborador u observador. Solo los miembros ven lo privado.', 'M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z', 'bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400'],
-            ['Ramas, commits y diferencias', 'Sube archivos, crea ramas y revisa el historial con un visor de diferencias línea a línea.', 'M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5', 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'],
-            ['Issues y pull requests', 'Reporta tareas y errores, propone cambios, revisa el trabajo del equipo y fusiona cuando esté aprobado.', 'M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5', 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400'],
-        ] as [$title, $text, $icon, $color])
-            <x-card class="p-5 transition-shadow hover:shadow-md">
-                <span class="grid h-10 w-10 place-items-center rounded-lg {{ $color }}">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
-                </span>
-                <h2 class="mt-4 font-semibold text-zinc-900 dark:text-zinc-100">{{ $title }}</h2>
-                <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">{{ $text }}</p>
-            </x-card>
-        @endforeach
     </section>
 </x-app-layout>

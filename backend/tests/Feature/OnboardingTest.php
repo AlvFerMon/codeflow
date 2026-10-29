@@ -142,7 +142,7 @@ class OnboardingTest extends TestCase
 
         $this->actingAs($user)->get('/')->assertOk()
             ->assertSee('id="cf-onboarding"', false)
-            ->assertSee('data-tour="checklist"', false)
+            ->assertSee('data-tour="primeros-pasos"', false)
             ->assertSee('data-tour="nav-projects"', false)
             ->assertSee('Primeros pasos');
 

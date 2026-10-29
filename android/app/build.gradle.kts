@@ -17,6 +17,16 @@ val localProperties = Properties().apply {
 val debugApiUrl: String =
     localProperties.getProperty("codeflow.debugApiUrl") ?: "http://10.0.2.2:8080/api/"
 
+// Firma de la versión publicada. android/keystore.properties y el .jks NO se suben al repositorio:
+//   storeFile=C:/Users/<tú>/codeflow-release.jks
+//   storePassword=…
+//   keyAlias=codeflow
+//   keyPassword=…
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("keystore.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
 android {
     namespace = "com.codeflow.app"
     compileSdk = 35
@@ -26,9 +36,20 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 1
-        versionName = "0.1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (keystoreProperties.containsKey("storeFile")) {
+            create("release") {
+                storeFile = file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -39,14 +60,15 @@ android {
         }
         release {
             // Valor por defecto: el servidor se puede cambiar desde la pantalla de login.
-            buildConfigField("String", "BASE_URL", "\"https://codeflow.example.com/api/\"")
+            buildConfigField("String", "BASE_URL", "\"https://codeflow-backend-wheat.vercel.app/api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // La firma se configura desde Android Studio (Build > Generate Signed Bundle/APK).
-            // El keystore NUNCA se sube al repositorio.
+            // Firmada con keystore.properties si existe (gradlew assembleRelease); si no, también
+            // se puede firmar desde Android Studio (Build > Generate Signed Bundle/APK).
+            signingConfigs.findByName("release")?.let { signingConfig = it }
         }
     }
 

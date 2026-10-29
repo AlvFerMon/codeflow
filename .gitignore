@@ -8,11 +8,15 @@ Thumbs.db
 # Android
 /android/.gradle
 /android/local.properties
+/android/keystore.properties
+*.jks
+*.keystore
 /android/build
 /android/app/build
 # Carpeta de salidas de Claude (Cowork): no forma parte del proyecto
 /Claude outputs/
 # Salidas de herramientas de análisis (graphify): no forman parte del proyecto
-/graphify-out/
+graphify-out/
+.graphify_*
 # Copias de seguridad de producción (docker-compose.prod.yml)
 /backups/

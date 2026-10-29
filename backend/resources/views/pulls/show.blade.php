@@ -103,10 +103,9 @@
                                     <x-collab-comment :comment="$r" :role="$roles[$r->user_id] ?? null" :anchor="'review-'.$r->id"
                                         :empty="match ($r->state) { 'approved' => 'Aprobó estos cambios.', default => 'Sin comentario.' }"
                                         @class([
-                                            'border-l-4',
-                                            'border-l-emerald-500' => $r->state === 'approved',
-                                            'border-l-rose-500' => $r->state === 'changes_requested',
-                                            'border-l-zinc-400 dark:border-l-zinc-600' => $r->state === 'commented',
+                                            'border-[1.5px]',
+                                            'border-emerald-600! dark:border-emerald-400!' => $r->state === 'approved',
+                                            'border-rose-600! dark:border-rose-400!' => $r->state === 'changes_requested',
                                         ])>
                                         <x-slot:meta>
                                             <span class="text-zinc-500 dark:text-zinc-400">revisó:</span>

@@ -4,6 +4,7 @@
     Props:
       items   [clave => ['label' => …, 'url' => …, 'count' => ?int, 'highlight' => ?bool, 'end' => ?bool]]
               count: recuento opcional · highlight: recuento resaltado (p. ej. no leídas) · end: alinear a la derecha
+              tour: ancla data-tour opcional para el tutorial de iniciación
       active  clave de la pestaña actual
       variant 'underline' (secciones de una página) | 'pills' (filtros como Abiertas/Cerradas)
       label   nombre accesible de la navegación
@@ -13,7 +14,7 @@
     $pills = $variant === 'pills';
 @endphp
 <nav aria-label="{{ $label }}" {{ $attributes->class([
-    'flex overflow-x-auto text-sm',
+    'flex overflow-x-auto overflow-y-hidden text-sm',
     'gap-1 border-b border-zinc-200 dark:border-zinc-800' => ! $pills,
     'w-fit max-w-full gap-0.5 rounded-lg border border-zinc-200 bg-white p-0.5 dark:border-zinc-800 dark:bg-zinc-900' => $pills,
 ]) }}>
@@ -22,7 +23,7 @@
             $isActive = (string) $key === (string) $active;
             $count = $item['count'] ?? null;
         @endphp
-        <a href="{{ $item['url'] }}" @if ($isActive) aria-current="page" @endif @class([
+        <a href="{{ $item['url'] }}" @if ($isActive) aria-current="page" @endif @isset($item['tour']) data-tour="{{ $item['tour'] }}" @endisset @class([
             'inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-colors',
             'ml-auto' => $item['end'] ?? false,
             // Subrayado

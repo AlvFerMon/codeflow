@@ -79,7 +79,7 @@ class EmailVerificationTest extends TestCase
 
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
         $this->assertNull($user->fresh()->email_verification_code);
-        $this->actingAs($user->fresh())->get('/')->assertOk()->assertSee('Flujo de trabajo');
+        $this->actingAs($user->fresh())->get('/')->assertOk()->assertSee('Te toca');
     }
 
     public function test_wrong_codes_are_limited_and_codes_expire(): void

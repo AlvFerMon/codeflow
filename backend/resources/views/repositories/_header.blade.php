@@ -1,21 +1,21 @@
 {{-- Cabecera común de un repositorio. Variables: $repository, $active (code|issues|pulls|commits|branches|settings) --}}
 <div class="mb-6">
-    <div class="flex flex-wrap items-center gap-2 text-lg">
+    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-2xl">
         @can('view', $repository->project)
-            <a href="{{ route('projects.show', $repository->project) }}" class="text-purple-600 dark:text-purple-400 hover:underline">{{ $repository->project->name }}</a>
+            <a href="{{ route('projects.show', $repository->project) }}" class="font-semibold text-zinc-500 hover:text-purple-600 dark:text-zinc-400 dark:hover:text-purple-300">{{ $repository->project->name }}</a>
         @else
             <span class="text-zinc-500 dark:text-zinc-400">{{ $repository->project->name }}</span>
         @endcan
         <span class="text-zinc-500 dark:text-zinc-400">/</span>
-        <a href="{{ route('repositories.show', $repository) }}" class="font-semibold text-zinc-900 dark:text-zinc-100 hover:underline">{{ $repository->name }}</a>
-        <x-badge :color="$repository->isPublic() ? 'green' : 'slate'">{{ $repository->isPublic() ? 'Público' : 'Privado' }}</x-badge>
+        <a href="{{ route('repositories.show', $repository) }}" class="font-extrabold tracking-tight text-zinc-950 hover:text-purple-600 dark:text-white dark:hover:text-purple-300">{{ $repository->name }}</a>
+        <x-badge :color="$repository->isPublic() ? 'green' : 'purple'" class="self-center">{{ $repository->isPublic() ? 'Público' : 'Privado' }}</x-badge>
     </div>
     @if ($repository->description)
         <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{{ $repository->description }}</p>
     @endif
     @guest
         @if ($repository->isPublic())
-            <div class="mt-4 flex flex-col gap-3 rounded-xl border border-purple-500/20 bg-purple-500/5 px-4 py-3 sm:flex-row sm:items-center">
+            <div class="mt-4 flex flex-col gap-3 ficha rounded-lg px-4 py-3 sm:flex-row sm:items-center">
                 <p class="text-xs leading-5 text-zinc-700 dark:text-zinc-300">
                     <span class="font-semibold text-zinc-900 dark:text-white">Estás viendo un repositorio público.</span>
                     Puedes leer el código, descargar archivos y seguir sus issues y pull requests. Para comentar o proponer cambios necesitas una cuenta.
@@ -30,11 +30,11 @@
     @php
         $active = $active ?? 'code';
         $tabs = [
-            'code' => ['label' => 'Código', 'url' => route('repositories.show', $repository)],
-            'issues' => ['label' => 'Issues', 'url' => route('issues.index', $repository)],
-            'pulls' => ['label' => 'Pull requests', 'url' => route('pulls.index', $repository)],
-            'commits' => ['label' => 'Commits', 'url' => route('commits.index', $repository)],
-            'branches' => ['label' => 'Ramas', 'url' => route('branches.index', $repository)],
+            'code' => ['label' => 'Código', 'url' => route('repositories.show', $repository), 'tour' => 'pestana-codigo'],
+            'issues' => ['label' => 'Issues', 'url' => route('issues.index', $repository), 'tour' => 'pestana-issues'],
+            'pulls' => ['label' => 'Pull requests', 'url' => route('pulls.index', $repository), 'tour' => 'pestana-pulls'],
+            'commits' => ['label' => 'Commits', 'url' => route('commits.index', $repository), 'tour' => 'pestana-commits'],
+            'branches' => ['label' => 'Ramas', 'url' => route('branches.index', $repository), 'tour' => 'pestana-ramas'],
         ];
         if (auth()->user()?->can('update', $repository)) {
             $tabs['settings'] = ['label' => 'Configuración', 'url' => route('repositories.settings', $repository), 'end' => true];

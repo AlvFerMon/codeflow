@@ -69,7 +69,7 @@ class IssuesWebTest extends TestCase
         $this->assertDatabaseHas('issue_comments', ['issue_id' => $issue->id, 'user_id' => $this->observer->id]);
 
         // El comentario del observador se resalta y genera una alerta para el resto del equipo
-        $this->get(route('issues.show', [$this->repo, $issue->number]))->assertSee('Observador')->assertSee('border-l-amber-500', false);
+        $this->get(route('issues.show', [$this->repo, $issue->number]))->assertSee('Observador')->assertSee('border-amber-500', false);
         $alert = $this->owner->fresh()->notifications->firstWhere('data.event', 'issue.commented');
         $this->assertSame('alert', $alert?->data['kind']);
 

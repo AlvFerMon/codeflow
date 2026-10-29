@@ -156,3 +156,27 @@ O en Android Studio: clic derecho en `app/src/test` › *Run 'Tests in…'*.
 
 AGP 8.7.3 · Gradle 8.11.1 · Kotlin 2.1.0 (plugin Compose Compiler) · Compose BOM 2024.12.01 · WorkManager 2.10.0 · compileSdk/targetSdk 35 ·
 minSdk 26 · Java 17. El resto, en `gradle/libs.versions.toml`.
+
+## Publicar el APK (descarga desde la web)
+
+La web enlaza a `CodeFlow.apk` de la última Release de
+[AlvFerMon/codeflow-descargas](https://github.com/AlvFerMon/codeflow-descargas/releases) (página `/descargas`).
+La versión *release* usa por defecto el servidor de producción (`https://codeflow-backend-wheat.vercel.app/api/`).
+
+1. **Crear la clave de firma (solo la primera vez).** Guárdala fuera del repositorio y no la pierdas: sin ella
+   no se pueden publicar actualizaciones que se instalen encima de la versión anterior.
+   ```powershell
+   & "C:\Program Files\Android\Android Studio\jbr\bin\keytool.exe" -genkeypair -v -keystore $HOME\codeflow-release.jks -alias codeflow -keyalg RSA -keysize 2048 -validity 10000
+   ```
+2. **Crear `android/keystore.properties`** (no se sube al repositorio):
+   ```properties
+   storeFile=C:/Users/User/codeflow-release.jks
+   storePassword=la contraseña que elegiste
+   keyAlias=codeflow
+   keyPassword=la contraseña que elegiste
+   ```
+3. **Compilar:** `cd android` y `.\gradlew.bat assembleRelease` → `app\build\outputs\apk\release\app-release.apk`.
+4. Renombrarlo a `CodeFlow.apk` y subirlo a la Release.
+
+Para cada versión nueva, sube `versionCode` (+1) y `versionName` en `app/build.gradle.kts`.
+

@@ -22,7 +22,7 @@
         <a
             href="{{ route($item['route']) }}"
             class="gnav-slot"
-            @if (! empty($item['tour'])) data-tour="{{ $item['tour'] }}" @endif
+            data-tour="nav-{{ \Illuminate\Support\Str::before($item['route'], '.') }}"
             @if ($item['active'])
                 aria-current="page"
                 data-active="true"

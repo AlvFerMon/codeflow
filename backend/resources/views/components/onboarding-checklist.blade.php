@@ -7,10 +7,10 @@
     $percent = $list['required_total'] ? (int) round($list['required_done'] * 100 / $list['required_total']) : 100;
 @endphp
 @if ($list['visible'])
-    <section data-tour="checklist" aria-labelledby="primeros-pasos" class="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+    <section data-tour="primeros-pasos" aria-labelledby="primeros-pasos" class="ficha mb-8 rounded-lg p-5">
         <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
             <div>
-                <h2 id="primeros-pasos" class="text-base font-semibold text-zinc-900 dark:text-white">Primeros pasos</h2>
+                <h2 id="primeros-pasos" class="text-sm font-extrabold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">Primeros pasos</h2>
                 <p class="mt-0.5 text-xs text-zinc-500 dark:text-zinc-400">Se marcan solos según los vas haciendo. {{ $list['required_done'] }} de {{ $list['required_total'] }} hechos.</p>
             </div>
             <div class="flex flex-wrap gap-2">

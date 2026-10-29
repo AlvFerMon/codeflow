@@ -1,0 +1,623 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-29T20:47:17+00:00",
+  "title": "Design System: CodeFlow",
+  "extensions": {
+    "colorMeta": {
+      "cartulina": {
+        "role": "neutral",
+        "displayName": "Cartulina",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "ficha": {
+        "role": "neutral",
+        "displayName": "Ficha",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "tinta-titulo": {
+        "role": "neutral",
+        "displayName": "Tinta de título",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "tinta-fuerte": {
+        "role": "neutral",
+        "displayName": "Tinta fuerte",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "tinta-media": {
+        "role": "neutral",
+        "displayName": "Tinta media",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "tinta-suave": {
+        "role": "neutral",
+        "displayName": "Tinta suave",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "regla": {
+        "role": "neutral",
+        "displayName": "Regla",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "regla-interior": {
+        "role": "neutral",
+        "displayName": "Regla interior",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "rayado": {
+        "role": "neutral",
+        "displayName": "Rayado",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "fucsia-accion": {
+        "role": "primary",
+        "displayName": "Fucsia de acción",
+        "tonalRamp": [
+          "#3F0014",
+          "#90002F",
+          "#B8123F",
+          "#DB1A4E",
+          "#FF3366",
+          "#FF9DB3",
+          "#FFC7D4",
+          "#FFF0F3"
+        ]
+      },
+      "fucsia-accion-hover": {
+        "role": "primary",
+        "displayName": "Fucsia profundo",
+        "tonalRamp": [
+          "#3F0014",
+          "#90002F",
+          "#B8123F",
+          "#DB1A4E",
+          "#FF3366",
+          "#FF9DB3",
+          "#FFC7D4",
+          "#FFF0F3"
+        ]
+      },
+      "fucsia-marca": {
+        "role": "primary",
+        "displayName": "Fucsia de marca",
+        "tonalRamp": [
+          "#3F0014",
+          "#90002F",
+          "#B8123F",
+          "#DB1A4E",
+          "#FF3366",
+          "#FF9DB3",
+          "#FFC7D4",
+          "#FFF0F3"
+        ]
+      },
+      "amatista": {
+        "role": "secondary",
+        "displayName": "Amatista",
+        "tonalRamp": [
+          "#330F45",
+          "#632F7E",
+          "#7B3A9D",
+          "#9448BC",
+          "#A35DCB",
+          "#CDA2EA",
+          "#E2C9F4",
+          "#F7F0FC"
+        ]
+      },
+      "amatista-hover": {
+        "role": "secondary",
+        "displayName": "Amatista profunda",
+        "tonalRamp": [
+          "#330F45",
+          "#632F7E",
+          "#7B3A9D",
+          "#9448BC",
+          "#A35DCB",
+          "#CDA2EA",
+          "#E2C9F4",
+          "#F7F0FC"
+        ]
+      },
+      "verde-sello": {
+        "role": "tertiary",
+        "displayName": "Verde sello",
+        "tonalRamp": [
+          "#002E2A",
+          "#0B665D",
+          "#0E7A70",
+          "#0F8A7E",
+          "#2EC4B6",
+          "#6FDDD1",
+          "#A8EDE5",
+          "#ECFBF9"
+        ]
+      },
+      "verde-marca": {
+        "role": "tertiary",
+        "displayName": "Verde de marca",
+        "tonalRamp": [
+          "#002E2A",
+          "#0B665D",
+          "#0E7A70",
+          "#0F8A7E",
+          "#2EC4B6",
+          "#6FDDD1",
+          "#A8EDE5",
+          "#ECFBF9"
+        ]
+      },
+      "chartreuse": {
+        "role": "tertiary",
+        "displayName": "Chartreuse",
+        "tonalRamp": [
+          "#1E2800",
+          "#2F3D00",
+          "#486000",
+          "#6B8C00",
+          "#94C21A",
+          "#CAFE48",
+          "#DAFE7E",
+          "#EEFFC2"
+        ]
+      },
+      "chartreuse-texto": {
+        "role": "tertiary",
+        "displayName": "Chartreuse legible",
+        "tonalRamp": [
+          "#1E2800",
+          "#2F3D00",
+          "#486000",
+          "#6B8C00",
+          "#94C21A",
+          "#CAFE48",
+          "#DAFE7E",
+          "#EEFFC2"
+        ]
+      },
+      "noche-fondo": {
+        "role": "neutral",
+        "displayName": "Fondo de noche",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "noche-ficha": {
+        "role": "neutral",
+        "displayName": "Ficha de noche",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "noche-regla": {
+        "role": "neutral",
+        "displayName": "Regla de noche",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "noche-rayado": {
+        "role": "neutral",
+        "displayName": "Rayado de noche",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "noche-tinta": {
+        "role": "neutral",
+        "displayName": "Tinta de noche",
+        "tonalRamp": [
+          "#0B0D1A",
+          "#232842",
+          "#3D435A",
+          "#4B5170",
+          "#656B8A",
+          "#C4C9E0",
+          "#DDE1F2",
+          "#F7F8FE"
+        ]
+      },
+      "noche-amatista": {
+        "role": "secondary",
+        "displayName": "Amatista de noche",
+        "tonalRamp": [
+          "#330F45",
+          "#632F7E",
+          "#7B3A9D",
+          "#9448BC",
+          "#A35DCB",
+          "#CDA2EA",
+          "#E2C9F4",
+          "#F7F0FC"
+        ]
+      },
+      "noche-fucsia": {
+        "role": "primary",
+        "displayName": "Fucsia de noche",
+        "tonalRamp": [
+          "#3F0014",
+          "#90002F",
+          "#B8123F",
+          "#DB1A4E",
+          "#FF3366",
+          "#FF9DB3",
+          "#FFC7D4",
+          "#FFF0F3"
+        ]
+      },
+      "noche-verde": {
+        "role": "tertiary",
+        "displayName": "Verde de noche",
+        "tonalRamp": [
+          "#002E2A",
+          "#0B665D",
+          "#0E7A70",
+          "#0F8A7E",
+          "#2EC4B6",
+          "#6FDDD1",
+          "#A8EDE5",
+          "#ECFBF9"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Solo el titular de la portada pública."
+      },
+      "headline": {
+        "displayName": "Titular",
+        "purpose": "Saludo del inicio y h1 de página."
+      },
+      "title": {
+        "displayName": "Título",
+        "purpose": "Nombre de repositorio en su ficha y títulos de bloque."
+      },
+      "body": {
+        "displayName": "Cuerpo",
+        "purpose": "Tamaño de trabajo de toda la app."
+      },
+      "lead": {
+        "displayName": "Entradilla",
+        "purpose": "Frase-resumen bajo el saludo."
+      },
+      "label": {
+        "displayName": "Etiqueta",
+        "purpose": "Cabeceras de columna y términos de datos, en mayúsculas. Nunca antetítulos."
+      },
+      "sello": {
+        "displayName": "Sello",
+        "purpose": "Fechas selladas en Mono, mayúsculas y cifras tabulares."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Hashes, números de issue/PR y código."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-xs",
+        "value": "0 1px 0 rgb(16 19 35 / 0.04)",
+        "purpose": "Filo casi invisible bajo controles."
+      },
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 0 rgb(16 19 35 / 0.06)",
+        "purpose": "Regla de base."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 12px 28px -8px rgb(16 19 35 / 0.22)",
+        "purpose": "Menús desplegables y enlace Saltar al contenido."
+      }
+    ],
+    "motion": [
+      {
+        "name": "sellar",
+        "value": "420ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Entrada del sello de fecha: escala 1.3 con desenfoque de 1px, 0.96 al 60%, 1 al final; nunca toca la opacidad. Escalonado 70ms por fila. Solo con prefers-reduced-motion: no-preference."
+      },
+      {
+        "name": "resorte-barra",
+        "value": "420ms cubic-bezier(0.22, 1, 0.36, 1.35)",
+        "purpose": "Indicador elástico de la barra de navegación heredada (Bencho Icon bar)."
+      },
+      {
+        "name": "estado-boton",
+        "value": "150ms",
+        "purpose": "Transición de color de botones; escala 0.98 al pulsar."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "contenedor",
+        "value": "1280px"
+      }
+    ],
+    "constraints": {
+      "dataTourAnchors": {
+        "source": "docs/ANCLAS_TUTORIAL.md",
+        "rule": "Las anclas data-tour deben sobrevivir a cualquier rediseño en el elemento equivalente.",
+        "anchors": [
+          "nav-home",
+          "nav-projects",
+          "nav-explore",
+          "nav-activity",
+          "nav-notifications",
+          "buscar",
+          "nuevo-proyecto",
+          "avisos",
+          "menu-usuario",
+          "resumen",
+          "ficha-repositorio",
+          "sellos",
+          "te-toca",
+          "pestana-codigo",
+          "pestana-issues",
+          "pestana-pulls",
+          "pestana-commits",
+          "pestana-ramas",
+          "selector-rama",
+          "subir-archivos"
+        ]
+      }
+    }
+  },
+  "components": [
+    {
+      "name": "Botón principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal de la pantalla: Nuevo, Crear una cuenta, Registrarse.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"14\" height=\"14\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"2.5\" stroke=\"currentColor\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 4.5v15m7.5-7.5h-15\"/></svg>Nuevo</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font:700 14px/20px var(--font-sans,'Atkinson Hyperlegible Next',sans-serif);cursor:pointer;transition:background-color 150ms,color 150ms,border-color 150ms;background:#DB1A4E;color:#fff;border:0;}.ds-btn-primary:hover{background:#B8123F;}.ds-btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #FF3366;}.ds-btn-primary:active{transform:scale(.98);}"
+    },
+    {
+      "name": "Botón secundario",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acciones de navegación dentro de una ficha: Abrir el código, Mis proyectos.",
+      "html": "<button class=\"ds-btn-secondary\">Abrir el código</button>",
+      "css": ".ds-btn-secondary{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font:700 14px/20px var(--font-sans,'Atkinson Hyperlegible Next',sans-serif);cursor:pointer;transition:background-color 150ms,color 150ms,border-color 150ms;background:#fff;color:#232842;border:1px solid #C4C9E0;}.ds-btn-secondary:hover{background:#F7F8FE;border-color:#8E94B0;color:#0B0D1A;}.ds-btn-secondary:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #8E94B0;}.ds-btn-secondary:active{transform:scale(.98);}"
+    },
+    {
+      "name": "Botón fantasma",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Acción secundaria discreta junto a un botón secundario.",
+      "html": "<button class=\"ds-btn-ghost\">Ver todos los cambios</button>",
+      "css": ".ds-btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font:700 14px/20px var(--font-sans,'Atkinson Hyperlegible Next',sans-serif);cursor:pointer;transition:background-color 150ms,color 150ms,border-color 150ms;background:transparent;color:#4B5170;border:0;}.ds-btn-ghost:hover{background:#EEF0FB;color:#0B0D1A;}.ds-btn-ghost:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #8E94B0;}.ds-btn-ghost:active{transform:scale(.98);}"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campo con regla de 1px y foco amatista.",
+      "html": "<input class=\"ds-input\" type=\"search\" placeholder=\"Busca código público por nombre o proyecto\">",
+      "css": ".ds-input{display:block;width:280px;padding:8px 12px;border:1px solid #C4C9E0;border-radius:4px;background:#fff;color:#101323;font:400 14px/20px 'Atkinson Hyperlegible Next',sans-serif;caret-color:#FF3366;}.ds-input::placeholder{color:#656B8A;}.ds-input:focus{outline:none;border-color:#A35DCB;box-shadow:0 0 0 2px rgb(163 93 203 / .2);}"
+    },
+    {
+      "name": "Pestañas de sección",
+      "kind": "nav",
+      "refersTo": "tab-activa",
+      "description": "Pestañas subrayadas del repositorio; la activa con subrayado fucsia de 2px.",
+      "html": "<nav class=\"ds-tabs\"><a href=\"#\" aria-current=\"page\">Código</a><a href=\"#\">Issues <span>3</span></a><a href=\"#\">Pull requests</a><a href=\"#\">Commits</a></nav>",
+      "css": ".ds-tabs{display:flex;gap:4px;border-bottom:1px solid #DDE1F2;font:400 14px/20px 'Atkinson Hyperlegible Next',sans-serif;}.ds-tabs a{display:inline-flex;align-items:center;gap:6px;margin-bottom:-1px;padding:8px 12px;border-bottom:2px solid transparent;color:#4B5170;text-decoration:none;transition:color 150ms;}.ds-tabs a:hover{color:#161A2E;}.ds-tabs a[aria-current]{border-color:#FF3366;color:#161A2E;font-weight:500;}.ds-tabs a:focus-visible{outline:2px solid #FF3366;outline-offset:2px;border-radius:4px;}.ds-tabs span{border-radius:999px;padding:0 6px;background:rgb(221 225 242 / .7);color:#3D435A;font-size:11px;font-weight:600;}"
+    },
+    {
+      "name": "Sellos de estado",
+      "kind": "chip",
+      "refersTo": "sello",
+      "description": "Etiquetas de tinta de tampón: la forma dice el estado (rectangular pendiente, redondo hecho, tachado cerrado).",
+      "html": "<div class=\"ds-sellos\"><span class=\"ds-sello\">Hoy 19:19</span><span class=\"ds-sello ds-sello-nuevo\">Abierta</span><span class=\"ds-sello ds-sello-hecho\">Fusionada</span><span class=\"ds-sello ds-sello-cerrado\">Cerrada</span></div>",
+      "css": ".ds-sellos{display:flex;gap:10px;align-items:center;}.ds-sello{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;padding:1px 6px;border:1.5px solid currentColor;border-radius:3px;color:#9448BC;font:700 11px/16px 'Atkinson Hyperlegible Mono',monospace;text-transform:uppercase;font-variant-numeric:tabular-nums;rotate:-1.5deg;}.ds-sello-nuevo{color:#DB1A4E;rotate:1.5deg;}.ds-sello-hecho{color:#0E7A70;border-radius:999px;}.ds-sello-cerrado{color:#656B8A;text-decoration:line-through;}"
+    },
+    {
+      "name": "Ficha con columna rayada",
+      "kind": "card",
+      "refersTo": "ficha",
+      "description": "La ficha de repositorio: datos a la izquierda, columna rayada de sellos de fecha a la derecha.",
+      "html": "<article class=\"ds-ficha\"><div class=\"ds-ficha-datos\"><h3><span>Proyecto DAM /</span> codeflow-api</h3><p>API REST del proyecto.</p><code>b3816c7</code></div><div class=\"ds-rayado\"><div class=\"ds-rayado-cab\"><span>Cambio · quién</span><span>Sellado</span></div><a href=\"#\"><span>Paginación en el listado <em>· Laura</em></span><time class=\"ds-sello ds-sello-nuevo\">Hoy 19:19</time></a><a href=\"#\"><span>Añadido controlador de login <em>· Carlos</em></span><time class=\"ds-sello\">Ayer 12:04</time></a><a href=\"#\"><span>Initial commit <em>· Laura</em></span><time class=\"ds-sello\">3 oct</time></a></div></article>",
+      "css": ".ds-ficha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,22rem);max-width:760px;border:1px solid #C4C9E0;border-radius:6px;background:#fff;font:400 14px/20px 'Atkinson Hyperlegible Next',sans-serif;color:#101323;}.ds-ficha-datos{padding:20px;}.ds-ficha-datos h3{margin:0;font-size:18px;line-height:1.25;font-weight:800;color:#0B0D1A;}.ds-ficha-datos h3 span{font-weight:600;color:#656B8A;}.ds-ficha-datos p{margin:6px 0 16px;color:#4B5170;}.ds-ficha-datos code{font:400 14px/20px 'Atkinson Hyperlegible Mono',monospace;color:#232842;}.ds-rayado{border-left:1px solid #C4C9E0;background-image:repeating-linear-gradient(to bottom,transparent 0 36px,#E3E7F8 36px 37px);}.ds-rayado-cab{display:grid;grid-template-columns:1fr auto;height:36px;align-items:end;padding:0 16px 6px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#656B8A;box-sizing:border-box;}.ds-rayado a{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;height:37px;padding:0 16px;color:#232842;text-decoration:none;}.ds-rayado a > span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.ds-rayado a em{font-style:normal;color:#656B8A;}.ds-rayado a:hover{background:rgb(247 240 252 / .6);color:#0B0D1A;}.ds-rayado a:focus-visible{outline:2px solid #FF3366;outline-offset:-2px;}.ds-sello{display:inline-flex;padding:1px 6px;border:1.5px solid currentColor;border-radius:3px;color:#9448BC;font:700 11px/16px 'Atkinson Hyperlegible Mono',monospace;text-transform:uppercase;font-variant-numeric:tabular-nums;rotate:-1.5deg;}.ds-sello-nuevo{color:#DB1A4E;rotate:1.5deg;}"
+    },
+    {
+      "name": "Sello grande de estado",
+      "kind": "custom",
+      "refersTo": "sello-estado",
+      "description": "Casilla de 40px de la columna Te toca: cuadrada pendiente (fucsia), redonda hecha (verde).",
+      "html": "<div class=\"ds-estados\"><span class=\"ds-estado\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"12\" r=\"9\"/><circle cx=\"12\" cy=\"12\" r=\"2\"/></svg></span><span class=\"ds-estado ds-estado-hecho\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"m4.5 12.75 6 6 9-13.5\"/></svg></span></div>",
+      "css": ".ds-estados{display:flex;gap:12px;}.ds-estado{display:grid;place-items:center;width:40px;height:40px;border:2px solid currentColor;border-radius:6px;color:#DB1A4E;}.ds-estado-hecho{color:#0E7A70;border-radius:999px;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "La ficha de préstamo",
+    "overview": "**Creative North Star: \"La ficha de préstamo\"**\n\nCodeFlow se lee como la ficha de préstamo de la biblioteca del instituto: una cartulina fría sobre la que se apoyan fichas blancas con reglas de 1px, y en cada ficha una columna rayada donde cada cambio queda sellado con quién lo hizo y cuándo. La información se ordena en filas y columnas que se entienden sin saber Git; el color no decora, es tinta de tampón que dice el estado de algo.\n\nLa densidad es de herramienta de trabajo: texto de 14px, filas de 36px, pocos tamaños de letra y la jerarquía hecha con peso (400 a 800) y con mayúsculas pequeñas en las etiquetas. Las superficies son planas y se separan por reglas, no por sombras; solo los menús desplegables y los controles animados heredados (barra de navegación elástica, buscador) flotan. El modo oscuro es una ficha de noche en azul tinta profundo, nunca negro puro.\n\nEl sistema rechaza explícitamente el dashboard gris de tarjetas flotantes con métricas gigantes y el neón sobre negro.",
+    "keyCharacteristics": [
+      "Cartulina fría de fondo, fichas blancas con borde de 1px y sin sombra.",
+      "Columna rayada cada 36px con sellos de fecha en Atkinson Hyperlegible Mono.",
+      "Estado comunicado por la forma del sello (redondo hecho, rectangular pendiente, tachado cerrado), además del color.",
+      "Una sola familia tipográfica (Atkinson Hyperlegible Next) y su Mono solo para hashes, fechas y cifras.",
+      "Radios pequeños (3–8px); profundidad casi nula."
+    ],
+    "rules": [
+      {
+        "name": "The Tinta de Tampón Rule",
+        "body": "El color solo aparece como tinta: en sellos, enlaces, el botón principal y el foco. Fondos de color de bloque no existen; los tintes tenues (purple-50 al pasar por una fila) son lo máximo.",
+        "section": "colors"
+      },
+      {
+        "name": "The Chartreuse Casi Nunca Rule",
+        "body": "Chartreuse no lleva texto sobre fondo claro salvo en su variante legible, y como tinta solo marca «hoy» en modo oscuro.",
+        "section": "colors"
+      },
+      {
+        "name": "The Peso Antes Que Tamaño Rule",
+        "body": "La jerarquía se hace con peso y mayúscula; no se añaden tamaños nuevos a la escala. Si algo necesita destacar, sube a 700/800 antes que a otro tamaño.",
+        "section": "typography"
+      },
+      {
+        "name": "The Cifra Tabular Rule",
+        "body": "Todo `.font-mono`, `code`, `kbd` y `time` usa cifras tabulares para que las columnas cuadren; los números (#12, e8b1195) se ven siempre y no cambian de ancho.",
+        "section": "typography"
+      },
+      {
+        "name": "The Solo Flotan Los Menús Rule",
+        "body": "Las fichas, tarjetas, paneles y botones no llevan sombra. Lo único que se levanta del papel es lo que se abre por encima de él.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do apoyar cada bloque en una ficha blanca con regla de 1px y esquinas de 6px sobre la cartulina.",
+      "Do decir el estado con la forma del sello además del color: redondo hecho, rectangular pendiente, tachado cerrado.",
+      "Do usar las escalas `zinc`, `purple`, `rose` y `emerald` redefinidas (o las variables `--color-stamp*`, `--color-rule*`) en vez de hex sueltos.",
+      "Do alinear listas de cambios a la fila de 36px de la columna rayada.",
+      "Do poner hashes, fechas y cifras en Atkinson Hyperlegible Mono con cifras tabulares.",
+      "Do conservar todas las anclas `data-tour` de `docs/ANCLAS_TUTORIAL.md` en cualquier rediseño y añadir las nuevas con nombres en español y guiones.",
+      "Do respetar `prefers-reduced-motion` en toda animación nueva, como hacen los sellos y la barra elástica."
+    ],
+    "donts": [
+      "Don't construir el dashboard gris de tarjetas flotantes con métricas gigantes, ni neón sobre negro.",
+      "Don't poner sombra a fichas, tarjetas o botones; solo flotan los menús y los controles animados heredados.",
+      "Don't usar negro puro en modo oscuro; la noche es azul tinta.",
+      "Don't usar chartreuse como texto sobre fondo claro ni como color de acción.",
+      "Don't añadir tamaños de texto nuevos para crear jerarquía; usa peso y mayúscula.",
+      "Don't usar una etiqueta en mayúsculas como antetítulo sobre un titular; las mayúsculas pequeñas son para cabeceras de columna, términos de datos y encabezados cortos de sección.",
+      "Don't reutilizar las anclas `data-tour` para estilos ni para tests."
+    ]
+  }
+}

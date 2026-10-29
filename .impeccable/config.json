@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "hyperlegible next\",sans-serif",
+        "createdAt": "2026-10-29T20:48:05.195Z",
+        "reason": "Claude: decision sketches in .impeccable/mocks/decision use the same Atkinson Hyperlegible Next documented in DESIGN.md; the detector misparses the quoted family in their inline CSS"
+      }
+    ]
+  }
+}

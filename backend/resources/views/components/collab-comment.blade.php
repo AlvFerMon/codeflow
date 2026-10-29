@@ -6,13 +6,13 @@
 @php($observer = $role === \App\Support\Roles::OBSERVER)
 <article @if ($anchor) id="{{ $anchor }}" @endif {{ $attributes->class([
     'scroll-mt-4 overflow-hidden rounded-lg border bg-white dark:bg-zinc-900',
-    'border-amber-300 dark:border-amber-500/30 border-l-4 border-l-amber-500' => $observer,
-    'border-zinc-200 dark:border-zinc-800' => ! $observer,
+    'border-[1.5px] border-amber-500 dark:border-amber-400/70' => $observer,
+    'border-zinc-300 dark:border-zinc-800' => ! $observer,
 ]) }}>
     <header @class([
         'flex flex-wrap items-center gap-x-2 gap-y-1 border-b px-4 py-2 text-sm',
         'border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10' => $observer,
-        'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/40' => ! $observer,
+        'border-zinc-200 dark:border-zinc-800' => ! $observer,
     ])>
         <x-avatar :user="$comment->user" size="sm" />
         <span class="font-medium text-zinc-900 dark:text-zinc-100">{{ $comment->user?->name ?? 'Usuario eliminado' }}</span>
@@ -25,7 +25,10 @@
             <x-badge color="indigo">Propietario</x-badge>
         @endif
         {{ $meta ?? '' }}
-        <time class="text-zinc-500 dark:text-zinc-400" datetime="{{ $comment->created_at?->toIso8601String() }}" title="{{ $comment->created_at?->format('d/m/Y H:i') }}">{{ $comment->created_at?->diffForHumans() }}</time>
+        @if ($at = $comment->created_at)
+            {{-- Sello de fecha, como en la ficha --}}
+            <time class="sello ml-auto" datetime="{{ $at->toIso8601String() }}" title="{{ $at->format('d/m/Y H:i') }} ({{ $at->diffForHumans() }})">{{ $at->isToday() ? 'Hoy '.$at->format('H:i') : ($at->isYesterday() ? 'Ayer '.$at->format('H:i') : $at->translatedFormat('j M Y')) }}</time>
+        @endif
     </header>
     <div class="px-4 py-3">
         <x-markdown :text="$comment->body" :empty="$empty" />

@@ -26,16 +26,9 @@ Al entrar por primera vez (con el correo verificado) se muestra una **visita gui
 Solo hay que conservar:
 
 1. `@include('layouts._onboarding')` en el layout (para usuarios verificados).
-2. Los atributos **`data-tour`** en los elementos que se resaltan:
-
-   | `data-tour` | Elemento |
-   |---|---|
-   | `nav-projects` | enlace «Proyectos» del menú |
-   | `new-project` | botón «Nuevo» |
-   | `notifications` | campana de notificaciones |
-   | `nav-downloads` | enlace «Descargas» |
-   | `user-menu` | menú de usuario |
-   | `checklist` | lista «Primeros pasos» |
+2. Los atributos **`data-tour`** de los elementos que se resaltan. La lista completa de anclas está en
+   [`ANCLAS_TUTORIAL.md`](ANCLAS_TUTORIAL.md); la visita usa `te-toca`, `nav-projects`, `nuevo-proyecto`, `avisos`,
+   `nav-downloads`, `menu-usuario` y `primeros-pasos` (la lista «Primeros pasos»).
 
    Si un elemento no existe o no se ve (p. ej. en el móvil), ese paso se muestra centrado.
 3. `<x-onboarding-checklist />` donde se quiera la lista (ahora, en el inicio), o pintarla con los datos de la API.

@@ -6,7 +6,7 @@
 |--------------------------------------------------------------------------
 |
 | 'tour': visita guiada que se muestra al entrar por primera vez (con el correo verificado).
-|   Cada paso resalta el elemento con el atributo data-tour="<anchor>"; si no hay anchor o el
+|   Cada paso resalta el elemento con el atributo data-tour="<anchor>" (lista en docs/ANCLAS_TUTORIAL.md); si no hay anchor o el
 |   elemento no está visible (p. ej. en el móvil), el paso se muestra centrado.
 |
 | 'checklist': lista «Primeros pasos». Cada tarea se marca sola cuando el usuario hace esa
@@ -31,6 +31,12 @@ return [
             'anchor' => null,
         ],
         [
+            'id' => 'todo',
+            'title' => 'Lo que te toca',
+            'text' => 'Aquí aparece lo que espera algo de ti: revisiones que te piden, issues asignadas y lo último que se ha fusionado.',
+            'anchor' => 'te-toca',
+        ],
+        [
             'id' => 'projects',
             'title' => 'Tus proyectos',
             'text' => 'Desde aquí entras a tus proyectos y sus repositorios.',
@@ -40,13 +46,13 @@ return [
             'id' => 'new',
             'title' => 'Crea tu primer proyecto',
             'text' => 'Con este botón creas un proyecto. Dentro podrás añadir repositorios e invitar a tu equipo.',
-            'anchor' => 'new-project',
+            'anchor' => 'nuevo-proyecto',
         ],
         [
             'id' => 'notifications',
             'title' => 'Avisos',
             'text' => 'Te avisamos cuando alguien sube cambios, te asigna una tarea o revisa tu trabajo.',
-            'anchor' => 'notifications',
+            'anchor' => 'avisos',
         ],
         [
             'id' => 'downloads',
@@ -58,13 +64,13 @@ return [
             'id' => 'menu',
             'title' => 'Tu menú',
             'text' => 'Aquí están tu perfil, el modo claro u oscuro y «Ver el tutorial otra vez».',
-            'anchor' => 'user-menu',
+            'anchor' => 'menu-usuario',
         ],
         [
             'id' => 'checklist',
             'title' => 'Primeros pasos',
             'text' => 'Esta lista te guía por lo más importante y se marca sola según avanzas. Si quieres practicar sin miedo, crea el proyecto de ejemplo.',
-            'anchor' => 'checklist',
+            'anchor' => 'primeros-pasos',
         ],
     ],
 
