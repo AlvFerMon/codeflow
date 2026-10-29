@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\Account\MemberController;
 use App\Http\Controllers\Web\Account\NotificationController;
 use App\Http\Controllers\Web\Account\ProfileController;
 use App\Http\Controllers\Web\Account\ProjectController;
+use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\TrashController;
@@ -27,6 +28,10 @@ Route::middleware('auth')->group(function () {
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::put('profile/password', [ProfileController::class, 'updatePassword'])->middleware('throttle:10,1')->name('profile.password');
     Route::patch('profile/preferences', [PreferencesController::class, 'update'])->name('profile.preferences');
+    Route::get('profile/devices', [DeviceController::class, 'index'])->name('profile.devices');
+    Route::delete('profile/devices/others', [DeviceController::class, 'destroyOthers'])->name('profile.devices.others');
+    Route::delete('profile/devices/apps/{id}', [DeviceController::class, 'destroyToken'])->whereNumber('id')->name('profile.devices.token');
+    Route::delete('profile/devices/web/{id}', [DeviceController::class, 'destroySession'])->where('id', '[A-Za-z0-9]{20,100}')->name('profile.devices.session');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

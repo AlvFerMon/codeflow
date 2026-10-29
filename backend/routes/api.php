@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CommitController;
+use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IssueController;
 use App\Http\Controllers\MemberController;
@@ -71,6 +72,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
     Route::get('me/preferences', [PreferencesController::class, 'show']);
     Route::patch('me/preferences', [PreferencesController::class, 'update']);
+    Route::get('me/devices', [DeviceController::class, 'index']);
+    Route::delete('me/devices/others', [DeviceController::class, 'destroyOthers']);
+    Route::delete('me/devices/apps/{id}', [DeviceController::class, 'destroyToken'])->whereNumber('id');
 });
 
 // Todo lo demás exige email verificado (403 con code=email_not_verified)

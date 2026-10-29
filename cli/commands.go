@@ -54,7 +54,12 @@ func cmdLogin(args []string) error {
 		return err
 	}
 	host, _ := os.Hostname()
-	token, user, err := NewAPI(server, "").Login(email, password, "codeflow-cli ("+host+")")
+	// La app de escritorio se identifica con CODEFLOW_CLIENT=codeflow-desktop (se ve en «Dispositivos»)
+	client := os.Getenv("CODEFLOW_CLIENT")
+	if client == "" {
+		client = "codeflow-cli"
+	}
+	token, user, err := NewAPI(server, "").Login(email, password, client+" ("+host+")")
 	if err != nil {
 		return err
 	}

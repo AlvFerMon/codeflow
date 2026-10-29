@@ -79,7 +79,8 @@
                 <dl class="space-y-3 p-4 text-sm">
                     <div class="flex justify-between gap-3"><dt class="text-zinc-500 dark:text-zinc-400">Tipo de cuenta</dt><dd>@if ($user->isAdmin())<x-badge color="amber">Administrador</x-badge>@else<x-badge>Usuario</x-badge>@endif</dd></div>
                     <div class="flex justify-between gap-3"><dt class="text-zinc-500 dark:text-zinc-400">Miembro desde</dt><dd class="text-zinc-800 dark:text-zinc-200">{{ $user->created_at?->translatedFormat('j M Y') }}</dd></div>
-                    <div class="flex justify-between gap-3"><dt class="text-zinc-500 dark:text-zinc-400">Sesiones en la app</dt><dd class="text-zinc-800 dark:text-zinc-200">{{ $tokens }}</dd></div>
+                    <div class="flex justify-between gap-3"><dt class="text-zinc-500 dark:text-zinc-400">Apps conectadas</dt><dd class="text-zinc-800 dark:text-zinc-200">{{ $tokens }}</dd></div>
+                    <div class="pt-1"><a href="{{ route('profile.devices') }}" class="text-sm font-semibold text-purple-700 hover:underline dark:text-purple-300">Ver dispositivos y sesiones abiertas →</a></div>
                 </dl>
             </x-card>
 

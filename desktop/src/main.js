@@ -40,7 +40,11 @@ function isKnownRepo(dir) {
 // ── Ejecutar la CLI ─────────────────────────────────────────────────────────
 function runCli(args, { cwd, stdin } = {}) {
   return new Promise((resolve) => {
-    const child = spawn(cliPath(), args, { cwd: cwd || app.getPath('home'), windowsHide: true });
+    const child = spawn(cliPath(), args, {
+      cwd: cwd || app.getPath('home'),
+      windowsHide: true,
+      env: { ...process.env, CODEFLOW_CLIENT: 'codeflow-desktop' }, // así se distingue de la CLI en «Dispositivos»
+    });
     let stdout = '';
     let stderr = '';
     child.stdout.on('data', (d) => (stdout += d));
