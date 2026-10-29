@@ -34,11 +34,10 @@
                         <form method="POST" action="{{ route('notifications.read', $notification->id) }}">
                             @csrf
                             <button type="submit" @class([
-                                'flex w-full gap-3 border-l-4 px-4 py-4 text-left transition hover:bg-zinc-50 dark:hover:bg-zinc-800/40',
-                                'border-rose-400 bg-rose-50/70 dark:bg-rose-500/10 hover:bg-rose-50 dark:hover:bg-rose-500/10' => $isAlert,
-                                'border-purple-400' => ! $isAlert && $unread,
-                                'border-transparent' => ! $isAlert && ! $unread,
-                            ])>
+                                'flex w-full gap-3 px-4 py-4 text-left transition hover:bg-zinc-50 dark:hover:bg-zinc-800/40',
+                                'bg-rose-50/70 dark:bg-rose-500/10 hover:bg-rose-50 dark:hover:bg-rose-500/10' => $isAlert,
+                                'bg-purple-50/60 dark:bg-purple-500/10' => ! $isAlert && $unread,
+                                                            ])>
                                 <x-account-notification-icon :event="$data['event'] ?? null" :alert="$isAlert" />
                                 <span class="min-w-0 flex-1">
                                     <span class="flex flex-wrap items-center gap-2">

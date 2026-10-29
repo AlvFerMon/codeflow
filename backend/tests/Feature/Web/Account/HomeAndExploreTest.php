@@ -32,7 +32,7 @@ class HomeAndExploreTest extends TestCase
         // El panel es un resumen (métricas y repositorios); actividad y notificaciones están en la cabecera
         $this->as($this->collaborator)->get('/')->assertOk()
             ->assertSee('Mis proyectos')
-            ->assertSee('Proyecto DAM / api')
+            ->assertSeeText('Proyecto DAM / api')
             ->assertDontSee('Proyecto secreto')
             ->assertDontSee('repo-secreto')
             ->assertSee(route('activity.index'), false)
@@ -86,18 +86,19 @@ class HomeAndExploreTest extends TestCase
         ]);
 
         $html = $this->as($this->owner)->get('/')->assertOk()
-            ->assertSee('Flujo de trabajo')
-            ->assertSee('Proyecto DAM / api-backend')
-            ->assertSee('Proyecto DAM / web-publica')
+            ->assertSee('Te toca')
+            ->assertSeeText('Proyecto DAM / api-backend')
+            ->assertSeeText('Proyecto DAM / web-publica')
             ->assertDontSee('repo-ajeno')
-            ->assertSee('1 público', false)
-            ->assertSee('1 esperan tu revisión', false)
-            ->assertSee('1 de prioridad alta', false)
+            // «Te toca»: la revisión que me piden, la issue urgente y la PR fusionada esta semana
+            ->assertSee('pide tu revisión', false)
+            ->assertSee('Prioridad crítica', false)
+            ->assertSee('PR ya fusionada', false)
             ->getContent();
 
-        // KPIs: 2 repositorios, 1 PR abierta, 2 issues abiertas (las del proyecto ajeno no cuentan)
-        $this->assertMatchesRegularExpression('/Repositorios<\/p>.*?>2<\/span>/s', $html);
-        $this->assertMatchesRegularExpression('/Issues abiertas<\/p>.*?>2<\/span>/s', $html);
+        // Resumen: 2 repositorios, 1 PR abierta, 2 issues abiertas (las del proyecto ajeno no cuentan)
+        $text = preg_replace('/\s+/', ' ', strip_tags($html));
+        $this->assertStringContainsString('2 repositorios, 1 pull request abierta y 2 issues abiertas', $text);
     }
 
     public function test_guests_find_public_code_from_landing_and_explore(): void

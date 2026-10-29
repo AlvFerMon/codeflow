@@ -22,18 +22,18 @@
 
 .sek {
   /* ── 12 Design Tokens ───────────────────────────────────────────────────── */
-  --bg:        var(--color-zinc-50, #fafafa);    /* Page background reference   */
+  --bg:        var(--color-zinc-50, #F7F8FE);    /* Page background reference   */
   --font-ui:   var(--font-sans, system-ui);      /* UI typography family        */
   --g-blur:    8px;                              /* Glass backdrop blur         */
   --g-sat:     120%;                             /* Saturation boost            */
-  --ink:       #18181b;                          /* Primary text / icon: zinc-900*/
-  --ink-2:     #27272a;                          /* Secondary text: zinc-800    */
-  --ink-3:     #52525b;                          /* Placeholder: zinc-600       */
-  --ink-4:     #71717a;                          /* Subtle borders: zinc-500    */
-  --ink-5:     #d4d4d8;                          /* Inactive lens / rim: zinc-300*/
-  --ink-rgb:   24, 24, 27;                       /* RGB components for rgba()   */
+  --ink:       #101323;                          /* Primary text / icon: zinc-900*/
+  --ink-2:     #232842;                          /* Secondary text: zinc-800    */
+  --ink-3:     #4B5170;                          /* Placeholder: zinc-600       */
+  --ink-4:     #656B8A;                          /* Subtle borders: zinc-500    */
+  --ink-5:     #C4C9E0;                          /* Inactive lens / rim: zinc-300*/
+  --ink-rgb:   16, 19, 35;                       /* RGB components for rgba()   */
   --pane:      rgba(255, 255, 255, 0.75);        /* White frosted glass         */
-  --pane-edge: rgba(228, 228, 231, 0.8);         /* Glass perimeter: zinc-200 80%*/
+  --pane-edge: rgba(196, 201, 224, 0.8);         /* Glass perimeter: zinc-200 80%*/
 
   /* ── Geometry and State Variables ───────────────────────────────────────── */
   --shut:      36px;                             /* Diameter of closed circle   */
@@ -59,15 +59,15 @@
 
 /* ── Dark mode token overrides ────────────────────────────────────────────── */
 :where(.dark, .dark *) .sek {
-  --bg:        var(--color-zinc-950, #09090b);
-  --ink:       #f4f4f5;                          /* zinc-100                    */
-  --ink-2:     #e4e4e7;                          /* zinc-200                    */
-  --ink-3:     #a1a1aa;                          /* zinc-400                    */
-  --ink-4:     #71717a;                          /* zinc-500                    */
-  --ink-5:     #52525b;                          /* zinc-600                    */
-  --ink-rgb:   244, 244, 245;
-  --pane:      rgba(24, 24, 27, 0.75);           /* zinc-900 @ 75%              */
-  --pane-edge: rgba(39, 39, 42, 1);              /* zinc-800                    */
+  --bg:        var(--color-zinc-950, #0B0D1A);
+  --ink:       #EEF0FB;                          /* zinc-100                    */
+  --ink-2:     #DDE1F2;                          /* zinc-200                    */
+  --ink-3:     #8E94B0;                          /* zinc-400                    */
+  --ink-4:     #656B8A;                          /* zinc-500                    */
+  --ink-5:     #4B5170;                          /* zinc-600                    */
+  --ink-rgb:   238, 240, 251;
+  --pane:      rgba(16, 19, 35, 0.75);           /* zinc-900 @ 75%              */
+  --pane-edge: rgba(35, 40, 66, 1);              /* zinc-800                    */
 
   --g-edge-hi: 0.10;
   --g-edge-lo: 0.03;
