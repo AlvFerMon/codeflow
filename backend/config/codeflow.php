@@ -103,11 +103,11 @@ return [
     // Datos de las páginas legales (/legal/…). Cámbialos en Vercel sin tocar el código.
     'legal' => [
         'owner' => env('CODEFLOW_LEGAL_OWNER', 'El equipo de CodeFlow (Proyecto de fin de ciclo de 2.º DAM)'),
-        'email' => env('CODEFLOW_LEGAL_EMAIL', env('MAIL_FROM_ADDRESS')),
+        'email' => env('CODEFLOW_LEGAL_EMAIL'), // vacío: el texto dice que se publicará en breve
         'center' => env('CODEFLOW_LEGAL_CENTER'),
         'updated' => '30 de octubre de 2026',
         'app_region' => env('CODEFLOW_LEGAL_APP_REGION', 'Unión Europea (Dublín, Irlanda)'),
-        'db_region' => env('CODEFLOW_LEGAL_DB_REGION', 'Unión Europea'),
+        'db_region' => env('CODEFLOW_LEGAL_DB_REGION', 'Unión Europea (Irlanda)'), // proyecto de Supabase en eu-west-1
     ],
 
 ];
