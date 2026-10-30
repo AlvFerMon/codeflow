@@ -5,16 +5,18 @@ Trabaja con los repositorios de CodeFlow desde la terminal (cmd, PowerShell, bas
 servidor. **No es Git**: CodeFlow tiene su propio control de versiones (con el código cifrado en el
 servidor), y esta CLI es su cliente.
 
-## Instalación (Windows)
+## Instalación
 
-1. Copia `codeflow.exe` a una carpeta, por ejemplo `C:\Users\<tu usuario>\bin`.
-2. Añádela al `PATH` (una sola vez, en PowerShell):
-   ```powershell
-   [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$HOME\bin", "User")
-   ```
-3. Abre una terminal nueva y comprueba: `codeflow version`
+**Windows (lo más fácil):** descarga `codeflow.exe`, ábrelo con **doble clic** y responde «S». Se copia a
+`%LOCALAPPDATA%\Programs\CodeFlow` y se añade a tu PATH de usuario (sin permisos de administrador). Abre una
+terminal nueva y escribe `codeflow login`.
 
-En Linux o macOS: `chmod +x codeflow-linux && sudo mv codeflow-linux /usr/local/bin/codeflow`.
+- Desde una terminal hace lo mismo: `.\codeflow.exe install`. Para quitarlo: `codeflow uninstall`.
+- La **app de escritorio** trae la CLI dentro: botón «Usar CodeFlow en la terminal». Comparten la sesión
+  (`~/.codeflow/config.json`), así que si ya entraste en la app, la terminal también está conectada.
+
+**Linux / macOS:** `chmod +x codeflow-linux && ./codeflow-linux install` → se copia a `~/.local/bin/codeflow` y
+se añade al PATH en `~/.profile` (y `~/.zshrc` / `~/.bashrc` si existen).
 
 ## Uso
 

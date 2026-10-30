@@ -6,7 +6,7 @@ const { spawn } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
-const ALLOWED = new Set(['login', 'logout', 'whoami', 'repos', 'clone', 'status', 'commit', 'push', 'pull', 'restore', 'log', 'branch', 'checkout']);
+const ALLOWED = new Set(['login', 'logout', 'whoami', 'repos', 'clone', 'install', 'status', 'commit', 'push', 'pull', 'restore', 'log', 'branch', 'checkout']);
 
 function cliPath() {
   if (process.env.CODEFLOW_CLI) return process.env.CODEFLOW_CLI;
@@ -61,7 +61,7 @@ ipcMain.handle('cli', async (_event, { args, cwd, stdin }) => {
     return { ok: false, stderr: 'Comando no permitido.' };
   }
   // Los comandos de un repositorio solo se ejecutan en carpetas que la app conoce
-  const repoCommand = !['login', 'logout', 'whoami', 'repos', 'clone'].includes(args[0]);
+  const repoCommand = !['login', 'logout', 'whoami', 'repos', 'clone', 'install'].includes(args[0]);
   if (repoCommand && (!cwd || !isKnownRepo(cwd))) {
     return { ok: false, stderr: 'Carpeta de repositorio desconocida.' };
   }

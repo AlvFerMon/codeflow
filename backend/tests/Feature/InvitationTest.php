@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Models\Project;
 use App\Models\ProjectInvitation;
 use App\Models\User;
+use App\Notifications\ProjectActivityNotification;
 use App\Notifications\ProjectInvitationNotification;
+use App\Notifications\VerificationCode;
 use App\Services\EmailVerificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
@@ -60,24 +63,24 @@ class InvitationTest extends TestCase
         $ctx = $this->inviteViaApi($owner);
 
         $new = User::factory()->unverified()->create(['email' => 'nueva@ejemplo.com']);
-        $this->assertNull($new->roleIn(\App\Models\Project::find($ctx['project'])));
+        $this->assertNull($new->roleIn(Project::find($ctx['project'])));
 
         // Verificación por código
         app(EmailVerificationService::class)->send($new);
         $code = null;
-        Notification::assertSentTo($new, \App\Notifications\VerificationCode::class, function ($n) use (&$code) {
+        Notification::assertSentTo($new, VerificationCode::class, function ($n) use (&$code) {
             $code = $n->code;
 
             return true;
         });
         app(EmailVerificationService::class)->verify($new->fresh(), $code);
 
-        $this->assertSame('collaborator', $new->fresh()->roleIn(\App\Models\Project::find($ctx['project'])));
+        $this->assertSame('collaborator', $new->fresh()->roleIn(Project::find($ctx['project'])));
         $this->assertNotNull(ProjectInvitation::first()->accepted_at);
         $this->assertSame(0, ProjectInvitation::pending()->count());
 
         // Quien invitó recibe un aviso
-        Notification::assertSentTo($owner, \App\Notifications\ProjectActivityNotification::class);
+        Notification::assertSentTo($owner, ProjectActivityNotification::class);
     }
 
     public function test_api_login_accepts_pending_invitations_and_expired_ones_are_ignored(): void
@@ -96,9 +99,9 @@ class InvitationTest extends TestCase
         $this->postJson('/api/auth/login', ['email' => 'nueva@ejemplo.com', 'password' => 'secreto-123'])->assertOk();
         $this->postJson('/api/auth/login', ['email' => 'otra@ejemplo.com', 'password' => 'secreto-123'])->assertOk();
 
-        $project = \App\Models\Project::find($ctx['project']);
+        $project = Project::find($ctx['project']);
         $this->assertSame('collaborator', $user->fresh()->roleIn($project));
-        $this->assertNull($late->fresh()->roleIn(\App\Models\Project::where('id', '!=', $project->id)->latest('id')->first()));
+        $this->assertNull($late->fresh()->roleIn(Project::where('id', '!=', $project->id)->latest('id')->first()));
     }
 
     public function test_link_routes_guests_to_register_and_cancel_works(): void
@@ -124,7 +127,7 @@ class InvitationTest extends TestCase
 
         // Cancelar desde la web
         $invitation = ProjectInvitation::firstOrFail();
-        $project = \App\Models\Project::find($ctx['project']);
+        $project = Project::find($ctx['project']);
         $this->actingAs($owner)->get(route('members.index', $project))->assertOk()->assertSee('Invitaciones pendientes')->assertSee('nueva@ejemplo.com');
         $this->actingAs($owner)->delete(route('invitations.destroy', [$project, $invitation]))->assertRedirect();
         $this->assertSame(0, ProjectInvitation::count());

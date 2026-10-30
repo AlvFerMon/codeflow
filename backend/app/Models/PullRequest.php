@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToActiveRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PullRequest extends Model
 {
-    use \App\Models\Concerns\BelongsToActiveRepository;
+    use BelongsToActiveRepository;
 
     public const OPEN_STATES = ['open', 'in_review', 'approved', 'changes_requested'];
 

@@ -31,6 +31,10 @@ Uso: codeflow <comando> [opciones]
   repos                         Lista tus repositorios (con su url para clonar)
   version                       Versión de la CLI
 
+  install                       Instala codeflow para tu usuario y lo añade al PATH
+                                (en Windows basta con abrir codeflow.exe con doble clic)
+  uninstall                     Lo quita del PATH y borra el ejecutable instalado
+
 Opción --json: status, log, branch, repos y whoami responden en JSON (lo usa la app de escritorio).
 
 Los archivos que no quieras subir se ponen en .codeflowignore (como .gitignore).
@@ -38,6 +42,11 @@ Los archivos que no quieras subir se ponen en .codeflowignore (como .gitignore).
 
 func main() {
 	if len(os.Args) < 2 {
+		// Abierto con doble clic desde el Explorador de Windows: ofrece instalarlo y no cierra la ventana
+		if openedByDoubleClick() {
+			doubleClickWelcome()
+			return
+		}
 		fmt.Printf(usage, Version)
 		return
 	}
@@ -46,6 +55,7 @@ func main() {
 		"clone": cmdClone, "status": cmdStatus, "commit": cmdCommit,
 		"push": cmdPush, "pull": cmdPull, "restore": cmdRestore,
 		"log": cmdLog, "branch": cmdBranch, "checkout": cmdCheckout, "repos": cmdRepos,
+		"install": cmdInstall, "uninstall": cmdUninstall,
 	}
 	// --json en cualquier posición
 	var args []string

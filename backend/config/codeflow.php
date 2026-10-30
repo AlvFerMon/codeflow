@@ -87,10 +87,15 @@ return [
     |
     */
 
+    // Secreto con el que Vercel Cron llama a /api/cron/daily (CRON_SECRET en el panel de Vercel)
+    'cron_secret' => env('CRON_SECRET'),
+
     'downloads' => [
         'releases' => $downloads,
         'windows' => env('CODEFLOW_DOWNLOAD_WINDOWS', $downloads.'/latest/download/CodeFlow-Setup.exe'),
-        'android' => env('CODEFLOW_DOWNLOAD_ANDROID', $downloads.'/latest/download/CodeFlow.apk'),
+        // «Próximamente» hasta que la app esté probada. Para activarla, en Vercel:
+        // CODEFLOW_DOWNLOAD_ANDROID=https://github.com/AlvFerMon/codeflow-descargas/releases/latest/download/CodeFlow.apk
+        'android' => env('CODEFLOW_DOWNLOAD_ANDROID'),
         'cli' => env('CODEFLOW_DOWNLOAD_CLI', $downloads.'/latest/download/codeflow.exe'),
         'version' => env('CODEFLOW_DOWNLOADS_VERSION', '1.0.0'),
     ],

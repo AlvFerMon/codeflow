@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Project;
+use App\Models\ProjectMember;
 use App\Models\Repository;
 use App\Models\User;
 use App\Support\Activity;
@@ -100,7 +101,7 @@ class TrashService
      */
     public function listFor(User $user): array
     {
-        $ownedIds = \App\Models\ProjectMember::where('user_id', $user->id)->where('role', Roles::OWNER)->pluck('project_id');
+        $ownedIds = ProjectMember::where('user_id', $user->id)->where('role', Roles::OWNER)->pluck('project_id');
 
         $projects = Project::onlyTrashed()->whereIn('id', $ownedIds)
             ->withCount(['repositories' => fn ($q) => $q->withTrashed()])

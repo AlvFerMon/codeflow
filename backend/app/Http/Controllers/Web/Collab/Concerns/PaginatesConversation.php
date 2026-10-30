@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Collab\Concerns;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 /**
  * Conversaciones largas: se cargan los 20 comentarios más recientes y, con ?antes={id}, los 20
@@ -15,7 +16,7 @@ trait PaginatesConversation
     protected int $conversationPageSize = 20;
 
     /**
-     * @return array{comments: \Illuminate\Support\Collection, window: array{from: ?Carbon, to: ?Carbon}, olderId: ?int, newerUrl: bool, total: int}
+     * @return array{comments: Collection, window: array{from: ?Carbon, to: ?Carbon}, olderId: ?int, newerUrl: bool, total: int}
      */
     protected function conversationPage(Request $request, HasMany $relation): array
     {

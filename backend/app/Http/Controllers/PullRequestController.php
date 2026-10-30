@@ -209,7 +209,7 @@ class PullRequestController extends Controller
 
         $commit = $this->pullRequests->resolveConflicts(
             $pullRequest, $request->user(),
-            \App\Http\Controllers\Web\Collab\PullRequestController::resolutions($data['files']),
+            Web\Collab\PullRequestController::resolutions($data['files']),
             array_filter(['source_head' => $data['source_head'] ?? null, 'target_head' => $data['target_head'] ?? null]),
         );
 

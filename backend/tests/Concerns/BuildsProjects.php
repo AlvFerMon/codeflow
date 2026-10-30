@@ -27,7 +27,7 @@ trait BuildsProjects
         }
 
         $repo = $this->postJson("/api/projects/$project/repositories", ['name' => $repoName])->assertCreated()->json('id');
-        $main = collect($this->getJson("/api/repositories/$repo/branches")->assertOk()->json("data"))->firstWhere('name', 'main')['id'];
+        $main = collect($this->getJson("/api/repositories/$repo/branches")->assertOk()->json('data'))->firstWhere('name', 'main')['id'];
 
         return ['project' => $project, 'repo' => $repo, 'main' => $main];
     }

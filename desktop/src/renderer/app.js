@@ -178,6 +178,12 @@ $('btn-add').addEventListener('click', async () => {
   selectRepo(res.list.find((p) => p.toLowerCase() === dir.toLowerCase()) || dir);
 });
 
+// Instala la CLI que lleva la app (codeflow install): la copia a la carpeta del usuario y la añade al PATH
+$('btn-terminal').addEventListener('click', async () => {
+  const res = await action('Instalando el comando codeflow…', ['install'], { showOutput: false });
+  if (res.ok) toast('Listo. Abre una terminal nueva (PowerShell o cmd) y escribe:\n  codeflow repos');
+});
+
 // ── Vista del repositorio ───────────────────────────────────────────────────
 function renderRepo() {
   const dir = state.current;

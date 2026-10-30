@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToActiveRepository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -10,9 +11,10 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class Issue extends Model
 {
-    use \App\Models\Concerns\BelongsToActiveRepository;
+    use BelongsToActiveRepository;
 
     public const STATUSES = ['open', 'in_progress', 'resolved', 'closed'];
+
     public const PRIORITIES = ['low', 'medium', 'high', 'critical'];
 
     protected $guarded = [];

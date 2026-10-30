@@ -5,13 +5,15 @@ namespace App\Http\Controllers\Web\Code;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Code\Concerns\InteractsWithCode;
 use App\Models\Commit;
-use App\Support\DiffSelection;
 use App\Models\Repository;
+use App\Services\RepositoryService;
 use App\Services\VcsService;
+use App\Support\DiffSelection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /** Historial de commits y detalle de un commit con su diff. */
 class CommitController extends Controller
@@ -116,7 +118,7 @@ class CommitController extends Controller
     }
 
     /** Deshace el commit en una rama (formulario de la página del commit). */
-    public function revert(Request $request, Repository $repository, string $sha, \App\Services\RepositoryService $repositories)
+    public function revert(Request $request, Repository $repository, string $sha, RepositoryService $repositories)
     {
         Gate::authorize('push', $repository);
         $commit = $this->findCommit($repository, $sha);
@@ -124,7 +126,7 @@ class CommitController extends Controller
 
         try {
             $revert = $repositories->revertCommit($branch, $commit, $request->user());
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        } catch (HttpException $e) {
             return back()->with('error', $e->getMessage());
         }
 

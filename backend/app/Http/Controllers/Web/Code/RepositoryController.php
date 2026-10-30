@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Web\Code;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Web\Code\Concerns\InteractsWithCode;
 use App\Models\Blob;
+use App\Models\Branch;
 use App\Models\Commit;
 use App\Models\CommitFile;
 use App\Models\Project;
@@ -14,8 +15,8 @@ use App\Services\VcsService;
 use App\Support\Visibility;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -100,7 +101,6 @@ class RepositoryController extends Controller
                 break;
             }
         }
-
 
         return view('repositories.show', [
             'repository' => $repository,
@@ -238,7 +238,7 @@ class RepositoryController extends Controller
     /**
      * Rama, ruta normalizada y blob del archivo pedido en ?branch=&path=. 404 si no existe.
      *
-     * @return array{0:\App\Models\Branch,1:string,2:int}
+     * @return array{0:Branch,1:string,2:int}
      */
     private function locateFile(Request $request, Repository $repository): array
     {

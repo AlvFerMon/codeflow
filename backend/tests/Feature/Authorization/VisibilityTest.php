@@ -98,7 +98,7 @@ class VisibilityTest extends TestCase
         }
         $this->get("/api/branches/{$this->ctx['main']}/file?path=README.md&download=1")->assertOk()->assertDownload('README.md');
         $this->getJson("/api/repositories/{$this->ctx['repo']}")->assertJsonPath('can.push', false);
-        $this->getJson("/api/projects/{$this->ctx['project']}/repositories")->assertOk()->assertJsonCount(1, "data")->assertJsonPath("total", 1);
+        $this->getJson("/api/projects/{$this->ctx['project']}/repositories")->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('total', 1);
 
         // Escribir sigue exigiendo login
         $this->postJson("/api/repositories/{$this->ctx['repo']}/issues", ['title' => 'x'])->assertUnauthorized();

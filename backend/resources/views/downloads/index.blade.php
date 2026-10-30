@@ -45,9 +45,9 @@
             'color' => 'bg-[#9448BC]/10 text-[#9448BC] dark:text-[#C687EB]',
             'variant' => 'amethyst',
             'steps' => [
-                'Guarda codeflow.exe en una carpeta (p. ej. C:\Users\<tú>\bin) y añádela al PATH.',
-                'codeflow login '.$server,
-                'codeflow repos · codeflow clone <url del repositorio>',
+                'Abre codeflow.exe con doble clic y acepta: se instala y se añade al PATH solo (sin permisos de administrador).',
+                'Abre una terminal nueva y escribe: codeflow login '.$server,
+                'codeflow repos · codeflow clone <url del repositorio>. Si ya usas la app de escritorio, tiene el botón «Usar CodeFlow en la terminal».',
             ],
         ],
     ];

@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PreferencesController;
+use App\Http\Controllers\TrashController;
 use App\Http\Controllers\Web\Account\ActivityController;
 use App\Http\Controllers\Web\Account\ExploreController;
 use App\Http\Controllers\Web\Account\HomeController;
@@ -8,10 +12,6 @@ use App\Http\Controllers\Web\Account\MemberController;
 use App\Http\Controllers\Web\Account\NotificationController;
 use App\Http\Controllers\Web\Account\ProfileController;
 use App\Http\Controllers\Web\Account\ProjectController;
-use App\Http\Controllers\DeviceController;
-use App\Http\Controllers\OnboardingController;
-use App\Http\Controllers\PreferencesController;
-use App\Http\Controllers\TrashController;
 use Illuminate\Support\Facades\Route;
 
 // Portada, exploración, perfil, notificaciones, proyectos y miembros

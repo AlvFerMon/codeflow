@@ -6,10 +6,15 @@ use App\Ai\AiReviewer;
 use App\Ai\NullReviewer;
 use App\Ai\OllamaReviewer;
 use App\Models\User;
+use App\Services\InvitationService;
+use App\Services\OnboardingService;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
@@ -21,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Tutorial: una instancia por petición (cachea el estado entre la cabecera y el inicio)
-        $this->app->scoped(\App\Services\OnboardingService::class);
+        $this->app->scoped(OnboardingService::class);
 
         // Revisión con IA (opcional): Ollama si está activada; si no, un revisor nulo
         $this->app->bind(AiReviewer::class, fn () => config('codeflow.ai.enabled')
@@ -45,9 +50,9 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('verification-send', fn (Request $request) => Limit::perMinute(3)->by('verify-send:'.($request->user()?->id ?? $request->ip())));
 
         // Al verificar el correo o iniciar sesión en la web se aceptan las invitaciones pendientes a ese correo
-        \Illuminate\Support\Facades\Event::listen(
-            [\Illuminate\Auth\Events\Verified::class, \Illuminate\Auth\Events\Login::class],
-            fn ($event) => $event->user instanceof User ? app(\App\Services\InvitationService::class)->acceptPendingFor($event->user) : null,
+        Event::listen(
+            [Verified::class, Login::class],
+            fn ($event) => $event->user instanceof User ? app(InvitationService::class)->acceptPendingFor($event->user) : null,
         );
 
         // El administrador global puede hacerlo todo (las reglas de negocio de los servicios siguen aplicando)

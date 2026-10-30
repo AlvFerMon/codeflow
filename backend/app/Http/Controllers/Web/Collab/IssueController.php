@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\IssueService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
@@ -238,7 +239,7 @@ class IssueController extends Controller
      * Comentarios + eventos del historial (cambios de estado, asignación, etiquetas...)
      * ordenados por fecha. Los eventos de creación y de comentario ya se ven de otra forma.
      *
-     * @return Collection<int,array{type:string,at:\Illuminate\Support\Carbon,item:mixed}>
+     * @return Collection<int,array{type:string,at:Carbon,item:mixed}>
      */
     private function timeline(Issue $issue): Collection
     {

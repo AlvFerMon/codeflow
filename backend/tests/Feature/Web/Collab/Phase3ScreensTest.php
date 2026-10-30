@@ -70,7 +70,8 @@ class Phase3ScreensTest extends TestCase
         $this->get(route('branches.index', [$this->repo, 'page' => 2]))->assertOk()->assertSee('Página 2 de 2');
 
         $members = app(MembershipService::class);
-        foreach (User::factory()->count(26)->create() as $n => $user) {
+        // Nombres fijos: con nombres aleatorios alguno podía llamarse «Carlos» y romper la búsqueda
+        foreach (User::factory()->count(26)->sequence(fn ($seq) => ['name' => 'Usuario '.($seq->index + 1)])->create() as $user) {
             $members->add($this->project, $this->owner->fresh(), $user->email, Roles::OBSERVER);
         }
         $this->get(route('members.index', $this->project))->assertOk()->assertSee('29 miembros')->assertSee('Página 1 de 2');

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mismos tests contra PostgreSQL (el motor de Supabase): vendor/bin/phpunit -c phpunit.pgsql.xml -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory>tests/Feature</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>app</directory>
+        </include>
+    </source>
+    <php>
+        <!-- Los tests nunca usan las cachés ni la base de datos del contenedor Docker:
+             force="true" y también en $_SERVER, que es lo primero que lee Laravel -->
+        <server name="APP_ENV" value="testing" force="true"/>
+        <server name="APP_CONFIG_CACHE" value="bootstrap/cache/testing-config.php" force="true"/>
+        <server name="APP_ROUTES_CACHE" value="bootstrap/cache/testing-routes.php" force="true"/>
+        <server name="APP_EVENTS_CACHE" value="bootstrap/cache/testing-events.php" force="true"/>
+        <server name="DB_CONNECTION" value="pgsql" force="true"/>
+        <server name="DB_DATABASE" value="codeflow_test" force="true"/>
+        <env name="APP_CONFIG_CACHE" value="bootstrap/cache/testing-config.php" force="true"/>
+        <env name="APP_ROUTES_CACHE" value="bootstrap/cache/testing-routes.php" force="true"/>
+        <env name="APP_EVENTS_CACHE" value="bootstrap/cache/testing-events.php" force="true"/>
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4" force="true"/>
+        <env name="CODEFLOW_MASTER_KEY" value="base64:u9O+kggQXikfUlNlvyXfhDdqOriP+riBXpFYqofz3EI=" force="true"/>
+        <env name="BROADCAST_CONNECTION" value="null" force="true"/>
+        <env name="CACHE_STORE" value="array" force="true"/>
+        <env name="DB_CONNECTION" value="pgsql" force="true"/>
+        <env name="DB_DATABASE" value="codeflow_test" force="true"/>
+        <!-- DB_HOST, DB_PORT, DB_USERNAME y DB_PASSWORD salen del entorno (127.0.0.1, 5432, postgres en GitHub Actions) -->
+        <env name="DB_URL" value="" force="true"/>
+        <env name="MAIL_MAILER" value="array" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <env name="SESSION_DRIVER" value="array" force="true"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+        <env name="NIGHTWATCH_ENABLED" value="false"/>
+    </php>
+</phpunit>

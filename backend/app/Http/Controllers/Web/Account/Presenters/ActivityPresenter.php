@@ -12,6 +12,7 @@ use App\Models\Repository;
 use App\Support\Roles;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\HtmlString;
 
@@ -46,14 +47,14 @@ final class ActivityPresenter
 
     /**
      * @param  iterable<ActivityLog>  $logs
-     * @return Collection<int,array{id:int,actor:string,sentence:HtmlString,category:string,time:\Illuminate\Support\Carbon,project_id:int}>
+     * @return Collection<int,array{id:int,actor:string,sentence:HtmlString,category:string,time:Carbon,project_id:int}>
      */
     public function presentMany(iterable $logs): Collection
     {
         return collect($logs)->map(fn (ActivityLog $log) => $this->present($log));
     }
 
-    /** @return array{id:int,actor:string,sentence:HtmlString,category:string,time:\Illuminate\Support\Carbon,project_id:int} */
+    /** @return array{id:int,actor:string,sentence:HtmlString,category:string,time:Carbon,project_id:int} */
     public function present(ActivityLog $log): array
     {
         $actor = $log->user?->name ?? 'Alguien';

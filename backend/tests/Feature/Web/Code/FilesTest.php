@@ -121,7 +121,7 @@ class FilesTest extends TestCase
         // Editar (formulario precargado) y guardar
         $tree = app(VcsService::class)->tree($this->branch($repo)->head_commit_id);
         $this->get(route('files.edit', [$repo, 'branch' => 'main', 'path' => 'src/app.py']))->assertOk()
-            ->assertSee("print(&#039;hola&#039;)", false);
+            ->assertSee('print(&#039;hola&#039;)', false);
         $this->post(route('files.store', $repo), [
             'mode' => 'edit', 'branch' => 'main', 'original_path' => 'src/app.py', 'original_blob' => $tree['src/app.py'],
             'directory' => 'src', 'filename' => 'app.py', 'file_content' => "print('adiós')\n", 'message' => 'Despedida',

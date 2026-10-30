@@ -20,7 +20,7 @@ class ThreeWayMerge
      * @param  list<string>  $ours
      * @param  list<string>  $theirs
      * @return array{clean:bool, chunks:list<array{type:string,lines?:list<string>,ours?:list<string>,base?:list<string>,theirs?:list<string>}>}
-     *                                                                                                                                    type = ok | conflict
+     *                                                                                                                                           type = ok | conflict
      */
     public function merge(array $base, array $ours, array $theirs): array
     {

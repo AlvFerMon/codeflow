@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Commit;
 use App\Models\Repository;
 use App\Models\User;
+use App\Services\VcsService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\BuildsProjects;
 use Tests\TestCase;
@@ -53,7 +54,7 @@ class RevertTest extends TestCase
 
         // Deshacerlo otra vez no tiene sentido
         $this->postJson("/api/commits/$bad/revert", ['branch_id' => $main])->assertStatus(422);
-        $this->assertTrue(app(\App\Services\VcsService::class)->verifyCommit(Commit::findOrFail($revert->json('id'))));
+        $this->assertTrue(app(VcsService::class)->verifyCommit(Commit::findOrFail($revert->json('id'))));
     }
 
     public function test_conflicts_are_reported_and_nothing_changes(): void

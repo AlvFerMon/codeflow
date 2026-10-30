@@ -9,7 +9,6 @@ use App\Models\PullRequest;
 use App\Models\Repository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 

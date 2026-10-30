@@ -8,13 +8,14 @@ use App\Models\Branch;
 use App\Models\Repository;
 use App\Services\RepositoryService;
 use App\Services\VcsService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * Cambios en el código desde la web: subir archivos, crear archivos y carpetas,
@@ -308,7 +309,7 @@ class FileController extends Controller
 
         try {
             return $this->vcs->normalizePath($joined);
-        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+        } catch (HttpException $e) {
             throw ValidationException::withMessages(['filename' => $e->getMessage()]);
         }
     }

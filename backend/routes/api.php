@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\CommitController;
+use App\Http\Controllers\CronController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\IssueController;
@@ -26,6 +27,9 @@ use Illuminate\Support\Facades\Route;
 | - Escrituras y datos personales: auth:sanctum (401 sin token) y email verificado
 |   (403 con code=email_not_verified). Sin verificar se actúa como invitado en las lecturas.
 */
+
+// Tareas diarias (Vercel Cron, protegido con CRON_SECRET)
+Route::get('cron/daily', [CronController::class, 'daily'])->middleware('throttle:10,1');
 
 Route::prefix('auth')->group(function () {
     Route::post('register', [AuthController::class, 'register'])->middleware('throttle:10,1');

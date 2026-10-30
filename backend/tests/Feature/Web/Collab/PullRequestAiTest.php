@@ -6,7 +6,9 @@ use App\Ai\DiffBatcher;
 use App\Jobs\RunPullRequestAnalysis;
 use App\Models\AiAnalysis;
 use App\Services\PullRequestAnalysisService;
+use App\Services\RepositoryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -123,7 +125,7 @@ class PullRequestAiTest extends TestCase
         $this->assertSame(AiAnalysis::FAILED, AiAnalysis::latest('id')->first()->status);
         $this->get(route('pulls.show', [$this->repo, $pr->number]))->assertSee('no está descargado')->assertSee('ollama pull qwen2.5-coder:3b');
 
-        Http::fake(['ollama.test:11434/*' => fn () => throw new \Illuminate\Http\Client\ConnectionException('down')]);
+        Http::fake(['ollama.test:11434/*' => fn () => throw new ConnectionException('down')]);
         $this->post(route('pulls.ai.store', [$this->repo, $pr->number]));
         $this->assertStringContainsString('No se pudo conectar', AiAnalysis::latest('id')->first()->error);
     }
@@ -198,7 +200,7 @@ class PullRequestAiTest extends TestCase
         $texts = implode('', array_column($result['batches'], 'text'));
         $this->assertLessThanOrEqual(60000, strlen($texts));
         // El pequeño entra entero; los grandes, recortados en un salto de línea y con aviso
-        $this->assertStringContainsString("    5 + ", $texts);
+        $this->assertStringContainsString('    5 + ', $texts);
         $this->assertStringContainsString('líneas más de este archivo sin revisar', $texts);
         foreach ($result['batches'] as $batch) {
             $this->assertLessThanOrEqual(20000, strlen($batch['text']));
@@ -217,7 +219,7 @@ class PullRequestAiTest extends TestCase
 
         $this->buildCollabProject();
         $branch = $this->makeBranch('feature/varios', 'src/A.php', "<?php\n".str_repeat("echo 1;\n", 30));
-        app(\App\Services\RepositoryService::class)->commitChanges($branch->fresh(), $this->dev->fresh(), 'Más archivos', [
+        app(RepositoryService::class)->commitChanges($branch->fresh(), $this->dev->fresh(), 'Más archivos', [
             ['path' => 'src/B.php', 'content' => "<?php\n".str_repeat("echo 2;\n", 30)],
             ['path' => 'composer.lock', 'content' => '{}'],
         ]);

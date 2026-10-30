@@ -16,6 +16,7 @@ use App\Vcs\ObjectStore;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Fachada del motor de control de versiones sobre la base de datos.
@@ -402,6 +403,7 @@ class VcsService
                 }
                 if ($current !== $new) {
                     $conflicts[] = $path; // ha vuelto a cambiar después: no se pisa
+
                     continue;
                 }
                 if ($old === null) {
@@ -417,7 +419,7 @@ class VcsService
             }
             abort_if($tree == $head, 422, 'Los cambios de ese commit ya están deshechos en esta rama.');
 
-            $summary = \Illuminate\Support\Str::of((string) $commit->message)->before("\n")->limit(120);
+            $summary = Str::of((string) $commit->message)->before("\n")->limit(120);
             $message = "Deshace «{$summary}»\n\nDeshace el commit ".substr($commit->sha, 0, 7).'.';
 
             $revert = $this->createCommit($locked->repository_id, [$locked->head_commit_id], $tree, $author, $message);
@@ -429,7 +431,7 @@ class VcsService
     }
 
     /** Ramas que contienen el commit (para ofrecer dónde deshacerlo). */
-    public function branchesContaining(Commit $commit): \Illuminate\Support\Collection
+    public function branchesContaining(Commit $commit): Collection
     {
         $graph = $this->graph($commit->repository_id);
 

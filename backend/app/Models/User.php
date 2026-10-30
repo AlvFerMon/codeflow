@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\EmailVerificationService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -57,7 +58,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /** El correo de verificación lleva un código de 6 dígitos (no un enlace). */
     public function sendEmailVerificationNotification(): void
     {
-        app(\App\Services\EmailVerificationService::class)->send($this);
+        app(EmailVerificationService::class)->send($this);
     }
 
     /** Nº de notificaciones sin leer, calculado una sola vez por petición (cabecera y página). */

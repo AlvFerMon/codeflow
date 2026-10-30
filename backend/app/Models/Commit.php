@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\RepositoryEncrypted;
+use App\Models\Concerns\BelongsToActiveRepository;
 use App\Models\Concerns\OrdersRepositoryAttributes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,8 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class Commit extends Model
 {
-    use \App\Models\Concerns\BelongsToActiveRepository;
-
+    use BelongsToActiveRepository;
     use OrdersRepositoryAttributes;
 
     protected $guarded = [];

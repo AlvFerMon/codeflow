@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\EmailVerificationService;
+use App\Services\InvitationService;
+use App\Support\Preferences;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -56,7 +59,7 @@ class AuthController extends Controller
         }
 
         // Invitaciones pendientes a su correo (si alguien le invitó antes de tener cuenta)
-        app(\App\Services\InvitationService::class)->acceptPendingFor($user);
+        app(InvitationService::class)->acceptPendingFor($user);
 
         return response()->json([
             'user' => $user,
@@ -72,7 +75,7 @@ class AuthController extends Controller
     }
 
     /** Verifica el email con el código de 6 dígitos recibido por correo. */
-    public function verifyEmail(Request $request, \App\Services\EmailVerificationService $verification): JsonResponse
+    public function verifyEmail(Request $request, EmailVerificationService $verification): JsonResponse
     {
         $data = $request->validate(['code' => 'required|string|max:20']);
 
@@ -100,7 +103,7 @@ class AuthController extends Controller
         $user = $request->user();
 
         // Las preferencias solo se devuelven aquí (no en los listados donde aparecen otros usuarios)
-        return response()->json([...$user->toArray(), 'preferences' => \App\Support\Preferences::for($user)]);
+        return response()->json([...$user->toArray(), 'preferences' => Preferences::for($user)]);
     }
 
     public function updateProfile(Request $request): JsonResponse

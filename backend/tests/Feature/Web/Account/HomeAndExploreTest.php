@@ -3,6 +3,7 @@
 namespace Tests\Feature\Web\Account;
 
 use App\Models\PullRequest;
+use App\Models\Repository;
 use App\Models\User;
 use App\Services\IssueService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -128,7 +129,7 @@ class HomeAndExploreTest extends TestCase
         $this->get('/explore?orden=inventado')->assertSessionHasErrors('orden');
 
         // Repo público visto por un invitado: aviso con acceso a login y registro
-        $repo = \App\Models\Repository::where('name', 'web-publica')->first();
+        $repo = Repository::where('name', 'web-publica')->first();
         $this->get(route('repositories.show', $repo))->assertOk()
             ->assertSee('Estás viendo un repositorio público.')
             ->assertSee(route('register'));

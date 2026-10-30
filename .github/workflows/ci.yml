@@ -1,0 +1,146 @@
+# Integración continua: en cada push y pull request se comprueba que todo sigue funcionando.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (tests ${{ matrix.db }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [sqlite, pgsql]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: codeflow_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_sqlite, pdo_pgsql, sodium, zip
+          coverage: none
+
+      - name: Caché de Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ hashFiles('backend/composer.lock') }}
+
+      - run: composer install --no-interaction --prefer-dist --no-progress
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Compilar el front (Vite + Tailwind)
+        run: npm ci && npm run build
+
+      - name: Preparar .env
+        run: cp .env.example .env && php artisan key:generate
+
+      - name: Estilo del código (Pint)
+        if: matrix.db == 'sqlite'
+        run: vendor/bin/pint --test
+
+      - name: Tests (SQLite)
+        if: matrix.db == 'sqlite'
+        run: php artisan test
+
+      - name: Tests (PostgreSQL)
+        if: matrix.db == 'pgsql'
+        run: vendor/bin/phpunit -c phpunit.pgsql.xml
+
+  cli:
+    name: CLI (Go)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: cli/go.mod
+      - run: go vet ./...
+      - run: go build ./...
+      - name: Compila para Windows
+        run: GOOS=windows GOARCH=amd64 go build -o /tmp/codeflow.exe .
+
+  # Tras pasar los tests en main: aplica las migraciones nuevas en Supabase (si está configurado el secreto
+  # SUPABASE_DB_URL en GitHub › Settings › Secrets and variables › Actions). Así no hay que copiar SQL a mano.
+  migrate:
+    name: Migraciones en Supabase
+    needs: [backend, cli]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DB_CONNECTION: pgsql
+      DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      VERCEL_DEPLOY_HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK }}
+    steps:
+      - name: ¿Está configurado?
+        id: check
+        working-directory: .
+        run: |
+          if [ -z "$DB_URL" ]; then
+            echo "Sin SUPABASE_DB_URL: no se migra (ver docs/CI.md)." >> "$GITHUB_STEP_SUMMARY"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.check.outputs.enabled == 'true'
+
+      - uses: shivammathur/setup-php@v2
+        if: steps.check.outputs.enabled == 'true'
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_pgsql, sodium
+          coverage: none
+
+      - name: Dependencias (sin las de desarrollo)
+        if: steps.check.outputs.enabled == 'true'
+        run: composer install --no-interaction --prefer-dist --no-progress --no-dev
+
+      - name: Migrar
+        if: steps.check.outputs.enabled == 'true'
+        run: |
+          cp .env.example .env && php artisan key:generate --force
+          php artisan migrate --force --no-interaction
+          php artisan migrate:status | tail -5 >> "$GITHUB_STEP_SUMMARY"
+
+      # Opcional: desplegar en Vercel después de migrar (y desactivar el despliegue automático de Vercel)
+      - name: Desplegar en Vercel
+        if: steps.check.outputs.enabled == 'true' && env.VERCEL_DEPLOY_HOOK != ''
+        run: curl -fsS -X POST "$VERCEL_DEPLOY_HOOK" > /dev/null && echo "Despliegue en Vercel lanzado." >> "$GITHUB_STEP_SUMMARY"

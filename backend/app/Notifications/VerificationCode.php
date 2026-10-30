@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
 /** Correo con el código de 6 dígitos para verificar el email. */
 class VerificationCode extends Notification
@@ -24,7 +25,7 @@ class VerificationCode extends Notification
             ->subject('Tu código de verificación de CodeFlow: '.$this->code)
             ->greeting('¡Hola, '.$notifiable->name.'!')
             ->line('Este es tu código para verificar tu email en CodeFlow:')
-            ->line(new \Illuminate\Support\HtmlString('<p style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;margin:24px 0;font-family:monospace;">'.e($this->code).'</p>'))
+            ->line(new HtmlString('<p style="font-size:32px;font-weight:700;letter-spacing:8px;text-align:center;margin:24px 0;font-family:monospace;">'.e($this->code).'</p>'))
             ->line('Escríbelo en la pantalla de verificación. Caduca en '.$this->minutes.' minutos.')
             ->line('Si no has creado ninguna cuenta en CodeFlow, ignora este mensaje.')
             ->salutation('El equipo de CodeFlow');
