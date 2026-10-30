@@ -201,7 +201,9 @@ class VcsService
     {
         $normalized = trim(str_replace('\\', '/', trim($path)), '/');
 
-        if ($normalized === '' || strlen($normalized) > 255) {
+        // Sin caracteres de control y sin la carpeta interna de la CLI (como git con .git)
+        if ($normalized === '' || strlen($normalized) > 255 || preg_match('/[\x00-\x1F\x7F]/', $normalized)
+            || strcasecmp(explode('/', $normalized)[0], '.codeflow') === 0) {
             abort(422, "Ruta de archivo no válida: {$path}");
         }
         foreach (explode('/', $normalized) as $segment) {

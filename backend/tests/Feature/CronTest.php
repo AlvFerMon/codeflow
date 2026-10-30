@@ -38,11 +38,15 @@ class CronTest extends TestCase
         ]);
         DB::table('sessions')->insert(['id' => str_repeat('s', 40), 'user_id' => $owner->id, 'payload' => '', 'last_activity' => now()->subDays(2)->timestamp]);
 
+        $owner->createToken('codeflow-cli viejo')->accessToken->forceFill(['last_used_at' => now()->subDays(200)])->save();
+        $owner->createToken('codeflow-cli nuevo');
+
         $this->travel(31)->days();
         $this->getJson('/api/cron/daily', ['Authorization' => 'Bearer x'])->assertOk()
             ->assertJsonPath('done.trash_purged', 1)
             ->assertJsonPath('done.invitations_deleted', 1)
-            ->assertJsonPath('done.sessions_deleted', 1);
+            ->assertJsonPath('done.sessions_deleted', 1)
+            ->assertJsonPath('done.tokens_deleted', 1);
 
         $this->assertNull(Project::withTrashed()->find($ctx['project']));
         $this->artisan('codeflow:daily')->assertSuccessful();

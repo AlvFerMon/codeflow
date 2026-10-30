@@ -123,7 +123,7 @@ class EmailVerificationTest extends TestCase
 
         // Cambiar el email de una cuenta verificada obliga a verificarlo de nuevo
         $verified = User::factory()->create(['name' => 'Ana']);
-        $this->actingAs($verified)->put('/profile', ['name' => 'Ana', 'email' => 'ana.nueva@codeflow.test']);
+        $this->actingAs($verified)->put('/profile', ['name' => 'Ana', 'email' => 'ana.nueva@codeflow.test', 'email_password' => 'password']);
         $this->assertFalse($verified->fresh()->hasVerifiedEmail());
     }
 

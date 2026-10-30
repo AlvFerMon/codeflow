@@ -17,6 +17,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
@@ -43,6 +44,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Los ids de la URL son números: /projects/abc da 404 en vez de un error de PostgreSQL (500)
+        Route::patterns(array_fill_keys(['project', 'repository', 'branch', 'commit', 'issue', 'pullRequest', 'invitation', 'user'], '[0-9]+'));
+
         // Límites propios de la verificación del email (con clave por acción para no compartir el contador)
         RateLimiter::for('verification-code', fn (Request $request) => Limit::perMinute(10)->by('verify-code:'.($request->user()?->id ?? $request->ip())));
         // Explorar: límite solo para visitantes (los usuarios con sesión ya están identificados)

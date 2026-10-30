@@ -37,6 +37,13 @@ class DemoSeeder extends Seeder
             return;
         }
 
+        // En producción no hay contraseñas por defecto (las de abajo están publicadas en el repositorio)
+        if (app()->isProduction() && (! env('SEED_ADMIN_PASSWORD') || ! env('SEED_DEMO_PASSWORD') || ! filter_var(env('CODEFLOW_SEED_DEMO'), FILTER_VALIDATE_BOOL))) {
+            $this->command?->error('En producción los datos de prueba solo se cargan con CODEFLOW_SEED_DEMO=true y SEED_ADMIN_PASSWORD / SEED_DEMO_PASSWORD definidas.');
+
+            return;
+        }
+
         $adminPassword = env('SEED_ADMIN_PASSWORD', 'Admin-CodeFlow-2026');
         $demoPassword = env('SEED_DEMO_PASSWORD', 'Demo-CodeFlow-2026');
 

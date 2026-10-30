@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/fs"
 	"os"
 	"path"
@@ -256,7 +257,23 @@ func diffViews(from, to map[string]string) []FileChange {
 
 // ── Escritura en disco ──────────────────────────────────────────────────────
 
+// safeRel comprueba que una ruta que llega del servidor no se sale de la carpeta del repositorio
+// (../, rutas absolutas, unidades de Windows) ni pisa la carpeta interna .codeflow.
+func safeRel(rel string) error {
+	clean := path.Clean(strings.ReplaceAll(rel, "\\", "/"))
+	first := strings.SplitN(clean, "/", 2)[0]
+	if rel == "" || clean == "." || strings.HasPrefix(clean, "/") || clean == ".." || strings.HasPrefix(clean, "../") ||
+		strings.Contains(first, ":") || filepath.IsAbs(filepath.FromSlash(clean)) || strings.EqualFold(first, metaDir) ||
+		strings.ContainsAny(rel, "\x00") {
+		return fmt.Errorf("ruta no permitida en el repositorio: %q", rel)
+	}
+	return nil
+}
+
 func (s *State) writeFile(rel string, content []byte) error {
+	if err := safeRel(rel); err != nil {
+		return err
+	}
 	p := s.abs(rel)
 	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
 		return err
@@ -265,6 +282,9 @@ func (s *State) writeFile(rel string, content []byte) error {
 }
 
 func (s *State) removeFile(rel string) error {
+	if err := safeRel(rel); err != nil {
+		return err
+	}
 	p := s.abs(rel)
 	if err := os.Remove(p); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return err

@@ -8,7 +8,7 @@ Route::middleware(['auth', 'verified'])->prefix('m')->name('mobile.')->group(fun
     Route::get('/', [MobileController::class, 'activity'])->name('activity');
     Route::get('notificaciones', [MobileController::class, 'notifications'])->name('notifications');
     Route::post('notificaciones/leer-todas', [MobileController::class, 'readAllNotifications'])->name('notifications.readAll');
-    Route::post('notificaciones/{id}/leer', [MobileController::class, 'readNotification'])->name('notifications.read');
+    Route::post('notificaciones/{id}/leer', [MobileController::class, 'readNotification'])->whereUuid('id')->name('notifications.read');
     Route::get('proyectos', [MobileController::class, 'projects'])->name('projects');
     Route::get('cuenta', [MobileController::class, 'account'])->name('account');
     Route::get('completa', [MobileController::class, 'useFullVersion'])->name('full');

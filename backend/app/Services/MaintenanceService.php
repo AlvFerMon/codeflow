@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
  */
 class MaintenanceService
 {
+    public const TOKEN_IDLE_DAYS = 180;
+
     public function __construct(private TrashService $trash) {}
 
     /** @return array<string,int> qué se ha hecho */
@@ -27,6 +29,11 @@ class MaintenanceService
                 ? DB::connection(config('session.connection'))->table(config('session.table', 'sessions'))
                     ->where('last_activity', '<', now()->subMinutes((int) config('session.lifetime', 120))->timestamp)->delete()
                 : 0,
+            // Apps conectadas (tokens de la CLI, escritorio o Android) sin usarse en 6 meses
+            'tokens_deleted' => DB::table('personal_access_tokens')
+                ->where(fn ($q) => $q->where('last_used_at', '<', now()->subDays(self::TOKEN_IDLE_DAYS))
+                    ->orWhere(fn ($q) => $q->whereNull('last_used_at')->where('created_at', '<', now()->subDays(self::TOKEN_IDLE_DAYS))))
+                ->delete(),
             // Códigos de restablecer contraseña caducados
             'password_resets_deleted' => DB::table('password_reset_tokens')
                 ->where('created_at', '<', now()->subMinutes((int) config('auth.passwords.users.expire', 60)))->delete(),

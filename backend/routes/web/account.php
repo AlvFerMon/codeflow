@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\DeviceController;
+use App\Http\Controllers\LegalController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PreferencesController;
 use App\Http\Controllers\TrashController;
@@ -19,6 +21,9 @@ Route::get('/', HomeController::class)->name('home');
 Route::get('explore', ExploreController::class)->middleware('throttle:explore')->name('explore');
 Route::view('descargas', 'downloads.index')->name('downloads');
 
+// Páginas legales (públicas: también para invitados, móviles y cuentas sin verificar)
+Route::get('legal/{page}', LegalController::class)->where('page', 'privacidad|cookies|terminos|aviso-legal')->name('legal');
+
 // Enlace del correo de invitación (público: lleva a crear la cuenta o, con sesión, al proyecto)
 Route::get('invitations/{token}', InvitationController::class)->middleware('throttle:20,1')->name('invitations.show');
 
@@ -31,6 +36,8 @@ Route::middleware('auth')->group(function () {
     Route::get('profile/devices', [DeviceController::class, 'index'])->name('profile.devices');
     Route::delete('profile/devices/others', [DeviceController::class, 'destroyOthers'])->name('profile.devices.others');
     Route::delete('profile/devices/apps/{id}', [DeviceController::class, 'destroyToken'])->whereNumber('id')->name('profile.devices.token');
+    Route::get('profile/export', [AccountController::class, 'export'])->middleware('throttle:5,1')->name('profile.export');
+    Route::delete('profile', [AccountController::class, 'destroy'])->middleware('throttle:5,1')->name('profile.destroy');
     Route::delete('profile/devices/web/{id}', [DeviceController::class, 'destroySession'])->where('id', '[A-Za-z0-9]{20,100}')->name('profile.devices.session');
 });
 
@@ -51,7 +58,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readAll');
-    Route::post('notifications/{id}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::post('notifications/{id}/read', [NotificationController::class, 'read'])->whereUuid('id')->name('notifications.read');
 
     Route::get('projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');

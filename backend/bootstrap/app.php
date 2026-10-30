@@ -4,11 +4,14 @@ use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\OptionalSanctum;
 use App\Http\Middleware\RedirectUnverifiedUsers;
 use App\Http\Middleware\RequireLoginOnPhones;
+use App\Http\Middleware\SecurityHeaders;
 use App\Http\Middleware\ServerTiming;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -41,11 +44,21 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Métricas de rendimiento (solo con APP_DEBUG=true)
         $middleware->prepend(ServerTiming::class);
+
+        // Cabeceras de seguridad (iframes, tipos MIME, referer…) en todas las respuestas
+        $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // La API no dice qué modelo no existe («No query results for model [App\\Models\\…]»)
+        $exceptions->render(function (NotFoundHttpException $e, Request $request) {
+            if ($e->getPrevious() instanceof ModelNotFoundException && ($request->is('api/*') || $request->expectsJson())) {
+                return response()->json(['message' => 'No encontrado.'], 404);
+            }
+        });
 
         // En Vercel el log de cada petición se recorta y se pierde el mensaje del error: allí se escribe
         // solo un resumen corto (sin la traza completa). Devolver false evita el log normal.

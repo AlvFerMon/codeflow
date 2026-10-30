@@ -25,7 +25,7 @@ class ProfilePagesTest extends TestCase
         $user = User::factory()->create();
         $other = User::factory()->create();
 
-        $this->actingAs($user)->put('/profile', ['name' => 'Nombre Nuevo', 'email' => 'nuevo@codeflow.test'])
+        $this->actingAs($user)->put('/profile', ['name' => 'Nombre Nuevo', 'email' => 'nuevo@codeflow.test', 'email_password' => 'password'])
             ->assertRedirect(route('profile.edit'))->assertSessionHas('status');
         $this->assertSame('Nombre Nuevo', $user->fresh()->name);
         $this->assertSame('nuevo@codeflow.test', $user->fresh()->email);

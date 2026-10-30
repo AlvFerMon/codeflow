@@ -22,6 +22,12 @@
         <div class="mt-6 flex justify-center">
             @include('layouts._theme-switch')
         </div>
+        <nav class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400" aria-label="Información legal">
+            <a href="{{ route('legal', 'privacidad') }}" class="hover:underline">Privacidad</a>
+            <a href="{{ route('legal', 'cookies') }}" class="hover:underline">Cookies</a>
+            <a href="{{ route('legal', 'terminos') }}" class="hover:underline">Condiciones</a>
+            <a href="{{ route('legal', 'aviso-legal') }}" class="hover:underline">Aviso legal</a>
+        </nav>
     </main>
     @include('layouts._confirm-dialog')
 </body>

@@ -7,6 +7,12 @@
         <x-input label="Correo electrónico" name="email" type="email" :value="is_string(request('email')) ? request('email') : null" required autocomplete="username" />
         <x-password-strength label="Contraseña" name="password" required autocomplete="new-password" minlength="8" />
         <x-input label="Repite la contraseña" name="password_confirmation" type="password" required autocomplete="new-password" minlength="8" />
+        <p class="text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            Al crear la cuenta confirmas que tienes al menos 14 años y aceptas las
+            <a href="{{ route('legal', 'terminos') }}" target="_blank" class="font-semibold underline">condiciones de uso</a>.
+            Tratamos tus datos para darte el servicio: lee la
+            <a href="{{ route('legal', 'privacidad') }}" target="_blank" class="font-semibold underline">política de privacidad</a>.
+        </p>
         <x-button variant="purple" size="lg" class="w-full">Crear cuenta</x-button>
     </form>
     <p class="mt-6 text-center text-sm text-zinc-600 dark:text-zinc-400">

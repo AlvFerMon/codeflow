@@ -117,6 +117,15 @@ class AuthController extends Controller
             'password' => 'sometimes|string|min:8|confirmed',
         ]);
 
+        // Cambiar el correo también pide la contraseña actual (un token robado no basta para quedarse la cuenta)
+        $emailChanged = isset($data['email']) && strcasecmp($data['email'], $user->email) !== 0;
+        if ($emailChanged && ! Hash::check((string) ($data['current_password'] ?? ''), $user->password)) {
+            throw ValidationException::withMessages(['current_password' => ['Para cambiar el correo escribe tu contraseña actual.']]);
+        }
+        if (isset($data['email']) && ! $emailChanged) {
+            unset($data['email']);
+        }
+
         if (isset($data['password']) && ! Hash::check($data['current_password'], $user->password)) {
             throw ValidationException::withMessages(['current_password' => ['La contraseña actual no es correcta.']]);
         }

@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RedirectUnverifiedUsers
 {
-    private const ALLOWED = ['verification.notice', 'verification.verify', 'verification.send', 'verification.email', 'logout'];
+    private const ALLOWED = ['verification.notice', 'verification.verify', 'verification.send', 'verification.email', 'logout', 'legal'];
 
     public function handle(Request $request, Closure $next): Response
     {

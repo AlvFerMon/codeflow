@@ -264,4 +264,6 @@
     .markdown blockquote { @apply border-l border-zinc-300 pl-4 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400; }
     .markdown table { @apply w-full border-collapse text-left; }
     .markdown th, .markdown td { @apply border border-zinc-200 px-2 py-1 dark:border-zinc-800; }
+    .markdown.legal table { @apply block overflow-x-auto; }
+    .markdown.legal th { @apply bg-zinc-50 font-semibold dark:bg-zinc-800/60; }
 }

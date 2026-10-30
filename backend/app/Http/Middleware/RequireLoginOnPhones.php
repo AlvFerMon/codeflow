@@ -17,7 +17,7 @@ class RequireLoginOnPhones
 {
     private const ALLOWED = [
         'login', 'login.store', 'register', 'register.store',
-        'password.request', 'password.email', 'password.reset', 'password.reset.query', 'password.update',
+        'password.request', 'password.email', 'password.reset', 'password.reset.query', 'password.update', 'legal',
     ];
 
     public function handle(Request $request, Closure $next): Response

@@ -177,6 +177,10 @@
                 @endunless
                 <a href="{{ route('downloads') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Descargas</a>
                 <a href="https://github.com/AlvFerMon/codeflow" target="_blank" rel="noopener" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Repositorio en GitHub</a>
+                <a href="{{ route('legal', 'privacidad') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Privacidad</a>
+                <a href="{{ route('legal', 'cookies') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Cookies</a>
+                <a href="{{ route('legal', 'terminos') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Condiciones</a>
+                <a href="{{ route('legal', 'aviso-legal') }}" class="transition-colors hover:text-zinc-900 dark:hover:text-zinc-100">Aviso legal</a>
                 @guest
                     @include('layouts._theme-switch')
                 @endguest

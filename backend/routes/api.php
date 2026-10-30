@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BranchController;
@@ -73,6 +74,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('auth/email/verification-notification', [AuthController::class, 'resendVerification'])->middleware('throttle:verification-send');
     Route::get('me', [AuthController::class, 'me']);
     Route::put('me', [AuthController::class, 'updateProfile']);
+    Route::get('me/export', [AccountController::class, 'export'])->middleware('throttle:5,1');
+    Route::delete('me', [AccountController::class, 'destroy'])->middleware('throttle:5,1');
     Route::put('me/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
     Route::get('me/preferences', [PreferencesController::class, 'show']);
     Route::patch('me/preferences', [PreferencesController::class, 'update']);
@@ -99,7 +102,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::get('me/notifications', [NotificationController::class, 'index']);
     Route::get('me/notifications/unread-count', [NotificationController::class, 'unreadCount']);
     Route::post('me/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
-    Route::post('me/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('me/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->whereUuid('id');
 
     // Proyectos y miembros
     Route::apiResource('projects', ProjectController::class)->names('api.projects');

@@ -31,13 +31,22 @@ class ProfileController extends Controller
     {
         $user = $request->user();
 
+        // Cambiar el correo pide la contraseña: con una sesión robada no se puede secuestrar la cuenta
+        $emailChanged = strcasecmp(trim((string) $request->input('email')), $user->email) !== 0;
         $data = $request->validate([
             'name' => 'required|string|max:100',
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'email_password' => [Rule::requiredIf($emailChanged), 'nullable', 'string', 'current_password'],
         ], [
             'name.required' => 'El nombre es obligatorio.',
             'email.unique' => 'Ya existe otra cuenta con ese correo.',
+            'email_password.required' => 'Para cambiar el correo escribe tu contraseña actual.',
+            'email_password.current_password' => 'La contraseña no es correcta.',
         ]);
+        unset($data['email_password']);
+        if (! $emailChanged) {
+            $data['email'] = $user->email; // mismo correo (quizá con otras mayúsculas): no hay que volver a verificarlo
+        }
 
         $user->update($data);
 
